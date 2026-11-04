@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch",
+      "Edit(/project/**)",
+      "Edit(/wiki/**)",
+      "Edit(/reviews/**)",
+      "Edit(/report/**)",
+      "Edit(/panel/**)"
+    ],
+    "deny": [
+      "Edit(/decisions/**)",
+      "Edit(/raw/**)",
+      "Edit(/harness/**)"
+    ]
+  }
+}
