@@ -80,6 +80,8 @@
 
   function create(host, opts) {
     const MAX_U = (opts && opts.maxUnit) || 48; // AttentionBar draws smaller than the full panel
+    const DESK_REST = !!(opts && opts.deskRest); // AttentionBar: resting agents mostly stay at their desk
+    const ROAM = !!(opts && opts.roamLead);     // AttentionBar: the Lead (you) walks between desks instead of sitting
     const root = document.createElement('div');
     root.className = 'drawing';
     const scene = svg('svg', { class: 'axo', role: 'img', 'aria-label': 'Axonometric drawing of the team office' });
@@ -225,6 +227,7 @@
     }
     function drawBoard() {
       // the task board hangs on the inner face of the left wall, beside the Lead
+      if (ROAM) return;
       const reqs = ((task && task.requirements) || []).slice(0, 8);
       const y0 = 0.3, y1 = 2.55, z0 = 0.22, z1 = 1.14, x = 0.0;
       svg('polygon', { class: 'board', points: pts([P(x, y0, z0), P(x, y1, z0), P(x, y1, z1), P(x, y0, z1)]) }, lay.walls);
@@ -298,6 +301,7 @@
     }
     function drawDesk(id) {
       const d = plan.desks[id], col = colorsFor(plan, id);
+      if (d.roam) return;
       const g = svg('g', { class: 'furn desk', 'data-id': id, 'data-room': d.room }, lay.things);
       g._depth = d.desk.x + d.desk.w / 2 + d.desk.y + d.desk.d;
       box(g, d.chair, [col[1], mix(col[1], '#1B1F23', 0.18), mix(col[1], '#1B1F23', 0.28)], 'chair');
@@ -338,7 +342,7 @@
     function drawRoutes() {
       ((S && S.roles) || []).forEach((r) => {
         const a = plan.desks[r.id], b = plan.desks[r.handsTo || 'lead'];
-        if (!a || !b || r.handsTo === r.id) return;
+        if (!a || !b || b.roam || r.handsTo === r.id) return;
         const path = [a.stand].concat(M.gridRoute(plan, a.stand, b.visit));
         svg('polyline', { class: 'route', 'data-route': r.id, points: pts(path.map((p) => P(p.x, p.y, 0.01))) }, lay.routes);
         const e = P(b.visit.x, b.visit.y, 0.01);
@@ -556,6 +560,19 @@
     }
     const ringSpot = (i) => (lounge.party.ring[i] ? Object.assign({ id: 'ring-' + i, kind: 'ring' }, lounge.party.ring[i]) : null);
     const overSpots = () => (lounge ? lounge.overflow.map((p, i) => Object.assign({ id: 'over-' + i, kind: 'over' }, p)) : []);
+    // Resting (done or idle) agents sit at their own desk, not typing; now and then a short coffee/sofa break, then back.
+    function restAtDesk(f, instant) {
+      f.station = null; f.activity = null; f.arrived = false; f.breakUntil = 0;
+      atSeat(f, instant, ['sit', f.state === 'done' ? 'done' : 'idle']);
+      f.nextAct = reduced() ? Infinity : Date.now() + 15000 + Math.random() * 25000;
+    }
+    function restTick(f, now) {
+      if (f.go || !f.nextAct || now < f.nextAct || party.active) return;
+      if (f.breakUntil) { restAtDesk(f, false); f.nextAct = now + 25000 + Math.random() * 35000; return; } // break over: back to the desk
+      const s = lounge && Math.random() < 0.35 && M.pickStation(lounge, occupied(), { id: f.id, state: 'done' }, { teamBusy: true, rng: rngFor(f) });
+      if (s) { goStation(f, s, false); f.breakUntil = f.nextAct = now + 15000 + Math.random() * 20000; return; }
+      f.nextAct = now + 15000 + Math.random() * 25000;
+    }
     function toIdle(f, instant) { // before a run: people rest in the lounge, without after-work props
       const spots = lounge ? lounge.stations.concat(overSpots()) : [];
       if (!spots.length) return atSeat(f, instant, ['sit', 'idle']);
@@ -626,16 +643,41 @@
       if (instant) { f.x = s.x; f.y = s.y; placeFig(f); setCls(f, cls); return; }
       goTo(f, s, () => setCls(f, cls));
     }
+    // The boss's walk: first to whoever needs you, else to whoever is working; a short stop beside their desk, then on.
+    function roam(f) {
+      clearTimeout(f.roamT);
+      if (!plan || !plan.desks[f.id] || f.state === 'idle') return;
+      const others = members().filter((id) => !plan.desks[id].roam);
+      const stOf = (id) => statusOf(id).state;
+      let pool = others.filter((id) => stOf(id) === 'flagged');
+      if (!pool.length) pool = others.filter((id) => stOf(id) === 'working');
+      if (!pool.length) pool = others;
+      if (pool.length > 1) pool = pool.filter((id) => id !== f.visiting);
+      const id = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+      f.visiting = id;
+      const v = id && plan.desks[id].visit, to = id ? { x: v.x + 0.4, y: v.y + 0.42 } : plan.desks[f.id].seat; // front-right of their desk, clear of the chair
+      goTo(f, to, () => {
+        setCls(f, id ? (stOf(id) === 'flagged' ? ['stand', 'face-l', 'talk'] : ['stand', 'face-l']) : ['stand']);
+        f.roamT = setTimeout(() => roam(f), (id && stOf(id) === 'flagged' ? 9000 : 5000) + Math.random() * 5000);
+      });
+    }
     function enter(f, st, instant) {
-      clearTimeout(f.timer); clearTimeout(f.later);
+      clearTimeout(f.timer); clearTimeout(f.later); clearTimeout(f.roamT);
       f.station = null; f.activity = null; f.nextAct = 0; f.arrived = false;
       const d = plan.desks[f.id];
+      if (d.roam && st.state !== 'idle') {
+        if (instant) { f.x = d.seat.x; f.y = d.seat.y; placeFig(f); }
+        setCls(f, st.state === 'flagged' ? ['stand', 'raise'] : ['stand']);
+        f.roamT = setTimeout(() => roam(f), instant ? 400 : 1200);
+        return;
+      }
       switch (st.state) {
         case 'draft': f.x = d.seat.x; f.y = d.seat.y; placeFig(f); setCls(f, ['sit', 'ghost']); return;
-        case 'idle': return toIdle(f, instant);
+        case 'idle': return DESK_REST && !d.roam ? restAtDesk(f, instant) : toIdle(f, instant);
         case 'working': f.nextThink = Date.now() + 4000 + Math.random() * 6000; return atSeat(f, instant, ['sit', 'type']);
         case 'flagged': return atSeat(f, instant, ['stand', 'raise', 'flag']);
         case 'done': // lean back with a tick; then (if the party is not starting) stretch and go for coffee
+          if (DESK_REST) return restAtDesk(f, instant);
           if (instant || reduced()) { atSeat(f, true, ['sit', 'done']); if (teamBusy()) afterWork(f, true); return; }
           atSeat(f, false, ['sit', 'done']);
           f.later = setTimeout(() => {
@@ -685,6 +727,7 @@
         }
       });
       if (lounge && !party.active) Object.values(figs).forEach((f) => { // one after-work action per 8–16 s
+        if (DESK_REST) { if ((f.state === 'done' || f.state === 'idle') && !(plan.desks[f.id] || {}).roam) restTick(f, now); return; }
         if (f.state === 'done' && f.nextAct && !f.go && now >= f.nextAct) afterWork(f, false);
       });
       const c0 = figAt('chat-0'), c1 = figAt('chat-1'), chatting = c0 && c1 && c0.arrived && c1.arrived;
@@ -710,7 +753,7 @@
       if (nextSig !== sig) {
         sig = nextSig;
         S = a.structure;
-        plan = M.planOffice(mode === 'empty' ? null : S);
+        plan = M.planOffice(mode === 'empty' ? null : S, { roamLead: ROAM });
         lounge = M.loungeLayout(plan, members().length);
         const keep = figs;
         figs = {};
@@ -719,6 +762,7 @@
           const old = keep[id];
           figs[id] = old || { id, x: plan.door.x, y: plan.door.y, path: [], cls: [], state: null, key: null };
           if (!old || entering) { const s = entering ? plan.door : plan.desks[id].seat; figs[id].x = s.x; figs[id].y = s.y; figs[id].key = null; figs[id].state = null; }
+          else { old.key = null; old.moved = true; old.station = null; } // desks were re-planned: walk to the new place, never stay on someone else's
           figs[id].enterDelay = entering ? 900 + i * 420 : 0;
         });
         Object.keys(keep).forEach((id) => { if (!figs[id] && keep[id].g) keep[id].g.remove(); });
@@ -739,7 +783,8 @@
         const key = M.statusKey(st);
         if (key === f.key) return;
         const instant = (first || f.state === null) && !entering && !f.enterDelay;
-        const same = f.state === st.state && !f.go && (st.state === 'working' || st.state === 'flagged');
+        const same = !f.moved && f.state === st.state && !f.go && (st.state === 'working' || st.state === 'flagged');
+        f.moved = false;
         f.key = key; f.state = st.state;
         if (same) return;
         if (f.enterDelay) { const dl = f.enterDelay; f.enterDelay = 0; f.timer = setTimeout(() => enter(f, statusOf(id), false), dl); return; }

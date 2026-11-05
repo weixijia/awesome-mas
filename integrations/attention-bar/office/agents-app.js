@@ -8,7 +8,7 @@
   const $ = (s) => document.querySelector(s);
   const BUSY = ['working', 'flagged', 'handoff'];
   const MAX_ROOMS = 6;
-  const office = window.MASOffice.create($('#drawing-host'), { onSelect: select, maxUnit: 26 });
+  const office = window.MASOffice.create($('#drawing-host'), { onSelect: select, maxUnit: 26, roamLead: true, deskRest: true });
   const timing = {}, prev = {};
   let lastSig = '', sessionOf = {}, since = {};
 
@@ -24,8 +24,13 @@
     });
   }
 
+  // Keep each session in the order it first appeared, so desks don't reshuffle when states change.
+  const firstSeen = {};
+  let seenN = 0;
   function build(feed) {
-    const sessions = (feed && feed.sessions) || [];
+    const sessions = ((feed && feed.sessions) || []).slice();
+    sessions.forEach((x) => { if (firstSeen[x.id] == null) firstSeen[x.id] = seenN++; });
+    sessions.sort((a, b) => firstSeen[a.id] - firstSeen[b.id]);
     const areas = [];
     sessions.forEach((x) => { if (!areas.includes(x.area)) areas.push(x.area); });
     const roomOf = (a) => { const i = areas.indexOf(a); return i < MAX_ROOMS - 1 || areas.length <= MAX_ROOMS ? 'g' + i : 'g' + (MAX_ROOMS - 1); };

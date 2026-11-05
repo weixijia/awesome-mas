@@ -298,8 +298,9 @@
       stack: { x: x + 1.42, y: y + 0.42 }
     };
   }
-  function planOffice(s) {
+  function planOffice(s, o) {
     const P = PLAN, roles = (s && s.roles) || [];
+    const roam = !!(o && o.roamLead); // AttentionBar: the boss has no office and walks between desks
     const list = orderGroups(s).map((g) => ({ g, members: roles.filter((r) => r.group === g.id) })).filter((z) => z.members.length);
     const orphans = roles.filter((r) => !list.some((z) => z.g.id === r.group));
     if (orphans.length) list.push({ g: { id: '?', label: 'No group yet', after: null }, members: orphans });
@@ -315,12 +316,15 @@
       x += w + P.GAP; rowH = Math.max(rowH, h); maxX = Math.max(maxX, x - P.GAP);
     });
     const empty = !s;
-    const W = empty ? P.LEAD_W : Math.max(maxX, P.LEAD_W + P.GAP + P.LOUNGE_MIN);
+    const W = empty ? P.LEAD_W : Math.max(maxX, roam ? P.LOUNGE_MIN + 1.4 : P.LEAD_W + P.GAP + P.LOUNGE_MIN);
     const D = list.length ? y + rowH : P.BACK;
-    rooms.unshift({ kind: 'lead', id: 'lead', x0: 0, y0: 0, x1: P.LEAD_W, y1: P.BACK });
-    if (!empty) rooms.splice(1, 0, { kind: 'lounge', id: 'lounge', x0: P.LEAD_W + P.GAP, y0: 0, x1: W, y1: P.BACK });
-    desks.lead = Object.assign({ room: 'lead', index: -1 }, deskSpots(1.1, 0.5));
-    const lx0 = P.LEAD_W + P.GAP, spots = [];
+    const lx0 = roam ? 0 : P.LEAD_W + P.GAP, spots = [];
+    if (!roam) rooms.unshift({ kind: 'lead', id: 'lead', x0: 0, y0: 0, x1: P.LEAD_W, y1: P.BACK });
+    if (!empty) rooms.splice(roam ? 0 : 1, 0, { kind: 'lounge', id: 'lounge', x0: lx0, y0: 0, x1: W, y1: P.BACK });
+    if (roam) { // no desk: a spot in the main aisle is home base; the desk box is only a label anchor and is never drawn
+      const home = { x: 0.9, y: P.BACK + P.GAP / 2 };
+      desks.lead = Object.assign({ room: 'lounge', index: -1, roam: true }, deskSpots(0.1, P.BACK - 1.4), { seat: home, stand: home, visit: home });
+    } else desks.lead = Object.assign({ room: 'lead', index: -1 }, deskSpots(1.1, 0.5));
     if (!empty) {
       for (let k = 0; k < 2; k++) spots.push({ x: lx0 + 0.75 + k * 0.7, y: 0.82, pose: 'bench' });
       spots.push({ x: W - 0.9, y: 1.55, pose: 'counter' }, { x: W - 2.45, y: 2.25, pose: 'counter' });
