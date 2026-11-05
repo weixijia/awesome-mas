@@ -2,6 +2,7 @@
 name: research
 description: Find cited evidence (papers, code, products, cases) on a technical topic for the team's project and file it in the wiki. Use when the student asks what already exists, or whether there is code, research or a product for something.
 argument-hint: "[topic]"
+disallowed-tools: Bash PowerShell
 ---
 
 # /research — find and file evidence

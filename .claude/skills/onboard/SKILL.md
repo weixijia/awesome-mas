@@ -2,6 +2,7 @@
 name: onboard
 description: Interview the student team about their thesis project and their assistant's job, and write project/brief.md, team.md, constraints.md and assistant.md. Use at the start, or when the project changes.
 disable-model-invocation: true
+disallowed-tools: Bash PowerShell
 ---
 
 # /onboard — build the project memory
@@ -17,8 +18,8 @@ Goal: capture the team's project **in their own words**, so every later answer i
    3. What should the prototype physically or digitally *do*? Describe one moment of use.
    4. Which technologies or materials do you imagine using, if any?
    5. Team skills: for each member, rate 0–3 for electronics, coding, CAD/3D, fabrication, ML/data, user research.
-   6. Which equipment and budget can you access (workshops, labs, approximate £)?
-   7. Timeline: where are you now, and when must a working prototype exist?
+   6. Which equipment and budget can you access (workshops, labs, approximate £), and roughly how many hours a week can the team spend?
+   7. Timeline: where are you now, and when must a working prototype exist? Any ethics or privacy issues (testing with people, personal or health data, cameras or sensors in homes)?
    8. Which part are you least sure about?
    9. What should your assistant do for you? Show the five cards from the table at the top of `handouts/function-cards.md` (F, P, U, B, X — one line each) and ask them to pick one. F is the default if they are unsure.
 4. While interviewing, do not suggest improvements, alternatives or features. If an answer is unclear, ask at most one follow-up.

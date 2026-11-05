@@ -2,6 +2,7 @@
 name: feasibility
 description: Rate whether the team's idea is technically achievable and how hard it is, component by component, using the shared rubric and the team's own reviewer agents. Use when the student asks "can this be built?" or "how hard is this?".
 argument-hint: "[idea — leave empty to use project/brief.md]"
+disallowed-tools: Bash PowerShell
 ---
 
 # /feasibility — technical feasibility review
