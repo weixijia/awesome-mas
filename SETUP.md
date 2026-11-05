@@ -11,18 +11,17 @@ List the folder.
 
 ## 2. Download awesome-mas into this folder
 
-Use the first method that works. Ask the student to approve the command if your tool asks.
+Run **one** command — it downloads and unpacks everything (including hidden files such as `.claude/`) straight into this folder, so the student approves only once:
 
-- **git available:** clone into a temporary sub-folder, then move its contents (including hidden files) up into this folder and delete the temporary sub-folder:
-  `git clone --depth 1 https://github.com/weixijia/awesome-mas.git .awesome-mas-download`
-- **No git — macOS / Linux:**
-  `curl -L -o awesome-mas.zip https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip && unzip -q awesome-mas.zip`
-  then move everything from `awesome-mas-main/` (including hidden files such as `.claude/`) into this folder and delete `awesome-mas-main/` and `awesome-mas.zip`.
-- **No git — Windows (PowerShell):**
-  `Invoke-WebRequest https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip -OutFile awesome-mas.zip; Expand-Archive awesome-mas.zip -DestinationPath .`
-  then move everything from `awesome-mas-main\` into this folder and delete `awesome-mas-main\` and `awesome-mas.zip`.
+- **macOS / Linux:**
+  `curl -sL https://github.com/weixijia/awesome-mas/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1`
+- **Windows (PowerShell or CMD, Windows 10+):**
+  `curl.exe -sL -o awesome-mas.tar.gz https://github.com/weixijia/awesome-mas/archive/refs/heads/main.tar.gz && tar -xzf awesome-mas.tar.gz --strip-components=1 && del awesome-mas.tar.gz`
+  (In PowerShell, run the three parts one after another if `&&` is not accepted.)
 
-**If downloading fails** (no internet access for commands, or your tool blocks it): tell the student to download
+If your tool blocks internet access for commands but can ask the student to allow it, ask once and retry.
+
+**If downloading still fails**: tell the student to download
 https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip in their browser, unzip it, move everything inside `awesome-mas-main` into this folder, and then type `next`.
 
 ## 3. Check the files
