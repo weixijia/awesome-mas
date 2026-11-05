@@ -1,0 +1,10 @@
+{
+  "window_minutes": 10,
+  "work_paths": ["~/work", "~/code/my-company-repo"],
+  "personal_paths": ["~/personal"],
+  "ignore_paths": [],
+  "ignore_session_ids": [],
+  "work_context": "Describe your work in one or two sentences so the coach can tell work sessions from personal ones, e.g. 'I am a product designer working on the Acme web app (Figma, the acme-web repo). Personal: video editing, side projects.'",
+  "work_apps": ["Figma", "Terminal", "Slack"],
+  "input_idle_seconds": 30
+}
