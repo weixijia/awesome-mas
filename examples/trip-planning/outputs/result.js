@@ -109,5 +109,23 @@ window.MAS_RESULT = {
       "by": "budget-clash-checker",
       "text": "MUDE price, complete meals, routes and transfers need confirmation."
     }
+  ],
+  "work": [
+    {
+      "by": "budget-clash-checker",
+      "summary": "- **Both actual trip totals remain unverified.** The proposed allocations add up correctly to €449 each, below the task's strict €450 limit. They are not dated prices or proof tha…\n- Person 1: flights €160 + room €100 + tax €8 + food €75 + museums €18 + Lisbon travel €15 + London transfers €35 = €411; reserve €38 gives **€449**.\n- Person 2: flights €160 + room €100 + tax €8 + food €75 + museums €18 + Lisbon travel €15 + London transfers €35 = €411; reserve €38 gives **€449**.\n- Together: **€898**, including €76 reserve. The room allocation is €200 total for two nights, divided equally. Reserve is already included; it cannot be added again. There is €1 …"
+    },
+    {
+      "by": "day-planner",
+      "summary": "- **Proposed spending limits total €449 each, including €38 reserve; actual affordability remains unverified.** Friday–Sunday and two nights are proposals; March dates/year remain…\n- Travel allowances do not establish route feasibility. Confirm walking distances/suitability, full airport transfers and airline reporting requirements once dates, flights and ro…\n- Friday's €25 covers all meals, drinks and airport food. Saturday's covers lunch, dinner and extras; Sunday's covers lunch, dinner and airport food. Saturday/Sunday breakfast dep…\n- Each person: €160 + €100 + €8 + €75 + €18 + €15 + €35 = €411; €411 + €38 = €449. A final total of €450 or more fails the strict under-€450 requirement. Compared with run 1, this…"
+    },
+    {
+      "by": "sights-finder",
+      "summary": "- The budget is now €450 each; dates and year are still TBD. Published regular hours below do not establish a particular March weekend. All visit durations are planning estimates.…\n- A possible Saturday sequence is Fado 10:00–11:30, MUDE 13:00–15:00 and Campo de Ourique early dinner 18:00–19:30. These are suggested slots, not a chosen itinerary; travel times…\n- The two standard museum admissions total €18 each (€5 + €13), or €20 with MUDE's combined ticket. The higher budget does not require choosing the upgrade. MUDE direct access fai…\n- Findings: Two museum and two market options refreshed with six source cards."
+    },
+    {
+      "by": "travel-finder",
+      "summary": "- No dated return-flight or room quote is verified because March dates and year remain TBD. Friday–Sunday and two nights are proposed planning assumptions only. Both flights must …\n- These are allocations to guide searching, not estimated market quotes: flights €160 + room €100 + tax €8 + food €75 + sights €18 + Lisbon transport €15 + London transfers €35 + …\n- Promotional March flight is Thursday evening, so cannot anchor Friday's daytime itinerary. No confirmed qualifying pair or return fare.\n- Room headline rate cannot establish dates, final taxes or twin availability."
+    }
   ]
 };

@@ -1,4 +1,5 @@
-/* awesome-mas · MAS Office — UI, data loading and writing. */
+/* awesome-mas · live panel — a read-only drawing sheet of the student's team.
+   Everything is controlled in the student's AI assistant; this page only reads the project files. */
 (function () {
   'use strict';
   const M = window.MASModel;
@@ -8,720 +9,461 @@
   const params = new URLSearchParams(location.search);
   let ROOT = params.get('root') || '../';
   if (!ROOT.endsWith('/')) ROOT += '/';
+  // ?root= (examples) and ?demo=1 show one fixed project; otherwise home/projects.js says which MAS to follow.
+  const FIXED = !!params.get('root') || params.get('demo') === '1';
 
   const FILES = { env: 'mas/env.js', state: 'mas/state.js', task: 'me/task.js', structure: 'mas/structure.js', result: 'outputs/result.js' };
   const GLOBALS = { env: 'MAS_ENV', state: 'MAS_STATE', task: 'MAS_TASK', structure: 'MAS_STRUCTURE', result: 'MAS_RESULT' };
-  const FS_OK = typeof window.showDirectoryPicker === 'function';
-  const ICONS = {
-    'web search': '<svg viewBox="0 0 16 16" class="ico"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.8 8h12.4M8 1.8c-3 3.4-3 9 0 12.4M8 1.8c3 3.4 3 9 0 12.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>',
-    'read my files': '<svg viewBox="0 0 16 16" class="ico"><path d="M1.5 4.2c0-.8.6-1.4 1.4-1.4h3.3l1.5 1.6h5.4c.8 0 1.4.6 1.4 1.4v6.6c0 .8-.6 1.4-1.4 1.4H2.9c-.8 0-1.4-.6-1.4-1.4z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
+  const BUSY = ['working', 'flagged', 'handoff'];
+  const STEPS = ['Describe', 'Design', 'Refine & lock', 'Run'];
+  const GROUP = ['#E04E2A', '#2B57B5', '#D89A12', '#5E8C57', '#8E4C8A', '#1F8A84'];
+  const ICON = {
+    warn: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2 14.6 13.6H1.4Z" fill="#D89A12" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 6.4v3.4M8 11.4v.4" stroke="#1B1F23" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    tick: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" fill="#5E8C57" stroke="#1B1F23" stroke-width="1.2"/><path d="M4.6 8.2 7 10.6l4.4-5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="square"/></svg>',
+    back: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3.5M7.5 3.5 3 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    panel: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 2.75h12.5v10.5H1.75zM10.25 2.75v10.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    globe: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.8 8h12.4M8 1.8c-3 3.4-3 9 0 12.4M8 1.8c3 3.4 3 9 0 12.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    folder: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.25h4.5l1.5 1.5h6.5v8H1.75z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
   };
-
+  const narrow = () => window.innerWidth <= 1100;
   const S = {
-    demo: params.get('demo') === '1', data: {}, statuses: {}, history: {}, draft: null, writing: false,
-    dir: null, stored: null, connected: false, loading: false, lastChange: 0, loadedOnce: false, warnings: {},
-    view: params.get('view'), userView: !!params.get('view'), selected: null, drawer: null, sigs: {}
+    demo: params.get('demo') === '1', data: {}, statuses: {}, history: {}, feed: [], timing: {}, run: { start: 0, end: 0 },
+    sigs: {}, lastChange: 0, loadedOnce: false, warnings: {}, selected: null, phase: undefined,
+    sidebar: params.get('sidebar') ? params.get('sidebar') === 'open' : !narrow(), userSidebar: !!params.get('sidebar'), autoRun: undefined,
+    home: null, current: undefined, index: false
   };
-
-  /* ---------- small helpers ---------- */
-  function copyText(text) {
-    const fallback = () => {
-      const ta = document.createElement('textarea');
-      ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
-      document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); } catch (e) { /* ignore */ }
-      ta.remove();
-    };
-    try { if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).catch(fallback); else fallback(); } catch (e) { fallback(); }
+  // A different MAS is now followed: everything per project starts over, as if the page had just opened.
+  function resetProject() {
+    Object.assign(S, { data: {}, statuses: {}, history: {}, feed: [], timing: {}, run: { start: 0, end: 0 }, sigs: {}, selected: null,
+      phase: undefined, warnings: {}, loadedOnce: false, autoRun: undefined });
+    document.body.classList.remove('isolate', 'wide-side');
+    office.reset();
   }
-  let toastTimer = 0;
-  function toast(html, copy) {
-    const t = $('#toast');
-    t.innerHTML = '<span>' + html + '</span>' + (copy ? '<button class="btn btn-sm" data-copy="' + esc(copy) + '">Copy <code>' + esc(copy) + '</code></button>' : '') + '<button class="toast-x" aria-label="Close">×</button>';
-    t.hidden = false;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { t.hidden = true; }, 7000);
-  }
-  const savedToast = () => toast('Saved. Now type <code>next</code> in your assistant.', 'next');
-  document.addEventListener('click', (e) => {
-    const c = e.target.closest('[data-copy]');
-    if (c) { copyText(c.dataset.copy); const old = c.innerHTML; c.innerHTML = 'Copied ✓'; setTimeout(() => { c.innerHTML = old; }, 1400); }
-    if (e.target.closest('.toast-x')) $('#toast').hidden = true;
-  });
-  const chip = (id, task, extra) => {
-    const r = ((task && task.requirements) || []).find((x) => x.id === id);
-    return '<span class="chip ' + (extra || '') + '" title="' + esc(r ? r.text : 'Not in your task') + '">' + esc(id) + '</span>';
-  };
-  const copyBtn = (cmd) => '<button class="btn btn-sm" data-copy="' + esc(cmd) + '">Copy <code>' + esc(cmd) + '</code></button>';
 
-  /* ---------- reading data files ---------- */
-  function loadScript(path) {
+  /* ---------- reading data files (script tags work on file://) ---------- */
+  function loadScript(path, url) {
     return new Promise((resolve) => {
       $$('script[data-mas="' + path + '"]').forEach((s) => s.remove());
       const s = document.createElement('script');
       s.dataset.mas = path;
-      s.src = ROOT + path + '?t=' + Date.now();
+      s.src = (url || ROOT + path) + '?t=' + Date.now();
       let done = false;
-      const fin = (st) => { if (done) return; done = true; clearTimeout(timer); resolve(st); };
+      const fin = (st) => { if (!done) { done = true; clearTimeout(timer); resolve(st); } };
       const timer = setTimeout(() => fin('missing'), 4000);
       s.onload = () => fin('ok');
       s.onerror = () => fin('missing');
       document.head.appendChild(s);
     });
   }
-  async function handleFor(path, create) {
-    const parts = path.split('/');
-    let dir = S.dir;
-    for (const p of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(p, { create: !!create });
-    return dir.getFileHandle(parts[parts.length - 1], { create: !!create });
-  }
-  async function readText(path) {
-    try { return await (await (await handleFor(path)).getFile()).text(); } catch (e) { return null; }
-  }
-  async function writeText(path, text) {
-    const fh = await handleFor(path, true);
-    const w = await fh.createWritable();
-    await w.write(text);
-    await w.close();
-  }
-  async function readData(path, globalName, statusId) {
-    if (S.connected) {
-      const text = await readText(path);
-      if (text == null) return { st: 'missing' };
-      try {
-        const win = M.evalDataFile(text);
-        return { st: 'ok', value: statusId ? (win.MAS_STATUS || {})[statusId] : win[globalName] };
-      } catch (e) { return { st: 'broken' }; }
-    }
+  async function readData(path, globalName, statusId, url) {
     if (!statusId) window[globalName] = undefined;
-    const st = await loadScript(path);
+    const st = await loadScript(path, url);
     const value = statusId ? (window.MAS_STATUS || {})[statusId] : window[globalName];
     // Loaded but assigned nothing → a typo while the assistant was writing: keep the last good version.
     return { st: st === 'ok' && value === undefined ? 'broken' : st, value };
   }
-
+  let loading = false;
   async function poll() {
-    if (S.loading) return;
-    S.loading = true;
+    if (loading) return;
+    loading = true;
     try {
+      if (!FIXED && !(await followHome())) return; // index sheet: no project to read
       const next = {}, warnings = {};
       await Promise.all(Object.keys(FILES).map(async (k) => {
+        if (k === 'env' && S.home) { // shared tool test in home/, falling back to the MAS's own copy
+          const h = await readData('home/env.js', 'MAS_ENV', null, '../home/env.js');
+          if (h.st === 'ok') { next.env = M.clone(h.value); return; }
+        }
         const r = await readData(FILES[k], GLOBALS[k]);
         if (r.st === 'broken') { warnings[FILES[k]] = true; next[k] = S.data[k]; } else next[k] = M.clone(r.value);
       }));
-      if (S.writing) next.structure = S.data.structure;
       let statuses = S.statuses;
       if (!S.demo) {
         statuses = {};
         const s = next.structure;
         if (s && s.locked) {
-          if (!S.connected) window.MAS_STATUS = {};
+          window.MAS_STATUS = {};
           const ids = ['lead'].concat((s.roles || []).map((r) => r.id));
           await Promise.all(ids.map(async (id) => {
             const path = 'mas/status/' + id + '.js';
             const r = await readData(path, 'MAS_STATUS', id);
-            if (r.st === 'broken') { warnings[path] = true; statuses[id] = S.statuses[id]; } else if (r.value) statuses[id] = M.clone(r.value);
+            if (r.st === 'broken') { warnings[path] = true; if (S.statuses[id]) statuses[id] = S.statuses[id]; } else if (r.value) statuses[id] = M.clone(r.value);
           }));
         }
       }
       S.warnings = warnings;
       apply(next, statuses);
-    } finally { S.loading = false; }
+    } finally { loading = false; }
   }
-  // Compare content (never file timestamps, which agents often get wrong).
-  const sigOf = (v, isStatus) => JSON.stringify(isStatus ? Object.keys(v || {}).sort().map((k) => [k, v[k] && [v[k].state, v[k].say, v[k].to, v[k].flag]]) : v);
-  function apply(next, statuses) {
-    const changed = {};
-    Object.keys(FILES).forEach((k) => { const sg = sigOf(next[k]); if (sg !== S.sigs[k]) { changed[k] = true; S.sigs[k] = sg; } });
-    const ss = sigOf(statuses, true);
-    if (ss !== S.sigs.statuses) { changed.statuses = true; S.sigs.statuses = ss; }
-    S.data = next;
-    S.statuses = statuses || {};
-    if (Object.keys(changed).length) {
-      if (S.loadedOnce || Object.values(next).some(Boolean)) S.lastChange = Date.now();
-      Object.keys(S.statuses).forEach((id) => M.pushSay(S.history, id, S.statuses[id]));
-      render(changed, !S.loadedOnce);
+  // Read home/projects.js; returns true when a project should be read (current set, or legacy single-project folder).
+  async function followHome() {
+    window.MAS_HOME = undefined;
+    const st = await loadScript('home/projects.js', '../home/projects.js');
+    const home = st === 'ok' && window.MAS_HOME === undefined ? S.home : st === 'ok' ? M.normalizeHome(window.MAS_HOME) : null;
+    const homeSig = sigOf(home);
+    const cur = home ? home.current : '';
+    if (cur !== S.current) { if (S.current !== undefined) resetProject(); S.current = cur; }
+    const homeChanged = homeSig !== S.sigs.home;
+    S.home = home; S.sigs.home = homeSig;
+    ROOT = !home ? '../' : '../' + home.current + '/';
+    S.index = !!home && !home.current;
+    if (!S.index) return true;
+    const env = await readData('home/env.js', 'MAS_ENV', null, '../home/env.js');
+    const envSig = sigOf(env.value);
+    if (homeChanged || envSig !== S.sigs.env || !S.loadedOnce) {
+      S.data = { env: M.clone(env.value) }; S.sigs.env = envSig; S.loadedOnce = true; S.lastChange = Date.now();
+      render();
     }
-    S.loadedOnce = true;
-    renderUpdated();
+    return false;
+  }
+  const sigOf = (v) => JSON.stringify(v);
+  const statusSig = (st) => sigOf(Object.keys(st).sort().map((id) => [id, M.statusKey(st[id]), st[id].progress]));
+  function apply(next, statuses) {
+    let changed = false;
+    Object.keys(FILES).forEach((k) => { const sg = sigOf(next[k]); if (sg !== S.sigs[k]) { changed = true; S.sigs[k] = sg; } });
+    S.data = next;
+    if (!S.demo) {
+      const ss = statusSig(statuses);
+      if (ss !== S.sigs.statuses) { changed = true; S.sigs.statuses = ss; trackStatuses(statuses); }
+    }
+    const phase = next.state && next.state.phase;
+    if (phase !== S.phase) {
+      if (S.phase !== undefined && phase) S.feed.unshift({ id: null, state: 'phase', say: M.phaseLine(next), at: Date.now() });
+      S.phase = phase;
+    }
+    if (changed || !S.loadedOnce) {
+      if (S.loadedOnce || Object.values(next).some(Boolean)) S.lastChange = Date.now();
+      S.loadedOnce = true;
+      render();
+    }
+  }
+  // Feed, message history and the panel's own clocks (agents' timestamps are not trusted).
+  function trackStatuses(next) {
+    const now = Date.now();
+    Object.keys(next).forEach((id) => {
+      const cur = next[id], prev = S.statuses[id];
+      if (M.statusKey(cur) === M.statusKey(prev)) return;
+      const t = S.timing[id] || (S.timing[id] = {});
+      if (BUSY.includes(cur.state) && (!t.start || t.end)) { t.start = now; t.end = 0; }
+      if (cur.state === 'done' && t.start && !t.end) t.end = now;
+      if (cur.state === 'idle') delete S.timing[id];
+      if (cur.say || cur.flag) S.feed.unshift({ id, state: cur.state, say: cur.say, flag: cur.flag, to: cur.to, at: now });
+      M.pushSay(S.history, id, cur);
+    });
+    S.feed.length = Math.min(S.feed.length, 30);
+    const vals = Object.values(next);
+    if (!vals.length || vals.every((v) => v.state === 'idle')) S.run = { start: 0, end: 0 };
+    else if (vals.some((v) => v.state !== 'idle' && v.state !== 'done') && (!S.run.start || S.run.end)) S.run = { start: now, end: 0 };
+    if (S.run.start && !S.run.end && next.lead && next.lead.state === 'done') S.run.end = now;
+    S.statuses = next;
   }
 
   /* ---------- effective data ---------- */
   function data() {
-    if (S.demo && !S.data.structure) return Object.assign({}, M.DEMO_DATA, { result: S.data.result || null });
-    return S.data;
-  }
-  const struct = () => S.draft || data().structure || null;
-  const canEdit = () => { const s = struct(); return !!s && !s.locked && !S.demo; };
-  const progress = () => M.deriveProgress(data());
-
-  /* ---------- connection (File System Access API, Chrome/Edge) ---------- */
-  function idb(mode, fn) {
-    return new Promise((resolve, reject) => {
-      let req;
-      try { req = indexedDB.open('awesome-mas-office', 1); } catch (e) { reject(e); return; }
-      req.onupgradeneeded = () => req.result.createObjectStore('kv');
-      req.onerror = () => reject(req.error);
-      req.onsuccess = () => {
-        try {
-          const tx = req.result.transaction('kv', mode), r = fn(tx.objectStore('kv'));
-          tx.oncomplete = () => resolve(r && r.result);
-          tx.onerror = () => reject(tx.error);
-        } catch (e) { reject(e); }
-      };
+    if (!S.demo) return S.data;
+    const base = S.data.structure ? S.data : M.DEMO_DATA;
+    const leadDone = S.statuses.lead && S.statuses.lead.state === 'done';
+    const result = base.result || null;
+    return Object.assign({}, base, {
+      state: { step: 4, phase: leadDone ? 'done' : 'running', next: 'A replay of an example run.', locked: true },
+      result: result ? Object.assign({}, result, { work: M.normalizeWork(result.work).length ? result.work : M.demoWork(base.structure) }) : null
     });
   }
-  async function useHandle(dir) {
-    S.dir = dir; S.connected = true; S.stored = null; S.draft = null; S.sigs = {};
-    try { await idb('readwrite', (st) => st.put(dir, 'project')); } catch (e) { /* keep working without persistence */ }
-    renderConn();
-    await poll();
+  const struct = () => data().structure || null;
+  function resultInfo() {
+    const d = data(), r = d.result;
+    if (!r) return null;
+    const leadDone = S.statuses.lead && S.statuses.lead.state === 'done';
+    const phase = d.state && d.state.phase;
+    const busy = Object.values(S.statuses).some((x) => x.state !== 'done' && x.state !== 'idle');
+    const ready = S.demo ? leadDone : phase === 'done' || leadDone || (!phase && !busy);
+    return ready ? { r, key: S.demo ? 'demo-' + demoLoop + '-' + (S.replays || 0) : String(r.run != null ? r.run : r.title) } : null; // a demo replay is a new run
   }
-  async function connect() {
-    let dir;
-    try { dir = await window.showDirectoryPicker({ mode: 'readwrite', id: 'awesome-mas' }); } catch (e) {
-      if (e && e.name !== 'AbortError') toast('Could not open the folder: ' + esc(e.message));
+  function modeInfo() {
+    const env = data().env, m = env && env.subagents;
+    if (m === 'parallel') return { key: 'parallel', short: 'Real agents', long: 'real agents, each with its own context', tip: 'Each role runs as its own agent with its own context; roles in the same group work at the same time.' };
+    if (m === 'sequential') return { key: 'sequential', short: 'Role-play', long: 'role-play, one assistant plays each role in turn', tip: 'The drawing still shows each role at its own desk, but they are not separate agents: one assistant plays every role, one after another.' };
+    return null;
+  }
+
+  /* ---------- helpers ---------- */
+  const cache = new WeakMap();
+  function setHTML(node, html) { if (cache.get(node) !== html) { cache.set(node, html); node.innerHTML = html; } }
+  const num = (t) => '<span class="num">' + esc(t) + '</span>';
+  const rid = (id, task) => {
+    const r = ((task && task.requirements) || []).find((x) => x.id === id);
+    return '<span class="rid" data-req="' + esc(id) + '" title="' + esc(r ? r.text : 'Not in your task') + '">' + esc(id) + '</span>';
+  };
+  const resolveLink = (u) => ROOT + 'outputs/' + u.replace(/^\.\//, ''); // relative to outputs/ (formats.md)
+  const md = (text) => M.renderMarkdown(text || '', { resolveLink });
+  const nameOf = (s, id) => { if (!id) return 'Update'; const m = s && M.member(s, id); return m ? m.name : id === 'lead' ? 'Lead' : id; };
+  const groupColor = (s, gid) => { const i = M.orderGroups(s).findIndex((g) => g.id === gid); return GROUP[(i < 0 ? 0 : i) % GROUP.length]; };
+  const clock = M.formatClock;
+  const stamp = (at) => (S.run.start && at >= S.run.start ? clock(at - S.run.start) : new Date(at).toTimeString().slice(0, 5));
+
+  /* ---------- top rule + status sentence ---------- */
+  // Step of a listed MAS: "04 Run", or "done" once its result is in.
+  const stepOf = (p) => (p.phase === 'done' ? 'done' : p.step ? num('0' + p.step) + ' ' + esc(STEPS[p.step - 1]) : '—');
+  // While the student chooses a MAS in the chat, the sheet shows the folder's index instead of an office.
+  function renderIndexTop() {
+    const n = S.home.projects.length, mode = modeInfo();
+    $('#proj').textContent = n ? n + ' MAS in this folder' : 'No MAS yet';
+    setHTML($('#steps'), STEPS.map((name, i) => '<li>' + num('0' + (i + 1)) + '<span class="lbl">' + esc(name) + '</span></li>').join(''));
+    setHTML($('#steps-short'), '');
+    const mn = $('#mode-note');
+    mn.hidden = !mode;
+    if (mode) { mn.textContent = mode.short; mn.title = mode.tip; }
+    $('#headline').textContent = n ? 'Choose a MAS in the chat.' : 'No MAS yet.';
+    setHTML($('#subline'), n ? num(String(n)) + ' MAS in this folder<span class="sep" aria-hidden="true"> · </span>type a name, or <code>new</code>, in your assistant'
+      : 'Type <code>next</code> in your assistant to start your first one.');
+    setHTML($('#fresh'), 'updated ' + num(M.timeAgo(Date.now() - S.lastChange)));
+  }
+  function indexHtml() {
+    const list = S.home.projects;
+    const counts = (p) => [p.agents != null ? num(String(p.agents)) + ' agents' : '', p.runs != null ? num(String(p.runs)) + (p.runs === 1 ? ' run' : ' runs') : ''].filter(Boolean).join(' · ');
+    const rows = list.map((p, i) => '<tr><td>' + num(String(i + 1).padStart(2, '0')) + '</td><td><span class="ix-title">' + esc(p.title) + '</span><span class="ix-folder num">' + esc(p.folder) + '/</span>' +
+      (counts(p) ? '<span class="ix-meta">' + counts(p) + '</span>' : '') + '</td>' +
+      '<td>' + stepOf(p) + '</td><td class="c-n">' + (p.agents != null ? num(String(p.agents)) : '—') + '</td><td class="c-n">' + (p.runs != null ? num(String(p.runs)) : '—') + '</td></tr>').join('');
+    return '<table class="sheet-index"><caption>Sheet index</caption><thead><tr><th scope="col">No.</th><th scope="col">MAS</th><th scope="col">Step</th><th scope="col" class="c-n">Agents</th><th scope="col" class="c-n">Runs</th></tr></thead><tbody>' +
+      (rows || '<tr><td>' + num('—') + '</td><td colspan="4" class="quiet">This folder has no MAS yet. Your assistant adds the first one here.</td></tr>') + '</tbody></table>' +
+      '<div class="title-block ix-title-block">' + titleBlock() + '</div>'; // the sheet's own title block, bottom right
+  }
+  function folderHtml() {
+    const list = S.home.projects;
+    if (S.index) return '<h2>MAS in this folder ' + num(String(list.length)) + '</h2><p class="quiet">Your assistant asks which one to work on. This sheet follows its answer and draws that office.</p>';
+    return '<h2>MAS in this folder ' + num(String(list.length)) + '</h2><ol class="mas-list">' + list.map((p) => {
+      const cur = p.folder === S.home.current;
+      return '<li' + (cur ? ' class="cur" aria-current="true"' : '') + '><span class="ml-title">' + esc(p.title) + '</span><span class="ml-step">' + stepOf(p) + '</span>' + (cur ? '<span class="ml-now">shown</span>' : '') + '</li>';
+    }).join('') + '</ol>';
+  }
+  function renderTop() {
+    if (S.index) return renderIndexTop();
+    const d = data(), p = M.deriveProgress(d), s = struct(), mode = modeInfo();
+    $('#proj').textContent = (s && s.title) || (d.task && d.task.title) || 'Your project';
+    setHTML($('#steps'), STEPS.map((name, i) => {
+      const n = i + 1, cls = n < p.step || (p.done && n === 4) ? 'done' : n === p.step ? 'now' : '';
+      return '<li class="' + cls + '"' + (cls === 'now' ? ' aria-current="step"' : '') + '>' + num('0' + n) + '<span class="lbl">' + esc(name) + '</span></li>';
+    }).join(''));
+    setHTML($('#steps-short'), num(p.step + '/4'));
+    const mn = $('#mode-note');
+    mn.hidden = !mode;
+    if (mode) { mn.textContent = mode.short; mn.title = mode.tip; }
+    $('#headline').textContent = M.headline(d, S.statuses);
+    const tp = M.teamProgress(s, S.statuses), parts = [];
+    if (s && s.locked && (S.run.start || tp.done)) {
+      if (tp.active) parts.push(esc('Group ' + tp.active.group.id));
+      const busy = ['lead'].concat((s.roles || []).map((r) => r.id)).filter((id) => S.statuses[id] && BUSY.includes(S.statuses[id].state)).length;
+      if (S.run.end || (tp.total && tp.done === tp.total)) parts.push(num(String(tp.done)) + ' of ' + num(String(tp.total)) + ' roles done');
+      else parts.push(num(String(busy)) + ' of ' + num(String((s.roles || []).length + 1)) + ' working');
+      if (S.run.start) parts.push(num(clock((S.run.end || Date.now()) - S.run.start)) + (S.run.end ? ' total' : ' elapsed'));
+    } else if (d.state && d.state.next) parts.push(M.formatHint(d.state.next));
+    if (mode && s) parts.push('<span title="' + esc(mode.tip) + '">' + esc(mode.long) + '</span>');
+    setHTML($('#subline'), parts.join('<span class="sep" aria-hidden="true"> · </span>'));
+    const w = Object.keys(S.warnings || {});
+    const fresh = $('#fresh');
+    setHTML(fresh, (w.length ? '<span class="warn" title="' + esc(w.join(', ')) + ' could not be read. Showing the last good version.">' + ICON.warn + 'file being written</span>' : '') +
+      (S.demo ? 'demo replay' : Object.values(S.data).some(Boolean) ? 'updated ' + num(M.timeAgo(Date.now() - S.lastChange)) : 'waiting for files'));
+  }
+
+  /* ---------- the drawing ---------- */
+  const office = window.MASOffice.create($('#drawing-host'), { onSelect: (id) => select(id) });
+  function renderOffice() {
+    $('#drawing-host').hidden = S.index;
+    $('#index-sheet').hidden = !S.index;
+    if (S.index) { setHTML($('#index-sheet'), indexHtml()); return; }
+    const d = data(), s = struct(), phase = d.state && d.state.phase;
+    let a;
+    if (!s) a = { mode: 'empty', structure: null, statuses: { lead: { state: 'working', say: d.task ? 'Reading your task…' : 'Listening…' } } };
+    else if (!s.locked && !S.demo) a = { mode: 'draft', structure: s, statuses: { lead: { state: 'working', say: 'Planning your team…' } } };
+    else a = { mode: 'live', structure: s, statuses: S.statuses, entrance: phase === 'locked' && !Object.keys(S.statuses).length, runKey: (resultInfo() || {}).key };
+    office.setData(Object.assign({ task: d.task, timing: S.timing }, a));
+  }
+
+  /* ---------- title-block sidebar ---------- */
+  function setSidebar(open) {
+    S.sidebar = open;
+    if (open) $('#sb-toggle').classList.remove('news');
+    document.body.classList.toggle('sb-closed', !open);
+    $('#sb-toggle').setAttribute('aria-expanded', String(open));
+  }
+  function select(id) {
+    if (id && id === S.selected) id = null;
+    S.selected = id;
+    office.setSelected(id);
+    if (id && narrow() && window.innerWidth > 600) setSidebar(true);
+    renderSidebar();
+    if (id) { const c = $('#cells'); if (c) c.scrollTop = 0; }
+  }
+  function renderSidebar() {
+    document.body.classList.toggle('index', S.index); // the index is one full-width sheet: no title-block column
+    const folder = $('#c-folder');
+    folder.hidden = !S.home || (!S.index && S.home.projects.length < 2);
+    if (!folder.hidden) setHTML(folder, folderHtml());
+    ['#c-task', '#c-team', '#c-activity'].forEach((k) => { $(k).hidden = S.index; });
+    if (S.index) {
+      $('#c-role').hidden = true; $('#c-result').hidden = true;
+      document.body.classList.remove('wide-side', 'isolate');
+      setHTML($('#title-block'), titleBlock());
       return;
     }
-    try { await dir.getFileHandle('AGENTS.md'); } catch (e) {
-      toast('“' + esc(dir.name) + '” doesn’t look like your awesome-mas folder — pick the folder that contains <code>AGENTS.md</code>.');
-      return;
+    const role = $('#c-role'), sel = S.selected;
+    role.hidden = !sel;
+    if (sel) setHTML(role, roleCard(sel));
+    const ri = resultInfo();
+    document.body.classList.toggle('wide-side', !!ri); // a ready result gets a wider title block to read in
+    $('#c-result').hidden = !ri || !!sel;
+    if (ri && !sel) setHTML($('#c-result'), resultHtml(ri.r));
+    setHTML($('#c-task'), taskHtml());
+    setHTML($('#c-team'), teamHtml());
+    setHTML($('#c-activity'), activityHtml());
+    setHTML($('#title-block'), titleBlock());
+    // isolate the selected thread in the sidebar too
+    const m = sel && struct() && M.member(struct(), sel), serves = new Set((m && m.serves) || []);
+    document.body.classList.toggle('isolate', !!sel);
+    $$('[data-req]').forEach((el) => el.classList.toggle('on', serves.has(el.getAttribute('data-req'))));
+    $$('[data-select]').forEach((el) => el.classList.toggle('on', el.getAttribute('data-select') === sel));
+  }
+  function taskHtml() {
+    const d = data(), task = d.task, s = struct();
+    if (!task) return '<h2>Task</h2><p class="quiet">Your requirements appear here once you have described the task to your assistant.</p>';
+    const cov = M.coverage(s, task), reqs = task.requirements || [];
+    return '<h2>Task ' + (reqs.length ? num(reqs[0].id + (reqs.length > 1 ? '–' + reqs[reqs.length - 1].id : '')) : '') + '</h2>' + (task.summary ? '<p class="summary">' + esc(task.summary) + '</p>' : '') +
+      '<ul class="reqs">' + reqs.map((r) => {
+        const ids = cov.servedBy[r.id] || [], miss = s && !ids.length;
+        return '<li data-req="' + esc(r.id) + '">' + rid(r.id, task) + '<span class="rt">' + esc(r.text) + '</span>' +
+          (miss ? '<span class="who miss">' + ICON.warn + 'no one</span>' : '<span class="who">' + ids.map((id) => '<span class="who-r"><span class="sw" style="background:' + (id === 'lead' ? '#1B1F23' : groupColor(s, (M.member(s, id) || {}).group)) + '"></span>' + esc(nameOf(s, id)) + '</span>').join('') + '</span>') + '</li>';
+      }).join('') + '</ul>';
+  }
+  function stateWord(id) {
+    const s = struct(), st = S.statuses[id];
+    if (!s) return '';
+    if (!s.locked) return 'draft';
+    return st ? st.state : 'idle';
+  }
+  function teamHtml() {
+    const s = struct(), task = data().task;
+    if (!s) return '<h2>Team</h2><p class="quiet">Your assistant designs a team once the task is described.</p>';
+    const lead = s.lead || {}, roles = s.roles || [], cost = M.costInfo(roles.length);
+    const row = (id, m, color) => '<button class="org-row" type="button" data-select="' + esc(id) + '"><span class="sw" style="background:' + color + '"></span><span class="on-name">' + esc(m.name || id) + '</span>' +
+      '<span class="reqs-in">' + (m.serves || []).map((r) => rid(r, task)).join('') + '</span><span class="st st-' + esc(stateWord(id)) + '">' + esc(stateWord(id)) + '</span></button>';
+    let html = '<h2>Team ' + num((s.locked ? 'v' : 'draft v') + (s.version || 1)) + '</h2><div class="org">' + row('lead', Object.assign({ name: 'Lead' }, lead), '#1B1F23');
+    M.orderGroups(s).forEach((g, i) => {
+      const ms = roles.filter((r) => r.group === g.id);
+      if (!ms.length) return;
+      html += '<div class="org-g"><div class="org-gh">' + esc(M.groupCaption(g, i)) + '<span class="quiet"> · ' + (ms.length > 1 ? ms.length + ' at the same time' : g.after ? 'after ' + esc(g.after) : 'starts first') + '</span></div>' +
+        ms.map((r) => row(r.id, r, GROUP[i % GROUP.length]) + '<div class="org-to">' + (r.tools || []).map((t) => (t === 'web search' ? ICON.globe : ICON.folder)).join('') + ' hands to ' + esc(nameOf(s, r.handsTo || 'lead')) + '</div>').join('') + '</div>';
+    });
+    html += '</div><p class="cost">' + num(String(cost.agents)) + ' agents ≈ ' + num(cost.agents + '×') + ' the tokens of one assistant · more agents ≠ better</p>';
+    if (s.rationale) html += '<details class="why"><summary>Why this team</summary><p>' + esc(s.rationale) + '</p></details>';
+    return html;
+  }
+  function activityHtml() {
+    const s = struct();
+    if (!S.feed.length) return '<h2>Activity</h2><p class="quiet">Each agent’s messages appear here, newest first, while the team runs.</p>';
+    return '<h2>Activity</h2><ol class="feed">' + S.feed.map((e) => {
+      const text = e.state === 'flagged' ? e.flag || e.say : e.state === 'handoff' && e.to ? (e.say || 'Handing over') + ' → ' + nameOf(s, e.to) : e.say;
+      return '<li class="fe-' + esc(e.state) + '"' + (e.id ? ' data-select="' + esc(e.id) + '"' : '') + '>' + num(stamp(e.at)) + '<span><b>' + esc(nameOf(s, e.id)) + '</b> ' + (e.state === 'flagged' ? ICON.warn : '') + esc(text || '') + '</span></li>';
+    }).join('') + '</ol>';
+  }
+  function sourcesHtml(r, s) {
+    if (!(r.sources || []).length) return '';
+    return '<h3>Sources ' + num(String(r.sources.length)) + '</h3><ul class="sources">' + r.sources.map((x) => {
+      const ev = String(x.evidence || 'D').toUpperCase().slice(0, 1);
+      const href = /^https?:\/\//i.test(x.url || '') ? x.url : null;
+      return '<li><span class="ev ev-' + esc(ev) + '" title="' + esc(M.EVIDENCE[ev] || '') + '">' + esc(ev) + '</span><span>' + (href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' + esc(x.title || x.url) + '</a>' : esc(x.title || x.id || '')) +
+        '<span class="quiet"> · found by ' + esc(nameOf(s, x.foundBy)) + (x.id ? ' · <a href="' + esc(ROOT + 'sources/' + x.id + '.md') + '" target="_blank" rel="noopener">card</a>' : '') + '</span></span></li>';
+    }).join('') + '</ul><p class="ev-key">' + Object.keys(M.EVIDENCE).map((k) => '<span><span class="ev ev-' + k + '">' + k + '</span>' + esc(M.EVIDENCE[k]) + '</span>').join('') + '</p>';
+  }
+  function resultHtml(r) {
+    const s = struct();
+    const flags = (r.flags || []).length ? '<h3>Flags</h3><ul class="flags">' + r.flags.map((f) => '<li>' + ICON.warn + '<span>' + esc(f.text) + '<span class="quiet"> · ' + esc(nameOf(s, f.by)) + '</span></span></li>').join('') + '</ul>' : '';
+    return '<h2>Result ' + (r.run != null ? num('run ' + r.run) : '') + '</h2><p class="res-title">' + esc(r.title || 'Result') + '</p><div class="md">' + md(r.markdown) + '</div>' + flags + sourcesHtml(r, s);
+  }
+  function roleCard(id) {
+    const s = struct(), task = data().task, m = s ? M.member(s, id) : id === 'lead' ? { name: 'Lead' } : null;
+    if (!m) return '';
+    const st = S.statuses[id] || { state: stateWord(id) || 'idle' }, t = S.timing[id] || {};
+    const g = id === 'lead' || !s ? null : (s.groups || []).find((x) => x.id === m.group);
+    const row = (k, v) => (v ? '<dt>' + k + '</dt><dd>' + v + '</dd>' : '');
+    const p = st.state === 'done' ? 100 : M.clampProgress(st.progress);
+    const tm = BUSY.includes(st.state) && t.start ? clock(Date.now() - t.start) : st.state === 'done' && t.start && t.end ? clock(t.end - t.start) : '';
+    const work = M.normalizeWork(data().result && data().result.work).find((w) => w.by === id);
+    const hist = (S.history[id] || []).slice().reverse();
+    return '<button class="back" type="button" data-select="">' + ICON.back + 'Back to the sheet</button>' +
+      '<h2 class="rc-name">' + esc(m.name || 'Lead') + '</h2>' +
+      '<p class="rc-state"><span class="st st-' + esc(st.state) + '">' + (st.state === 'flagged' ? ICON.warn : st.state === 'done' ? ICON.tick : '') + esc(st.state) + '</span>' + (st.say ? '<span>' + esc(st.say) + '</span>' : '') + '</p>' +
+      (p != null || tm ? '<p class="rc-prog">' + (p != null ? '<span class="bar"><i style="width:' + p + '%"></i></span>' : '') + num([p != null ? p + '%' : '', tm].filter(Boolean).join(' · ')) + '</p>' : '') +
+      (st.flag ? '<p class="flagbox">' + ICON.warn + esc(st.flag) + '</p>' : '') +
+      '<dl>' + row('Job', esc(m.job || '')) + row('Serves', (m.serves || []).map((r) => rid(r, task)).join('')) +
+      (id === 'lead' || !s ? '' : row('Tools', esc((m.tools || []).join(', ') || 'none')) + row('Group', g ? esc(M.groupCaption(g, M.orderGroups(s).indexOf(g))) : esc(m.group || '')) + row('Hands to', esc(nameOf(s, m.handsTo || 'lead')))) +
+      (s ? row('Receives from', M.receivesFrom(s, id).map((x) => esc(nameOf(s, x))).join(', ')) : '') + row('Why', esc(m.why || '')) + '</dl>' +
+      (work ? '<h3>Work summary</h3><div class="md">' + md(work.summary) + '</div>' : '') +
+      '<h3>Latest messages</h3>' + (hist.length ? '<ol class="feed">' + hist.map((h) => '<li>' + num(stamp(h.at)) + '<span><b>' + esc(h.state) + '</b> ' + esc(h.say) + '</span></li>').join('') + '</ol>' : '<p class="quiet">Messages appear here while the team runs.</p>') +
+      '<p class="quiet small">Instructions: <code>team/' + esc(id) + '.md</code></p>';
+  }
+  function titleBlock() {
+    const cell = (k, v) => '<div><span class="tb-k">' + k + '</span><span class="tb-v">' + v + '</span></div>';
+    if (S.index) {
+      const n = S.home.projects.length, mode = modeInfo();
+      return cell('Project', n ? num(String(n)) + ' MAS' : '—') + cell('Team', '—') + cell('Mode', mode ? esc(mode.short) : 'not set') + cell('Run', '—');
     }
-    await useHandle(dir);
-    toast('Connected to “' + esc(dir.name) + '”. You can now edit here.');
-  }
-  async function reconnect() {
-    try { if ((await S.stored.requestPermission({ mode: 'readwrite' })) === 'granted') await useHandle(S.stored); } catch (e) { toast('Could not reconnect — try “Connect project folder” again.'); S.stored = null; renderConn(); }
-  }
-  async function disconnect() {
-    S.dir = null; S.connected = false; S.sigs = {};
-    try { await idb('readwrite', (st) => st.delete('project')); } catch (e) { /* ignore */ }
-    renderConn(); poll();
-  }
-  async function restore() {
-    if (!FS_OK || params.get('root') || S.demo) return;
-    try {
-      const h = await idb('readonly', (st) => st.get('project'));
-      if (!h) return;
-      if ((await h.queryPermission({ mode: 'readwrite' })) === 'granted') await useHandle(h);
-      else { S.stored = h; renderConn(); }
-    } catch (e) { /* no IndexedDB on this file:// page — fine */ }
-  }
-  function renderConn() {
-    const c = $('#conn');
-    if (S.demo) { c.innerHTML = ''; return; }
-    if (S.connected) {
-      c.innerHTML = '<span class="pill pill-ok" title="Reading and saving files in this folder"><i></i>' + esc(S.dir.name) + '</span><button class="btn btn-sm btn-ghost" id="disconnect" title="Stop editing files">×</button>';
-    } else if (S.stored) {
-      c.innerHTML = '<button class="btn btn-sm" id="reconnect">Reconnect “' + esc(S.stored.name) + '”</button>';
-    } else if (FS_OK) {
-      c.innerHTML = '<button class="btn btn-sm" id="connect" title="Lets this page save your edits into your project folder">Connect project folder</button>';
-    } else {
-      c.innerHTML = '<button class="btn btn-sm" disabled title="Editing needs Chrome or Edge — or just tell your assistant what to change">Connect project folder</button><span class="conn-hint">Editing needs Chrome or Edge — or just tell your assistant what to change</span>';
-    }
+    const d = data(), s = struct(), mode = modeInfo(), r = d.result, phase = d.state && d.state.phase;
+    const runState = phase === 'running' || (S.run.start && !S.run.end) ? 'in progress' : resultInfo() ? 'done' : s && s.locked ? 'ready' : 'not started';
+    return cell('Project', esc((s && s.title) || (d.task && d.task.title) || 'Untitled')) +
+      cell('Team', s ? num('v' + (s.version || 1)) + ' · ' + (s.locked ? 'locked' : 'draft') : 'not designed') +
+      cell('Mode', mode ? esc(mode.short) : 'not set') +
+      cell('Run', (r && r.run != null ? num(String(r.run).padStart(2, '0')) + ' · ' : '') + esc(runState));
   }
   document.addEventListener('click', (e) => {
-    if (e.target.closest('#connect')) connect();
-    if (e.target.closest('#reconnect')) reconnect();
-    if (e.target.closest('#disconnect')) disconnect();
+    const sel = e.target.closest('[data-select]');
+    if (sel) { select(sel.dataset.select || null); return; }
+    if (e.target.closest('#sb-toggle')) setSidebar(!S.sidebar);
+    if (e.target.closest('#replay')) { S.replays = (S.replays || 0) + 1; demoStart = performance.now(); S.history = {}; S.feed = []; S.timing = {}; S.run = { start: 0, end: 0 }; demoTick(); }
   });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && S.selected) select(null); });
 
-  /* ---------- writing ---------- */
-  async function editStructure(fn) {
-    if (!canEdit()) return;
-    const next = M.pruneGroups(fn(M.clone(struct())));
-    if (!S.connected) { S.draft = next; render({ structure: true }); return; }
-    S.data.structure = next;
-    S.writing = true;
-    render({ structure: true });
-    try {
-      await writeText('mas/structure.js', M.structureToJs(next));
-      await writeText('mas/structure.md', M.structureToMarkdown(next));
-      S.sigs.structure = sigOf(next);
-      savedToast();
-    } catch (e) { toast('Could not save: ' + esc(e.message)); } finally { S.writing = false; }
-  }
-  async function addRequest(line) {
-    if (!S.connected) return false;
-    try {
-      const old = await readText('mas/requests.md');
-      await writeText('mas/requests.md', M.appendRequest(old, line));
-      savedToast();
-      return true;
-    } catch (e) { toast('Could not save: ' + esc(e.message)); return false; }
-  }
-  function download(name, text) {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([text], { type: 'text/markdown' }));
-    a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  }
-
-  /* ---------- top bar ---------- */
-  const STEPS = ['Describe', 'Design', 'Refine & lock', 'Run'];
-  function renderTop() {
-    const d = data(), p = progress();
-    $('#proj-title').textContent = (struct() && struct().title) || (d.task && d.task.title) || 'Your project';
-    $('#stepper').innerHTML = STEPS.map((name, i) => {
-      const n = i + 1, cls = n < p.step || (p.done && n === 4) ? 'done' : n === p.step ? 'now' : '';
-      return '<li class="' + cls + '"><span class="dot">' + (cls === 'done' ? '✓' : n) + '</span><span class="lbl">' + esc(name) + '</span></li>';
-    }).join('');
-    const hint = S.demo ? 'This is a demo replay of an example run — press Replay in the Office to watch again.' : (d.state && d.state.next) || (p.started ? 'Type next in your assistant to continue.' : 'Type next in your assistant to start.');
-    $('#next').title = hint;
-    $('#next').innerHTML = '<span class="next-ico">👉</span><span class="next-text">' + M.formatHint(hint) + '</span>' + copyBtn(M.hintCommand(hint));
-  }
-  function renderUpdated() {
-    const u = $('#updated');
-    const w = Object.keys(S.warnings || {});
-    const any = Object.values(S.data).some(Boolean);
-    u.innerHTML = (w.length ? '<span class="warn-dot" title="' + esc(w.join(', ')) + ' has a typo — showing the last good version">!</span>' : '') +
-      (S.demo ? 'demo data' : any ? 'updated ' + M.timeAgo(Date.now() - S.lastChange) : 'no data yet');
-    u.title = 'Checking your files every 2 seconds';
-  }
-
-  /* ---------- views ---------- */
-  function setView(v, byUser) {
-    if (byUser) S.userView = true;
-    S.view = v;
-    $$('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.view === v)));
-    $$('.view').forEach((x) => { x.hidden = x.id !== 'view-' + v; });
-    if (v === 'office') { office.fit(); renderOffice(); }
-    if (v === 'design') renderMap(true);
-  }
-  $$('.tab').forEach((t) => t.addEventListener('click', () => setView(t.dataset.view, true)));
-
-  function render(changed, first) {
+  /* ---------- render ---------- */
+  function render() {
     renderTop();
-    if (!S.userView) {
-      const v = S.demo ? 'office' : M.viewForProgress(progress(), !!data().result);
-      if (v !== S.view || first) setView(v);
-    } else if (first) setView(S.view);
-    if (changed.task || changed.structure || changed.state || first) renderDesign();
-    if (changed.result || first) renderResult();
     renderOffice();
-  }
-
-  /* ---------- design view ---------- */
-  function renderDesign() {
-    const d = data(), s = struct(), task = d.task, cov = M.coverage(s, task);
-    // task card
-    let html = '';
-    if (task) {
-      html = '<div class="kicker">Your task</div><h2>' + esc(task.title || 'My task') + '</h2><p class="muted">' + esc(task.summary || '') + '</p><ul class="reqs">' +
-        (task.requirements || []).map((r) => {
-          const who = (cov.servedBy[r.id] || []).map((id) => (M.member(s, id) || {}).emoji || '').join(' ');
-          const miss = s && !(cov.servedBy[r.id] || []).length;
-          return '<li class="' + (miss ? 'miss' : '') + '">' + chip(r.id, task) + '<span>' + esc(r.text) + '</span><em title="' + (miss ? 'No one serves this yet' : 'Served by') + '">' + (miss ? '⚠️' : esc(who)) + '</em></li>';
-        }).join('') + '</ul>' + (task.repeat ? '<p class="small muted">Repeat: ' + esc(task.repeat) + '</p>' : '');
-    } else if (S.connected) {
-      html = '<div class="kicker">Step 1 · Describe your task</div><h2>Five quick questions</h2><form id="answers">' +
-        M.QUESTIONS.map((q, i) => '<label>' + (i + 1) + '. ' + esc(q) + '<textarea rows="2" name="q' + i + '"></textarea></label>').join('') +
-        '<button class="btn btn-primary" type="submit">Save answers</button></form>';
-    } else {
-      html = '<div class="kicker">Step 1 · Describe your task</div><h2>No task yet</h2><p>Type <code>next</code> in your assistant — it will ask you five short questions.</p>' + copyBtn('next') +
-        (FS_OK ? '<p class="small muted">Prefer typing here? Click <b>Connect project folder</b> at the top.</p>' : '');
+    if (S.index) { renderSidebar(); return; }
+    const ri = resultInfo();
+    if (ri && ri.key !== S.autoRun) { // a new result: show it at the top of the title block, once per run
+      const initial = S.autoRun === undefined;
+      S.autoRun = ri.key;
+      // on first load a narrow screen keeps the drawing visible and marks the toggle instead
+      if (!(initial && (S.userSidebar || narrow()))) { if (S.selected) select(null); setSidebar(true); const c = $('#cells'); if (c) c.scrollTop = 0; }
+      else if (!S.sidebar) $('#sb-toggle').classList.add('news');
     }
-    const tc = $('#task-card');
-    if (!tc.contains(document.activeElement) || task) {
-      const typed = $$('#answers textarea').map((t) => t.value); // keep unsaved answers across re-renders
-      tc.innerHTML = html;
-      typed.forEach((v, i) => { const t = $('#answers [name=q' + i + ']'); if (t && v) t.value = v; });
-      if (!task && S.connected) prefillAnswers();
-    }
-
-    // cost
-    const roles = s ? (s.roles || []).length : 0, cost = M.costInfo(roles);
-    $('#cost-card').hidden = !s;
-    $('#cost-card').innerHTML = '<div class="kicker">Team cost</div><div class="cost-row"><b>' + esc(cost.text) + '</b></div><div class="meter meter-' + cost.level + '"><i style="width:' + (cost.fraction * 100) + '%"></i></div>' +
-      '<p class="small muted">' + esc(cost.sub) + '. More agents ≠ better. Multi-agent systems use many more tokens than a chat (Anthropic reported ~15× for its research system).</p>';
-    $('#why-card').hidden = !(s && s.rationale);
-    $('#why-card').innerHTML = s && s.rationale ? '<div class="kicker">Why this team</div><p>' + esc(s.rationale) + '</p>' : '';
-
-    // lock + ask
-    const lock = $('#lock-card');
-    lock.hidden = !s;
-    if (s && s.locked) lock.innerHTML = '<div class="lockline"><span class="badge-lock">🔒 v' + esc(s.version || 1) + '</span><b>Team locked</b></div><p class="small">Type <code>unlock</code> in your assistant to change your team.</p>' + copyBtn('unlock');
-    else if (s) lock.innerHTML = '<div class="kicker">Happy with your team?</div><button class="btn btn-primary btn-block" id="lock-btn">🔒 Lock team</button><p class="small muted">Locking gives each role its own instruction file, then your team can run.</p>';
-    const ask = $('#ask-card');
-    ask.hidden = !s || s.locked;
-    if (s && !s.locked && !ask.contains(document.activeElement)) {
-      ask.innerHTML = '<div class="kicker">Ask your assistant to change…</div><textarea id="ask-text" rows="2" placeholder="e.g. Add a budget checker that keeps everything under £300"></textarea>' +
-        (S.connected ? '<button class="btn btn-block" id="ask-send">Send request</button>' : '<button class="btn btn-block" id="ask-copy">Copy — then paste it in your assistant</button>');
-    }
-    const warn = [];
-    cov.unservedReqs.forEach((r) => warn.push(chip(r, task, 'chip-warn') + ' isn’t served by anyone yet'));
-    cov.rolesWithoutReq.forEach((id) => warn.push(esc(M.roleName(s, id)) + ' doesn’t serve any requirement'));
-    $('#map-warn').innerHTML = warn.map((w) => '<span>⚠️ ' + w + '</span>').join('');
-    $('#map-badge').innerHTML = s ? (s.locked ? '<span class="badge-lock">🔒 v' + esc(s.version || 1) + '</span>' : '<span class="badge-draft">v' + esc(s.version || 1) + ' · not locked</span>') : '';
-    $('#add-role').hidden = !canEdit();
-    $('#draft-bar').hidden = !S.draft;
-    renderMap();
-    renderEditor();
-  }
-  async function prefillAnswers() {
-    const md = await readText('me/answers.md');
-    if (!md) return;
-    M.parseAnswers(md).forEach((a, i) => { const t = $('#answers [name=q' + i + ']'); if (t && !t.value) t.value = a; });
-  }
-  document.addEventListener('submit', async (e) => {
-    if (e.target.id !== 'answers') return;
-    e.preventDefault();
-    const answers = M.QUESTIONS.map((_, i) => e.target.elements['q' + i].value);
-    if (!answers[0].trim()) { toast('Please answer the first question — what should your assistant help you do?'); return; }
-    try { await writeText('me/answers.md', M.answersToMarkdown(answers)); savedToast(); } catch (err) { toast('Could not save: ' + esc(err.message)); }
-  });
-  document.addEventListener('click', async (e) => {
-    const id = e.target.id;
-    if (id === 'lock-btn') {
-      if (S.draft) { toast('Download your edited structure.md first (or discard it) — your assistant can’t see edits that only live in this page.'); return; }
-      if (!(await addRequest(M.LOCK_LINE))) toast('Type <code>next</code> in your assistant — it will check with you and lock the team.', 'next');
-    }
-    if (id === 'ask-send' || id === 'ask-copy') {
-      const text = $('#ask-text').value.trim();
-      if (!text) { $('#ask-text').focus(); return; }
-      if (id === 'ask-copy') { copyText(text); toast('Copied. Paste it in your assistant.'); return; }
-      if (await addRequest(M.refineLine(text))) $('#ask-text').value = '';
-    }
-    if (id === 'draft-download') download('structure.md', M.structureToMarkdown(S.draft));
-    if (id === 'draft-discard') { S.draft = null; renderDesign(); renderOffice(); }
-  });
-
-  /* ---------- mind map ---------- */
-  const MAP = { k: 1, x: 0, y: 0, auto: true, L: null };
-  function mapLayout(s) {
-    const roles = s.roles || [], ord = M.orderGroups(s);
-    const list = ord.map((g) => ({ g, members: roles.filter((r) => r.group === g.id) }));
-    const orphans = roles.filter((r) => !ord.some((g) => g.id === r.group));
-    if (orphans.length) list.push({ g: { id: '?', label: 'No group yet', after: null }, members: orphans });
-    const LW = 236, LH = 138, GW = 196, GH = 62, RW = 256, RH = 88, GAP = 14, GGAP = 30, XG = LW + 64, XR = XG + GW + 54;
-    const groups = [], nodes = [];
-    let y = 0;
-    list.forEach((z, i) => {
-      const inner = z.members.length * (RH + GAP) - GAP, hgt = Math.max(inner, GH), color = M.GROUP_COLORS[i % M.GROUP_COLORS.length];
-      z.members.forEach((r, j) => nodes.push({ r, x: XR, y: y + (hgt - inner) / 2 + j * (RH + GAP), w: RW, h: RH, color }));
-      groups.push({ g: z.g, i, n: z.members.length, x: XG, y: y + hgt / 2 - GH / 2, w: GW, h: GH, cy: y + hgt / 2, top: y, bottom: y + hgt, color });
-      y += hgt + GGAP;
-    });
-    const total = Math.max(y - GGAP, LH);
-    return { lead: { x: 0, y: total / 2 - LH / 2, w: LW, h: LH }, groups, nodes, total, XR, RW };
-  }
-  function renderMap(fitOnly) {
-    const world = $('#map-world'), s = struct(), empty = $('#map-empty');
-    if (!s) {
-      world.innerHTML = '';
-      const t = data().task;
-      empty.hidden = false;
-      empty.innerHTML = '<div class="empty-art">🧭<span>🔎</span><span>🛡️</span></div><h3>' + (t ? 'Your team map will appear here' : 'Welcome to your MAS Office') + '</h3><p>' +
-        (t ? 'Type <code>next</code> in your assistant and it will design a team for your task.' : S.connected ? 'Answer the five questions on the left and save — then type <code>next</code> in your assistant.' : 'Type <code>next</code> in your assistant to start.') + '</p>' + copyBtn('next');
-      return;
-    }
-    empty.hidden = true;
-    if (fitOnly && MAP.L) { if (MAP.auto) fitMap(); return; }
-    const task = data().task, L = mapLayout(s), cov = M.coverage(s, task), sel = S.selected;
-    MAP.L = L;
-    const pos = { lead: L.lead };
-    L.nodes.forEach((n) => { pos[n.r.id] = n; });
-    const bottom = Math.max(L.total, L.lead.y + L.lead.h);
-    let maxOff = 0;
-    const paths = [];
-    L.groups.forEach((g) => {
-      const x1 = L.lead.w, y1 = L.lead.y + L.lead.h / 2;
-      paths.push('<path class="br" stroke="' + g.color + '" stroke-width="4" d="M' + x1 + ' ' + y1 + ' C' + (x1 + 40) + ' ' + y1 + ' ' + (g.x - 40) + ' ' + g.cy + ' ' + g.x + ' ' + g.cy + '"/>');
-    });
-    L.nodes.forEach((n) => {
-      const g = L.groups.find((x) => x.g.id === n.r.group) || L.groups[L.groups.length - 1];
-      const x1 = g.x + g.w, y2 = n.y + n.h / 2;
-      paths.push('<path class="br" stroke="' + n.color + '" stroke-width="2.5" d="M' + x1 + ' ' + g.cy + ' C' + (x1 + 30) + ' ' + g.cy + ' ' + (n.x - 30) + ' ' + y2 + ' ' + n.x + ' ' + y2 + '"/>');
-    });
-    const toLead = L.nodes.filter((n) => (n.r.handsTo || 'lead') === 'lead');
-    L.nodes.forEach((n) => {
-      const to = n.r.handsTo || 'lead', t = pos[to];
-      if (!t || to === n.r.id) return;
-      const hot = sel && (sel === n.r.id || sel === to) ? ' hot' : '';
-      if (to === 'lead') {
-        const k = toLead.indexOf(n), sx = n.x + 46 + k * 12, sy = n.y + n.h, ex = L.lead.x + L.lead.w * 0.55 + k * 12, ey = L.lead.y + L.lead.h, by = bottom + 34 + k * 14;
-        paths.push('<path class="ho' + hot + '" d="M' + sx + ' ' + sy + ' C' + sx + ' ' + by + ' ' + ex + ' ' + by + ' ' + ex + ' ' + (ey + 4) + '" marker-end="url(#map-arrow)"/>');
-      } else {
-        const x = n.x + n.w, y1 = n.y + n.h / 2, y2 = t.y + t.h / 2 + (y1 < t.y ? -10 : 10), off = 34 + Math.abs(y2 - y1) * 0.2;
-        maxOff = Math.max(maxOff, off);
-        paths.push('<path class="ho' + hot + '" d="M' + x + ' ' + y1 + ' C' + (x + off) + ' ' + y1 + ' ' + (x + off) + ' ' + y2 + ' ' + (x + 5) + ' ' + y2 + '" marker-end="url(#map-arrow)"/>');
-      }
-    });
-    const W = L.XR + L.RW + maxOff + 20, H = bottom + 34 + toLead.length * 14 + 24;
-    MAP.box = { x: -14, y: -14, w: W + 28, h: H + 28 };
-    const lead = s.lead || {};
-    const leadWarn = '';
-    let html = '<svg class="map-svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '"><defs><marker id="map-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#A08E7C"/></marker></defs>' + paths.join('') + '</svg>';
-    html += '<div class="node lead' + (sel === 'lead' ? ' sel' : '') + '" data-id="lead" style="left:' + L.lead.x + 'px;top:' + L.lead.y + 'px;width:' + L.lead.w + 'px;height:' + L.lead.h + 'px">' +
-      '<div class="n-top"><span class="n-emoji big">' + esc(lead.emoji || '🧭') + '</span><div><div class="kicker">Lead</div><div class="n-name">' + esc(lead.name || 'Lead') + '</div></div></div>' +
-      '<div class="n-job">' + esc(lead.job || '') + '</div><div class="n-meta">' + (lead.serves || []).map((r) => chip(r, task)).join('') + leadWarn + '</div></div>';
-    L.groups.forEach((g) => {
-      html += '<div class="node group' + (sel === 'group:' + g.g.id ? ' sel' : '') + '" data-group="' + esc(g.g.id) + '" style="left:' + g.x + 'px;top:' + g.y + 'px;width:' + g.w + 'px;height:' + g.h + 'px;--c:' + g.color + '">' +
-        '<div class="n-name">' + esc(M.groupCaption(g.g, g.i)) + '</div><div class="small">' + (g.n > 1 ? g.n + ' roles at the same time' : g.g.after ? 'after group ' + esc(g.g.after) : 'starts first') + '</div></div>';
-    });
-    L.nodes.forEach((n) => {
-      const r = n.r, warn = cov.rolesWithoutReq.includes(r.id);
-      html += '<div class="node role' + (sel === r.id ? ' sel' : '') + (warn ? ' warn' : '') + '" data-id="' + esc(r.id) + '" style="left:' + n.x + 'px;top:' + n.y + 'px;width:' + n.w + 'px;height:' + n.h + 'px;--c:' + n.color + '">' +
-        '<span class="n-emoji">' + esc(r.emoji || '🙂') + '</span><div class="n-body"><div class="n-name">' + esc(r.name) + '</div><div class="n-job">' + esc(r.job || 'No job yet') + '</div>' +
-        '<div class="n-meta">' + (r.serves || []).map((q) => chip(q, task)).join('') + (r.tools || []).map((t) => '<span class="tool" title="' + esc(t) + '">' + (ICONS[t] || esc(t)) + '</span>').join('') +
-        '<span class="n-to">→ ' + esc(M.roleName(s, r.handsTo || 'lead')) + '</span></div></div>' + (warn ? '<span class="n-warn" title="Serves no requirement">!</span>' : '') + '</div>';
-    });
-    world.innerHTML = html;
-    if (MAP.auto) fitMap(); else applyMap();
-  }
-  function applyMap() { $('#map-world').style.transform = 'translate(' + MAP.x + 'px,' + MAP.y + 'px) scale(' + MAP.k + ')'; }
-  function fitMap() {
-    const c = $('#map').getBoundingClientRect(), b = MAP.box;
-    if (!b || !c.width) return;
-    MAP.k = Math.min((c.width - 40) / b.w, (c.height - 70) / b.h, 1.1);
-    MAP.x = (c.width - b.w * MAP.k) / 2 - b.x * MAP.k;
-    MAP.y = (c.height - b.h * MAP.k) / 2 - b.y * MAP.k + 8;
-    applyMap();
-  }
-  function zoomAt(f, px, py) {
-    const k = Math.min(2.2, Math.max(0.3, MAP.k * f));
-    MAP.x = px - ((px - MAP.x) * k) / MAP.k; MAP.y = py - ((py - MAP.y) * k) / MAP.k; MAP.k = k; MAP.auto = false;
-    applyMap();
-  }
-  (function mapEvents() {
-    const c = $('#map');
-    let drag = null;
-    c.addEventListener('wheel', (e) => {
-      if (!MAP.L) return;
-      e.preventDefault();
-      const r = c.getBoundingClientRect();
-      zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top);
-    }, { passive: false });
-    c.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || e.target.closest('.map-tools, .map-warn, .draft-bar, .map-empty')) return;
-      const node = e.target.closest('.node');
-      drag = { sx: e.clientX, sy: e.clientY, x: MAP.x, y: MAP.y, node, moved: false };
-      c.setPointerCapture(e.pointerId);
-    });
-    c.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
-      if (!drag.moved && Math.hypot(dx, dy) < 5) return;
-      drag.moved = true;
-      if (drag.node && drag.node.classList.contains('role') && canEdit()) {
-        drag.node.classList.add('dragging');
-        drag.node.style.transform = 'translate(' + dx / MAP.k + 'px,' + dy / MAP.k + 'px)';
-        const g = groupAt(e);
-        $$('.node.group').forEach((n) => n.classList.toggle('drop', !!g && n.dataset.group === g.g.id));
-      } else if (!drag.node || !drag.node.classList.contains('role')) {
-        MAP.x = drag.x + dx; MAP.y = drag.y + dy; MAP.auto = false; applyMap();
-        c.classList.add('panning');
-      }
-    });
-    c.addEventListener('pointerup', (e) => {
-      if (!drag) return;
-      const d = drag;
-      drag = null;
-      c.classList.remove('panning');
-      if (!d.moved) {
-        if (d.node) select(d.node.dataset.id || 'group:' + d.node.dataset.group);
-        else if (S.selected) select(null);
-        return;
-      }
-      if (d.node && d.node.classList.contains('role') && canEdit()) {
-        const g = groupAt(e), id = d.node.dataset.id;
-        const role = (struct().roles || []).find((r) => r.id === id);
-        if (g && role && g.g.id !== role.group && g.g.id !== '?') editStructure((s) => M.updateMember(s, id, { group: g.g.id }));
-        else renderMap();
-      }
-    });
-    function groupAt(e) {
-      const r = c.getBoundingClientRect(), wx = (e.clientX - r.left - MAP.x) / MAP.k, wy = (e.clientY - r.top - MAP.y) / MAP.k;
-      if (!MAP.L || wx < MAP.L.lead.w) return null;
-      return MAP.L.groups.find((g) => wy >= g.top - 15 && wy <= g.bottom + 15) || null;
-    }
-    $('#zoom-in').addEventListener('click', () => { const r = c.getBoundingClientRect(); zoomAt(1.2, r.width / 2, r.height / 2); });
-    $('#zoom-out').addEventListener('click', () => { const r = c.getBoundingClientRect(); zoomAt(1 / 1.2, r.width / 2, r.height / 2); });
-    $('#zoom-fit').addEventListener('click', () => { MAP.auto = true; fitMap(); });
-    $('#add-role').addEventListener('click', () => select('__new'));
-    window.addEventListener('resize', () => { if (MAP.auto && S.view === 'design') fitMap(); });
-  })();
-  function select(id) { S.selected = id; renderEditor(); renderMap(); }
-
-  /* ---------- side editor ---------- */
-  function renderEditor() {
-    const ed = $('#editor'), s = struct(), task = data().task, sel = S.selected;
-    if (ed.contains(document.activeElement) && document.activeElement.matches('input[type=text], textarea')) return;
-    const editable = canEdit();
-    const ro = editable ? '' : ' disabled';
-    const lockedNote = s && s.locked ? '<p class="note">🔒 Type <code>unlock</code> in your assistant to change your team.</p>' : '';
-    const offline = editable && !S.connected ? '<p class="note">' + (FS_OK ? 'Edits stay in this page until you <b>Connect project folder</b> (top right) or download them.' : 'Editing needs Chrome or Edge — or just tell your assistant what to change. You can still try edits here and download <code>structure.md</code>.') + '</p>' : '';
-    const none = !s || !sel || (sel !== '__new' && sel !== 'lead' && !sel.startsWith('group:') && !M.member(s, sel));
-    const grid = $('#view-design'), had = grid.classList.contains('has-editor');
-    grid.classList.toggle('has-editor', !none);
-    if (had === none && MAP.auto) requestAnimationFrame(() => setTimeout(fitMap, 0));
-    $('#map-hint').textContent = s ? (editable ? 'Click someone to edit · drag a role onto another group' : 'Click someone for details') : '';
-    if (none) {
-      ed.innerHTML = '<div class="ed-empty"><div class="empty-art small">👆</div><h3>Pick someone on the map</h3><p class="muted">Click the Lead or a role to see ' + (editable ? 'and edit ' : '') + 'their job, the requirements they serve and who they hand their work to.</p>' +
-        (s ? '<p class="muted small">Drag the map to move it · scroll to zoom' + (editable ? ' · drag a role onto another group to move it' : '') + '</p>' : '') + lockedNote + offline + '</div>';
-      return;
-    }
-    if (sel === '__new') {
-      ed.innerHTML = '<form id="new-role" class="ed-form"><div class="kicker">New role</div><h3>Who else do you need?</h3><label>Role name<input type="text" name="name" placeholder="e.g. Budget checker" required></label>' +
-        '<label>Group<select name="group">' + M.orderGroups(s).map((g, i) => '<option value="' + esc(g.id) + '">' + esc(M.groupCaption(g, i)) + '</option>').join('') + '<option value="__new">＋ New group (runs after the others)</option></select></label>' +
-        '<div class="row"><button class="btn btn-primary" type="submit">Add role</button><button class="btn btn-ghost" type="button" data-act="cancel">Cancel</button></div></form>';
-      $('#new-role input').focus();
-      return;
-    }
-    if (sel.startsWith('group:')) {
-      const g = (s.groups || []).find((x) => x.id === sel.slice(6));
-      if (!g) { ed.innerHTML = ''; return; }
-      const members = (s.roles || []).filter((r) => r.group === g.id);
-      ed.innerHTML = '<fieldset class="ed-form"' + ro + '><div class="kicker">Group ' + esc(g.id) + '</div><h3>' + esc(g.label || '') + '</h3>' +
-        '<label>Label<input type="text" data-g="label" value="' + esc(g.label || '') + '"></label><p class="muted small">' +
-        (members.length > 1 ? 'These roles work <b>at the same time</b>: ' : 'Role: ') + members.map((r) => esc(r.emoji + ' ' + r.name)).join(', ') + '.<br>' + (g.after ? 'Starts after group ' + esc(g.after) + ' finishes.' : 'Starts first.') + '</p></fieldset>' + lockedNote;
-      return;
-    }
-    const isLead = sel === 'lead', m = M.member(s, sel), cov = M.coverage(s, task);
-    const reqs = (task && task.requirements) || [];
-    const serveBoxes = reqs.length ? reqs.map((r) => '<label class="check"><input type="checkbox" data-serve="' + esc(r.id) + '"' + ((m.serves || []).includes(r.id) ? ' checked' : '') + '>' + chip(r.id, task) + '<span>' + esc(r.text) + '</span></label>').join('') : '<p class="muted small">No requirements yet.</p>';
-    let html = '<fieldset class="ed-form"' + ro + '><div class="ed-head"><input class="ed-emoji" type="text" data-f="emoji" maxlength="8" value="' + esc(m.emoji || '') + '" aria-label="Emoji"><div><div class="kicker">' + (isLead ? 'Lead' : 'Role') + '</div><input class="ed-name" type="text" data-f="name" value="' + esc(m.name || '') + '" aria-label="Name"></div></div>' +
-      '<label>Job<textarea data-f="job" rows="3">' + esc(m.job || '') + '</textarea></label><div class="field"><div class="label">Serves</div>' + serveBoxes + '</div>';
-    if (!isLead) {
-      html += '<div class="field"><div class="label">Tools</div>' + M.TOOLS.map((t) => '<label class="check"><input type="checkbox" data-tool="' + esc(t) + '"' + ((m.tools || []).includes(t) ? ' checked' : '') + '>' + ICONS[t] + '<span>' + esc(t) + '</span></label>').join('') + '</div>' +
-        '<label>Group<select data-f="group">' + M.orderGroups(s).map((g, i) => '<option value="' + esc(g.id) + '"' + (g.id === m.group ? ' selected' : '') + '>' + esc(M.groupCaption(g, i)) + '</option>').join('') + '<option value="__new">＋ New group (runs after the others)</option></select></label>' +
-        '<label>Hands to<select data-f="handsTo">' + [['lead', s.lead]].concat((s.roles || []).filter((r) => r.id !== m.id).map((r) => [r.id, r])).map(([id, x]) => '<option value="' + esc(id) + '"' + ((m.handsTo || 'lead') === id ? ' selected' : '') + '>' + esc(((x && x.emoji) || '') + ' ' + ((x && x.name) || id)) + '</option>').join('') + '</select></label>' +
-        (m.why ? '<p class="why"><b>Why this role:</b> ' + esc(m.why) + '</p>' : '');
-      if (cov.rolesWithoutReq.includes(m.id)) html += '<p class="warnbox">⚠️ This role doesn’t serve any requirement. Tick at least one — or ask whether you need it.</p>';
-      const from = M.receivesFrom(s, m.id);
-      if (from.length) html += '<p class="muted small">Receives work from: ' + from.map((id) => esc(M.roleName(s, id))).join(', ') + '</p>';
-      if (editable) html += '<button class="btn btn-danger btn-sm" type="button" data-act="delete">Delete role</button>';
-    }
-    ed.innerHTML = html + '</fieldset>' + lockedNote + offline;
-  }
-  const edit = (patch) => { const id = S.selected; editStructure((s) => M.updateMember(s, id, patch(M.member(s, id)))); };
-  $('#editor').addEventListener('change', (e) => {
-    const t = e.target, s = struct();
-    if (!s || !canEdit() || t.closest('#new-role')) return;
-    if (t.dataset.g) { const gid = S.selected.slice(6); editStructure((x) => { const g = x.groups.find((y) => y.id === gid); if (g) g.label = t.value.trim(); return x; }); return; }
-    if (t.dataset.serve) return edit((m) => ({ serves: (m.serves || []).filter((r) => r !== t.dataset.serve).concat(t.checked ? [t.dataset.serve] : []).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })) }));
-    if (t.dataset.tool) return edit((m) => ({ tools: M.TOOLS.filter((x) => (x === t.dataset.tool ? t.checked : (m.tools || []).includes(x))) }));
-    const f = t.dataset.f;
-    if (!f) return;
-    if (f === 'name' && !t.value.trim()) { renderEditor(); return; }
-    if (f === 'group' && t.value === '__new') {
-      const id = S.selected;
-      editStructure((x) => { const r = M.addGroup(x, 'Next step'); return M.updateMember(r.structure, id, { group: r.groupId }); });
-      return;
-    }
-    edit(() => ({ [f]: f === 'job' || f === 'name' ? M.oneLine(t.value) : t.value.trim() }));
-  });
-  $('#editor').addEventListener('click', (e) => {
-    const act = e.target.closest('[data-act]');
-    if (!act) return;
-    if (act.dataset.act === 'cancel') select(null);
-    if (act.dataset.act === 'delete' && window.confirm('Delete “' + M.roleName(struct(), S.selected) + '”? Anyone who handed work to them will hand it on instead.')) {
-      const id = S.selected; S.selected = null;
-      editStructure((s) => M.deleteRole(s, id));
-    }
-  });
-  $('#editor').addEventListener('submit', (e) => {
-    if (e.target.id !== 'new-role') return;
-    e.preventDefault();
-    const name = e.target.elements.name.value.trim(), group = e.target.elements.group.value;
-    if (!name) return;
-    let newId = null;
-    editStructure((s) => {
-      let gid = group;
-      if (group === '__new') { const g = M.addGroup(s, 'Next step'); s = g.structure; gid = g.groupId; }
-      const r = M.addRole(s, name, gid);
-      newId = r.id;
-      return r.structure;
-    }).then(() => { if (newId) select(newId); });
-    S.selected = null;
-  });
-
-  /* ---------- office view ---------- */
-  const office = window.MASOffice.create($('#office-host'), { onSelect: (id) => { S.drawer = id; office.setSelected(id); renderDrawer(); } });
-  function renderOffice() {
-    const s = struct(), d = data();
-    $('#office-empty').hidden = !!s;
-    $('#office-host').hidden = !s;
-    $('#office-legend').hidden = !s;
-    $('#demo-badge').hidden = $('#replay').hidden = !S.demo;
-    if (!s) {
-      $('#office-empty').innerHTML = '<div class="empty-art">🪴<span>🪑</span><span>☕</span></div><h3>The office is still empty</h3><p>Your team moves in once it is designed. Type <code>next</code> in your assistant.</p>' + copyBtn('next');
-      $('#office-banner').hidden = true;
-      return;
-    }
-    const preview = !s.locked && !S.demo;
-    $('#office-banner').hidden = !preview;
-    office.setData(s, d.task, S.statuses, preview);
-    if (S.drawer) renderDrawer();
-  }
-  function renderDrawer() {
-    const dr = $('#drawer'), s = struct(), task = data().task, id = S.drawer, m = s && M.member(s, id);
-    if (!m) { dr.hidden = true; return; }
-    const st = S.statuses[id] || { state: 'idle' }, hist = (S.history[id] || []).slice().reverse();
-    const g = id === 'lead' ? null : (s.groups || []).find((x) => x.id === m.group);
-    const row = (k, v) => (v ? '<dt>' + k + '</dt><dd>' + v + '</dd>' : '');
-    dr.hidden = false;
-    dr.innerHTML = '<button class="drawer-x" aria-label="Close">×</button><div class="ed-head"><span class="ed-emoji static">' + esc(m.emoji || '🙂') + '</span><div><div class="kicker">' + (id === 'lead' ? 'Lead' : 'Role') + '</div><h3>' + esc(m.name) + '</h3></div></div>' +
-      '<span class="state state-' + esc(st.state) + '">' + esc(st.state) + '</span>' + (st.flag ? '<p class="warnbox">⚠️ ' + esc(st.flag) + '</p>' : '') +
-      '<dl>' + row('Job', esc(m.job || '')) + row('Serves', (m.serves || []).map((r) => chip(r, task)).join(' ')) +
-      (id === 'lead' ? '' : row('Tools', (m.tools || []).map((t) => esc(t)).join(', ') || 'none') + row('Group', g ? esc(M.groupCaption(g, M.orderGroups(s).indexOf(g))) : esc(m.group || '')) + row('Hands to', esc(M.roleName(s, m.handsTo || 'lead')))) +
-      row('Receives from', M.receivesFrom(s, id).map((x) => esc(M.roleName(s, x))).join(', ')) + '</dl>' +
-      '<div class="label">Latest messages</div>' + (hist.length ? '<ol class="hist">' + hist.map((h) => '<li><span class="state state-' + esc(h.state) + '">' + esc(h.state) + '</span>' + esc(h.say) + '<em>' + M.timeAgo(Date.now() - h.at) + '</em></li>').join('') + '</ol>' : '<p class="muted small">Nothing yet — messages appear here while the team runs.</p>') +
-      (id === 'lead' ? '' : '<p class="muted small">Instructions: <code>team/' + esc(id) + '.md</code></p>');
-  }
-  $('#drawer').addEventListener('click', (e) => { if (e.target.closest('.drawer-x')) { S.drawer = null; office.setSelected(null); $('#drawer').hidden = true; } });
-
-  /* ---------- result view ---------- */
-  function resolveLink(u) {
-    if (/^\.\.\//.test(u)) return ROOT + 'outputs/' + u; // written relative to outputs/result.md
-    return ROOT + u.replace(/^\.\//, '');
-  }
-  function renderResult() {
-    const r = data().result, s = struct(), box = $('#result');
-    if (!r) {
-      box.innerHTML = '<div class="empty card"><div class="empty-art">📄<span>✨</span></div><h3>No result yet</h3><p>Lock your team, then type <code>next</code> in your assistant to run it. The answer — with a source for every claim — appears here.</p>' + copyBtn('next') + '</div>';
-      return;
-    }
-    const who = (id) => { const m = s && M.member(s, id); return '<span class="who">' + esc(m ? (m.emoji || '') + ' ' + m.name : id || 'unknown') + '</span>'; };
-    const when = (() => { const t = r.updated && new Date(r.updated); return t && !isNaN(t) ? t.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''; })();
-    box.innerHTML = '<article class="card result-main"><div class="kicker">Result' + (r.run ? ' · run ' + esc(r.run) : '') + (when ? ' · ' + esc(when) : '') + '</div><h1>' + esc(r.title || 'Result') + '</h1><div class="md">' + M.renderMarkdown(r.markdown || '', { resolveLink }) + '</div></article>' +
-      '<aside class="result-side">' +
-      '<section class="card"><div class="kicker">Sources (' + (r.sources || []).length + ')</div><ul class="sources">' + (r.sources || []).map((x) => {
-        const ev = String(x.evidence || 'D').toUpperCase().slice(0, 1);
-        const href = M.renderMarkdown('[x](' + (x.url || '#') + ')').match(/href="([^"]*)"/);
-        return '<li><span class="ev ev-' + esc(ev) + '" title="' + esc(M.EVIDENCE[ev] || '') + '">' + esc(ev) + '</span><div><a href="' + (href ? href[1] : '#') + '" target="_blank" rel="noopener noreferrer">' + esc(x.title || x.url || x.id) + '</a>' +
-          '<div class="small">found by ' + who(x.foundBy) + (x.id ? ' · <a href="' + esc(ROOT + 'sources/' + x.id + '.md') + '" target="_blank" rel="noopener">card</a>' : '') + '</div></div></li>';
-      }).join('') + '</ul><p class="small muted ev-key">' + Object.keys(M.EVIDENCE).map((k) => '<span><span class="ev ev-' + k + '">' + k + '</span> ' + esc(M.EVIDENCE[k]) + '</span>').join(' ') + '</p></section>' +
-      ((r.flags || []).length ? '<section class="card"><div class="kicker">Flags</div><ul class="flags">' + r.flags.map((f) => '<li>⚠️ <span>' + esc(f.text) + '</span><div class="small">by ' + who(f.by) + '</div></li>').join('') + '</ul></section>' : '') +
-      '</aside>';
+    if (!ri && S.demo && S.autoRun !== undefined) S.autoRun = null;
+    renderSidebar();
   }
 
   /* ---------- demo ---------- */
-  let demoStart = 0, demoScript = null, demoSig = '';
+  let demoStart = 0, demoScript = null, demoSig = '', demoLoop = 0;
   function demoTick() {
     const s = struct();
     if (!s) return;
     const sg = JSON.stringify(s);
     if (sg !== demoSig) { demoSig = sg; demoScript = M.buildDemoScript(s); }
-    const st = M.demoStatusesAt(demoScript, (performance.now() - demoStart) / 1000);
-    const ss = sigOf(st, true);
+    const t = (performance.now() - demoStart) / 1000, loop = Math.floor(t / demoScript.length);
+    if (loop !== demoLoop) { demoLoop = loop; S.timing = {}; S.feed = []; }
+    const st = M.demoStatusesAt(demoScript, t), ss = statusSig(st);
     if (ss === S.sigs.statuses) return;
     S.sigs.statuses = ss;
-    S.statuses = st;
-    Object.keys(st).forEach((id) => M.pushSay(S.history, id, st[id]));
+    trackStatuses(st);
     S.lastChange = Date.now();
-    renderOffice();
+    render();
   }
-  $('#replay').addEventListener('click', () => { demoStart = performance.now(); S.history = {}; demoTick(); });
 
   /* ---------- start ---------- */
-  renderConn();
+  $('#replay').hidden = !S.demo;
+  $('#sb-toggle').innerHTML = ICON.panel + '<span>Title block</span>';
+  setSidebar(S.sidebar);
   renderTop();
-  if (!S.view) S.view = S.demo ? 'office' : 'design';
-  setView(S.view);
-  restore().then(poll);
+  renderSidebar();
+  poll();
   setInterval(poll, 2000);
-  setInterval(renderUpdated, 1000);
+  setInterval(() => { if (S.loadedOnce) { renderTop(); renderOffice(); renderSidebar(); } }, 1000);
   if (S.demo) { demoStart = performance.now(); setInterval(demoTick, 250); }
 })();

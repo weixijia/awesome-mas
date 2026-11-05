@@ -56,4 +56,4 @@ If none applies, **don't split** — let an existing role (or the Lead) do it. O
 In chat, show a small table: role · serves · why · group. Then:
 - "These run at the same time: …"
 - "Cost: N agents ≈ N× the tokens of one assistant."
-- "Change anything by telling me, or edit the mind map in the panel. When you're happy, type `next` to lock."
+- "Change anything by telling me — the panel shows the updated team. When you're happy, type `next` to lock."

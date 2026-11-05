@@ -5,13 +5,15 @@ Every step writes two kinds of file:
 - a **Markdown file** for people (and agents) to read and edit, and
 - a **`.js` data file** that the panel (`office/index.html`) reads. The panel cannot read Markdown when opened by double-click, so keep the two in sync: whenever you change one, rewrite the other.
 
+**Where files go:** `home/` is shared by the whole folder. Every other path in this file is inside the current MAS folder — `me/task.md` means e.g. `headphone-deals/me/task.md`.
+
 All data files are plain JavaScript that assign one global. Write valid JSON inside the assignment (double quotes, no trailing commas, no comments).
 
 Times (`t`, `updated`, `setupAt`, …) are optional. Only write a time you actually know (e.g. from your environment or a `date` command you may run); never guess one — leave the field out instead.
 
 ---
 
-## `mas/env.md` + `mas/env.js` — written by `setup`
+## `home/env.md` + `home/env.js` — written by `setup` (shared)
 
 ```js
 window.MAS_ENV = {
@@ -19,12 +21,29 @@ window.MAS_ENV = {
   "os": "macOS",                    // macOS | Windows | Linux
   "canWrite": true,
   "canSearch": true,                // could you run a web search?
-  "subagents": "parallel",          // parallel | sequential  (sequential = you play each role yourself, one at a time)
+  "subagents": "parallel",          // parallel | sequential — tested in setup; the panel shows "Real agents" or "Role-play mode"
   "setupAt": "2026-11-05T14:00:00Z"
 };
 ```
 
-`mas/env.md` says the same in sentences, plus any tip the student needs for their tool.
+`home/env.md` says the same in sentences, plus any tip the student needs for their tool.
+
+## `home/projects.js` — written by `setup`, `choose` and every operation (shared)
+
+```js
+window.MAS_HOME = {
+  "current": "headphone-deals",     // folder of the MAS this conversation works on; null while the student is choosing
+  "projects": [
+    {"folder": "headphone-deals", "title": "Headphone deal finder", "step": 4, "phase": "done", "agents": 4, "runs": 1},
+    {"folder": "lisbon-trip", "title": "3-day weekend in Lisbon", "step": 2, "phase": "design"}
+  ]
+};
+```
+
+- `folder`: lower-case letters, digits and hyphens (max 40), the MAS folder's name. Required.
+- `title`, `step`, `phase`: copied from the MAS's `me/task.js` and `mas/state.js` whenever you write them.
+- `agents`: number of agents including the Lead (once designed). `runs`: number of finished runs.
+- The panel shows the MAS named by `current`; with `null` it shows this list.
 
 ## `mas/state.js` — rewritten at the end of every operation
 
@@ -39,7 +58,7 @@ window.MAS_STATE = {
 };
 ```
 
-## `me/answers.md` — written by the panel form (or by you during the interview)
+## `me/answers.md` — written by you during the interview
 
 ```markdown
 # My answers
@@ -87,7 +106,7 @@ window.MAS_TASK = {
 
 Requirement ids are `R1`, `R2`, … in order. Keep each requirement to one short line in the student's language.
 
-## `mas/structure.md` + `mas/structure.js` — written by `design`, `refine`, `lock` (and by the panel editor)
+## `mas/structure.md` + `mas/structure.js` — written by `design`, `refine`, `lock`
 
 ```markdown
 # 🧭 Headphone deal finder — Lead
@@ -141,16 +160,6 @@ Rules:
 - On `lock`: set `"locked": true`. On `unlock`: set `"locked": false` and add 1 to `version`.
 - `structure.js` is the complete record. Fields that `structure.md` does not show (`rationale`, group `label`/`after`, `version`, `locked`, ids) are kept from `structure.js` when you sync the Markdown back.
 
-## `mas/requests.md` — written by the panel, processed by you on `next`
-
-```markdown
-# Requests from the panel
-- [ ] refine: Add a budget checker that keeps everything under £300
-- [ ] lock
-```
-
-Process open items (`- [ ]`) top to bottom, then mark each done (`- [x]`). The panel never adds a second open `- [ ] lock`.
-
 ## `team/<role-id>.md` — written by `lock`, one per role (and `team/lead.md`)
 
 ```markdown
@@ -177,6 +186,7 @@ window.MAS_STATUS["catch-checker"] = {
   "say": "Checking eBay seller X…",  // max ~60 characters, plain words
   "to": null,                      // role id when state is handoff
   "flag": null,                    // short warning when state is flagged
+  "progress": 40,                  // optional: this role's own rough completion 0–100 (write 100 when done), shown as a progress bar
   "t": "2026-11-05T14:21:03Z"
 };
 ```
@@ -215,8 +225,11 @@ window.MAS_RESULT = {
   ],
   "flags": [
     {"by": "catch-checker", "text": "eBay seller X lists a refurbished unit as 'new-like'"}
+  ],
+  "work": [
+    {"by": "catch-checker", "summary": "Checked 6 offers. **eBay seller X** is refurbished (breaks R2). Currys and John Lewis are new with free delivery."}
   ]
 };
 ```
 
-`markdown` may use headings, lists, tables, bold and links only. Relative links in `result.md` and in `markdown` are relative to the `outputs/` folder (e.g. `../sources/currys-xm6.md`, `work/catch-checker.md`).
+`markdown` and each `work` summary may use headings, lists, tables, bold and links only. `work` has one entry per role (an entry for `lead` is optional). Relative links in `result.md` and in `markdown` are relative to the `outputs/` folder (e.g. `../sources/currys-xm6.md`, `work/catch-checker.md`).

@@ -38,5 +38,19 @@ window.MAS_RESULT = {
       "by": "feasibility-critic",
       "text": "Open-set gait recognition for unseen guests remains an unsolved problem, and GDPR Article 9 prohibits unconsented biometric processing regardless of timeline."
     }
+  ],
+  "work": [
+    {
+      "by": "feasibility-critic",
+      "summary": "- **Team Composition (3 Persons)**:\n- Hardware engineer: Interface TI mmWave radar (DCA1000EVM data capture or IWR UART/SPI streaming) with host MCU/SBC.\n- AI engineer: Signal pre-processing (FFT, CFAR, micro-Doppler extraction) and neural network inference.\n- Software engineer: Local database/dashboard, notification alerts, and Airbnb host integration."
+    },
+    {
+      "by": "literature-finder",
+      "summary": "- **Radar Hardware**: Texas Instruments 60 GHz–64 GHz FMCW sensors (notably TI IWR6843 / IWR6843ISK-ODS and IWR1443).\n- **Data Modalities**:\n- **Micro-Doppler Spectrograms**: High-resolution Doppler velocity shifts induced by torso and limb swinging.\n- **3D Sparse Point Clouds**: Spatial coordinates ($X, Y, Z$), Doppler velocity, and signal reflection intensity (SNR)."
+    },
+    {
+      "by": "privacy-scout",
+      "summary": "- **Total Ban on Indoor Cameras**: According to [airbnb-indoor-camera-policy](../../sources/airbnb-indoor-camera-policy.md), Airbnb strictly bans all indoor security cameras and…\n- **Allowed Indoor Sensors**: Noise decibel monitors (e.g., Minut, NoiseAware) and basic presence sensors are permitted in indoor common areas provided they do not record audio/…\n- **Platform Positioning of Radar**: mmWave radar does NOT capture optical imagery or audio, legally distancing it from camera bans. However, stealthy installation or ambiguous …\n- **Biometric Identification Threshold**: Under [gdpr-article-9-biometrics](../../sources/gdpr-article-9-biometrics.md), capturing physical behavioural characteristics (gait sig…"
+    }
   ]
 };
