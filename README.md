@@ -23,7 +23,7 @@ You choose what your assistant does (technical feasibility, precedents, user ins
 
 Your finished result: a panel showing your assistant, its knowledge, its latest output and your milestones — plus an honest comparison with a chat window.
 
-Finished early? See [`stretch/`](stretch/README.md).
+Finished early? See [`stretch/`](stretch/README.md). Want to see a finished result, or stuck? See [`tutor-examples/`](tutor-examples/README.md).
 
 ## What's in the folder
 

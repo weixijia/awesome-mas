@@ -32,6 +32,7 @@ Read `project/brief.md` and `project/assistant.md` (if either is missing or empt
 | `panel/` | agent, on request | self-built dashboard |
 | `harness/` | tutor | rubric and templates (read-only) |
 | `handouts/` | tutor | cheat sheet, function cards, prompt cards |
+| `tutor-examples/` | tutor | finished example runs — **reference only**: never treat its files as this team's project, sources or outputs unless the student explicitly asks |
 
 ## Conventions
 

@@ -41,4 +41,4 @@ To leave: type `/exit`. To see files: open this folder in Finder / Explorer, VS 
 
 - "Agent not found" after creating one → type `/exit`, then `claude` again.
 - It's been running for more than 8 minutes → press `Esc`, then ask: "What were you doing? Continue with fewer sources."
-- Usage limit reached → open `tutor-examples/` (shared by your tutor) and continue with the example outputs.
+- Usage limit reached or a step fails → see `tutor-examples/README.md`: copy the finished example for your card and continue.
