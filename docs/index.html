@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>awesome-mas — Guide</title>
+<meta name="description" content="Build your own multi-agent assistant for any task, with the AI tool you already use.">
+<style>
+  :root {
+    --bg: #fbf8f3; --surface: #ffffff; --ink: #1f2430; --muted: #5d6475; --line: #e8e2d8;
+    --accent: #e8664a; --accent-soft: #fde7e1; --teal: #2f8f83; --teal-soft: #dff1ee;
+    --code: #f4efe7; --shadow: 0 1px 2px rgba(31,36,48,.06), 0 8px 24px rgba(31,36,48,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181d; --surface: #1f232a; --ink: #eef0f4; --muted: #a6adbb; --line: #2e333c;
+      --accent: #ff8a6e; --accent-soft: #3a2621; --teal: #5cc2b4; --teal-soft: #1d322f; --code: #262b33;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  a { color: var(--accent); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 56px 0 24px; }
+  .brand { font-weight: 800; letter-spacing: -.02em; color: var(--accent); font-size: 15px; text-transform: lowercase; }
+  h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.1; letter-spacing: -.03em; margin: 8px 0 12px; }
+  .lede { font-size: 19px; color: var(--muted); max-width: 680px; margin: 0; }
+  h2 { font-size: 26px; letter-spacing: -.02em; margin: 56px 0 8px; }
+  h3 { margin: 0 0 6px; font-size: 18px; }
+  p.sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
+  .grid { display: grid; gap: 16px; }
+  .grid.c4 { grid-template-columns: repeat(4, 1fr); }
+  .grid.c2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 820px) { .grid.c4 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid.c4, .grid.c2 { grid-template-columns: 1fr; } }
+  .num { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent); font-weight: 800; margin-bottom: 10px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .tab { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px;
+    padding: 8px 14px; font: inherit; font-size: 14px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .panel[hidden] { display: none; }
+  ol.steps { margin: 0; padding-left: 22px; }
+  ol.steps li { margin: 8px 0; }
+  code, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em;
+    background: var(--code); padding: 2px 6px; border-radius: 6px; }
+  .copybox { display: flex; gap: 10px; align-items: stretch; margin: 14px 0 6px; }
+  .copybox pre { flex: 1; margin: 0; padding: 14px 16px; background: var(--code); border-radius: 12px;
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
+  .btn { border: 0; border-radius: 12px; padding: 0 18px; background: var(--accent); color: #fff; font: inherit;
+    font-weight: 700; cursor: pointer; min-height: 44px; }
+  .btn:focus-visible, .tab:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+  .note { font-size: 14px; color: var(--muted); }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: var(--teal-soft); color: var(--teal); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  details { border-bottom: 1px solid var(--line); padding: 12px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  footer { padding: 48px 0 64px; color: var(--muted); font-size: 14px; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg);
+    padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="brand">awesome-mas</div>
+  <h1>Build your own multi-agent assistant — for any task.</h1>
+  <p class="lede">Describe a task. Your AI designs a team of agents for it, you shape the team on a mind map, and you watch the agents work together in an animated office. No coding, nothing extra to install.</p>
+</header>
+
+<main class="wrap">
+
+  <section aria-labelledby="need">
+    <h2 id="need">What you need</h2>
+    <div class="grid c2">
+      <div class="card">
+        <h3>One AI tool, already signed in</h3>
+        <p class="note" style="margin:0">Claude (app or Claude Code), Codex (app or CLI), Antigravity (IDE or CLI) — or another AI coding assistant. Most need a paid plan.</p>
+      </div>
+      <div class="card">
+        <h3>A browser</h3>
+        <p class="note" style="margin:0">Any browser shows the panel. To <em>edit</em> in the panel, use <strong>Chrome</strong> or <strong>Edge</strong> (otherwise just tell your assistant what to change).</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="setup">
+    <h2 id="setup">Set up in one minute</h2>
+    <p class="sub">Pick your tool, then follow three steps.</p>
+    <div class="tabs" role="tablist" aria-label="Your AI tool">
+      <button class="tab" role="tab" aria-selected="true" aria-controls="t-claude-app" id="b-claude-app">Claude app</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="t-claude-code" id="b-claude-code">Claude Code (terminal)</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-app" id="b-codex-app">Codex app</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-cli" id="b-codex-cli">Codex CLI</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="t-agy" id="b-agy">Antigravity</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="t-other" id="b-other">Other</button>
+    </div>
+
+    <div class="card">
+      <div class="panel" role="tabpanel" id="t-claude-app" aria-labelledby="b-claude-app">
+        <ol class="steps">
+          <li>Install the <a href="https://claude.com/download">Claude desktop app</a> and sign in.</li>
+          <li>Make a new, empty folder (e.g. <code>my-mas</code> on your Desktop). In the app open the <strong>Code</strong> tab → <strong>Open folder…</strong> → choose it.</li>
+          <li>Paste the setup sentence below and press Enter. Approve when it asks to download files or edit files in this folder.</li>
+        </ol>
+        <p class="note">Tip: click <code>office/index.html</code> in the chat to open the panel in the app's browser pane, next to your conversation.</p>
+      </div>
+      <div class="panel" role="tabpanel" id="t-claude-code" aria-labelledby="b-claude-code" hidden>
+        <ol class="steps">
+          <li>Install Claude Code (<a href="https://code.claude.com/docs/en/setup">instructions</a>) and sign in.</li>
+          <li>Make a new, empty folder, open a terminal in it and type <code>claude</code>. When asked, choose to trust the folder.</li>
+          <li>Paste the setup sentence below.</li>
+        </ol>
+      </div>
+      <div class="panel" role="tabpanel" id="t-codex-app" aria-labelledby="b-codex-app" hidden>
+        <ol class="steps">
+          <li>Install the Codex app (<a href="https://developers.openai.com/codex">instructions</a>) and sign in.</li>
+          <li>Make a new, empty folder and open it as a project.</li>
+          <li>Paste the setup sentence below. If Codex says it can't download (its sandbox may block internet for commands), use the ZIP option below — then type <code>next</code>.</li>
+        </ol>
+      </div>
+      <div class="panel" role="tabpanel" id="t-codex-cli" aria-labelledby="b-codex-cli" hidden>
+        <ol class="steps">
+          <li>Install Codex CLI (<a href="https://developers.openai.com/codex">instructions</a>) and sign in.</li>
+          <li>Make a new, empty folder, open a terminal in it and type <code>codex</code> (add <code>--search</code> for live web results).</li>
+          <li>Paste the setup sentence below. If the download is blocked, approve network access when asked, or use the ZIP option.</li>
+        </ol>
+      </div>
+      <div class="panel" role="tabpanel" id="t-agy" aria-labelledby="b-agy" hidden>
+        <ol class="steps">
+          <li>Install <a href="https://antigravity.google/">Antigravity</a> and sign in.</li>
+          <li>Make a new, empty folder. IDE: <strong>Open Folder</strong>. CLI: open a terminal in the folder and type <code>agy</code>.</li>
+          <li>Paste the setup sentence below. Allow it to edit files in this folder when asked.</li>
+        </ol>
+      </div>
+      <div class="panel" role="tabpanel" id="t-other" aria-labelledby="b-other" hidden>
+        <ol class="steps">
+          <li>Open a new, empty folder in your AI coding assistant.</li>
+          <li>Paste the setup sentence below.</li>
+          <li>If your assistant doesn't read <code>AGENTS.md</code> on its own, start each session with: <code>Read AGENTS.md and follow it.</code></li>
+        </ol>
+      </div>
+
+      <div class="copybox">
+        <pre id="setup-sentence">Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it.</pre>
+        <button class="btn" data-copy="setup-sentence">Copy</button>
+      </div>
+      <p class="note">No download from inside your tool? Get the <a href="https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip">ZIP</a>, unzip it, move everything from <code>awesome-mas-main</code> into your folder, open the folder in your tool and type <code>next</code>.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="steps">
+    <h2 id="steps">Then: four steps, one word</h2>
+    <p class="sub">Type <code>next</code> in your assistant each time. Keep the panel (<code>office/index.html</code>) open — it updates as you go.</p>
+    <div class="grid c4">
+      <div class="card"><div class="num">1</div><h3>Describe</h3><p class="note">Answer five short questions about your task — anything from comparing prices to planning a trip or checking a thesis idea.</p><span class="pill">Memory</span></div>
+      <div class="card"><div class="num">2</div><h3>Design</h3><p class="note">Your assistant designs a team of agents from your requirements and shows it as a mind map.</p><span class="pill">Division of labour</span></div>
+      <div class="card"><div class="num">3</div><h3>Refine &amp; lock</h3><p class="note">Change roles in words or on the mind map. Watch the cost meter: more agents, more tokens. Then lock.</p><span class="pill">Your decision</span></div>
+      <div class="card"><div class="num">4</div><h3>Run</h3><p class="note">Watch the office: agents work side by side, hand work over, catch each other's mistakes. Open every source.</p><span class="pill">Tools &amp; workflow</span></div>
+    </div>
+    <p class="note">Afterwards: change a condition and type <code>run again</code>, or type <code>unlock</code> to redesign your team.</p>
+  </section>
+
+  <section aria-labelledby="modes">
+    <h2 id="modes">Two ways to work</h2>
+    <div class="grid c2">
+      <div class="card"><h3>💬 Chat</h3><p class="note" style="margin:0">Do everything by talking to your assistant — in a terminal or an app. The panel is optional, just to look.</p></div>
+      <div class="card"><h3>🖱️ Panel</h3><p class="note" style="margin:0">In Chrome or Edge, click <strong>Connect project folder</strong> to fill in your task and edit the mind map. Then type <code>next</code> in your assistant to let it do the AI work.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="why">
+    <h2 id="why">Why a team of agents?</h2>
+    <div class="card">
+      <table>
+        <thead><tr><th>Ingredient</th><th>What you'll notice</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Memory</strong></td><td>Close and reopen — it still knows your task, because it lives in files.</td></tr>
+          <tr><td><strong>Tools</strong></td><td>Agents search the web and save every source, so you can check each claim.</td></tr>
+          <tr><td><strong>Division of labour</strong></td><td>Specialists work at the same time, and checkers catch what finders miss.</td></tr>
+          <tr><td><strong>Workflow</strong></td><td><code>run again</code> repeats the whole process in one line.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="faq">
+    <h2 id="faq">Questions</h2>
+    <div class="card">
+      <details><summary>My assistant ran out of usage.</summary><p class="note">Double-click <code>examples/index.html</code> in your folder to watch finished example teams at work and read their results. Your own files are safe — continue when your usage resets.</p></details>
+      <details><summary>The panel doesn't update.</summary><p class="note">Click the refresh button in the panel, or reload the page. Make sure you opened <code>office/index.html</code> inside your project folder.</p></details>
+      <details><summary>I can't edit in the panel.</summary><p class="note">Editing needs Chrome or Edge. In other browsers, tell your assistant what to change — e.g. "add a budget checker".</p></details>
+      <details><summary>My assistant doesn't follow the steps.</summary><p class="note">Say: <code>Read AGENTS.md and follow it.</code> Then type <code>next</code>.</p></details>
+      <details><summary>Can it run agents at the same time?</summary><p class="note">If your tool can start sub-agents, yes. Otherwise your assistant plays each role in turn — slower, but the steps and the office are the same.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">awesome-mas · open source on <a href="https://github.com/weixijia/awesome-mas">GitHub</a> · MIT licence</footer>
+<div class="toast" id="toast" role="status" aria-live="polite">Copied</div>
+
+<script>
+  const tabs = [...document.querySelectorAll('.tab')];
+  function select(tab) {
+    tabs.forEach(t => { const on = t === tab; t.setAttribute('aria-selected', on); document.getElementById(t.getAttribute('aria-controls')).hidden = !on; });
+    try { localStorage.setItem('mas-tool', tab.id); } catch (e) {}
+  }
+  tabs.forEach(t => t.addEventListener('click', () => select(t)));
+  try { const saved = localStorage.getItem('mas-tool'); if (saved && document.getElementById(saved)) select(document.getElementById(saved)); } catch (e) {}
+  document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
+    const text = document.getElementById(b.dataset.copy).textContent;
+    try { await navigator.clipboard.writeText(text); } catch (e) {
+      const r = document.createRange(); r.selectNodeContents(document.getElementById(b.dataset.copy));
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); s.removeAllRanges();
+    }
+    const t = document.getElementById('toast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1400);
+  }));
+</script>
+</body>
+</html>

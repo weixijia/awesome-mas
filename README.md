@@ -1,30 +1,72 @@
-# Thesis MAS starter
+# awesome-mas
 
-Turn Claude Code into a **personalized assistant for your thesis** — a small multi-agent system you design — and see what an agentic tool can do that a chat window cannot.
+**Build your own multi-agent assistant — for any task — with the AI tool you already use.**
 
-You choose what your assistant does (technical feasibility, precedents, user insights, prototyping parts, or your own idea). It gives you evidence-based feedback on *your* work; design decisions stay with you.
+Describe a task in your own words. Your AI designs a small team of agents for it, you shape the team on a mind map, lock it, and watch your agents work together in an animated office. No coding, nothing extra to install.
 
-## Start here
+Works with **Claude** (app or Claude Code), **Codex** (app or CLI), **Antigravity** (IDE or CLI) and most other AI coding assistants.
 
-1. Before class: [`handouts/pre-class.md`](handouts/pre-class.md)
-2. In class: keep [`handouts/cheat-sheet.md`](handouts/cheat-sheet.md) open
-3. Open a terminal in this folder, type `claude`, then `/onboard`
-4. Any time: `/milestones` shows your progress and the next step
+📖 **Step-by-step guide:** https://weixijia.github.io/awesome-mas/
 
-## Tutorial path (3 hours)
+---
 
-| Module | You do | Milestone |
+## Start in one minute
+
+1. **Make a new, empty folder** (e.g. `my-mas` on your Desktop).
+2. **Open it in your AI tool** — Claude app: *Code → Open folder* · Codex app: open the folder as a project · Antigravity: *Open Folder* · terminal tools (`claude`, `codex`, `agy`, …): start them inside the folder.
+3. **Paste this sentence:**
+
+   ```
+   Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it.
+   ```
+
+Your assistant downloads everything, checks what your tool can do, opens the panel, and says *“Type `next` to begin.”*
+
+**Can't download from inside your tool?** Download [the ZIP](https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip), unzip it, move everything from `awesome-mas-main` into your folder, open the folder in your tool and type `next`.
+
+## The 4 steps — type `next` each time
+
+| Step | You | You'll see |
 |---|---|---|
-| Before class | Install, ask a web chat the same job → `report/m0-baseline.md` | MS0 Ready |
-| M1 Memory | `/onboard` (choose a [function card](handouts/function-cards.md)), then `/research <topic>` | MS1 Context, MS2 Knowledge |
-| M2 Agents | Create 2 agents from your function card, then run your workflow | MS3 Roles, MS4 Workflow |
-| M3 Panel | Have the agent build `panel/index.html` ([prompt cards](handouts/prompt-cards.md)) | MS5 Showcase |
-| M4 Test | `/clear` memory test, fill in `report/comparison.md` | MS6 Evaluate |
+| **1 · Describe** | Answer 5 short questions about your task | Your requirements R1, R2… |
+| **2 · Design** | — | A mind map of the agent team designed for *your* requirements |
+| **3 · Refine & lock** | Change roles in words (*“add a budget checker”*) or on the mind map; then lock | Your team appears in the office |
+| **4 · Run** | — | Agents working side by side, handing work to each other, checking each other — then a result with sources you can open |
 
-Your finished result: a panel showing your assistant, its knowledge, its latest output and your milestones — plus an honest comparison with a chat window.
+Afterwards: change a condition and type `run again`, or type `unlock` to redesign your team.
 
-Finished early? See [`stretch/`](stretch/README.md). Want to see a finished result, or stuck? See [`tutor-examples/`](tutor-examples/README.md).
+## Two ways to work — same files
 
-## What's in the folder
+- **Chat:** do everything by talking to your assistant (terminal or app).
+- **Panel:** open `office/index.html`, click *Connect project folder* (Chrome or Edge) to fill in the form and edit the mind map, then type `next` in your assistant to let it do the AI work. In other browsers the panel shows everything; make changes by telling your assistant.
 
-See the folder map in [`AGENTS.md`](AGENTS.md) — the same file the agent reads.
+## What's inside
+
+```
+AGENTS.md        instructions your assistant follows (CLAUDE.md / GEMINI.md point here)
+SETUP.md         what your assistant does on the setup sentence
+harness/         operations, team-design rules, file formats
+office/          the panel (mind map, animated office, result)
+me/              your task, in your words
+mas/             your team's structure and live status
+team/            one job description per agent (created when you lock)
+sources/         every web source your agents used
+outputs/         the result
+raw/             your own files for the agents to read (optional)
+examples/        finished examples — double-click examples/index.html
+```
+
+## Why a team of agents instead of one chat?
+
+| Ingredient | What you'll notice |
+|---|---|
+| **Memory** | Close and reopen — it still knows your task, because it lives in files. |
+| **Tools** | Agents search the web and save every source, so you can check each claim. |
+| **Division of labour** | Specialists work at the same time, and checkers catch what finders miss. |
+| **Workflow** | `run again` repeats the whole process in one line. |
+
+More agents also means more tokens — the panel shows the trade-off, and the choice is yours.
+
+## License
+
+MIT

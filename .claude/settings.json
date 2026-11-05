@@ -4,16 +4,20 @@
     "allow": [
       "WebSearch",
       "WebFetch",
-      "Edit(/project/**)",
-      "Edit(/wiki/**)",
+      "Edit(/me/**)",
+      "Edit(/mas/**)",
+      "Edit(/team/**)",
+      "Edit(/sources/**)",
       "Edit(/outputs/**)",
-      "Edit(/report/**)",
-      "Edit(/panel/**)"
+      "Bash(open office/index.html)",
+      "Bash(xdg-open office/index.html)"
     ],
     "deny": [
-      "Edit(/decisions/**)",
       "Edit(/raw/**)",
-      "Edit(/harness/**)"
+      "Edit(/office/**)",
+      "Edit(/harness/**)",
+      "Edit(/AGENTS.md)",
+      "Edit(/SETUP.md)"
     ]
   }
 }
