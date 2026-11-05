@@ -13,16 +13,100 @@ Works with **Claude** (app or Claude Code), **Codex** (app or CLI), **Antigravit
 ## Start in one minute
 
 1. **Make a new, empty folder** (e.g. `my-mas` on your Desktop).
-2. **Open it in your AI tool** — Claude app: *Code → Open folder* · Codex app: open the folder as a project · Antigravity: *Open Folder* · terminal tools (`claude`, `codex`, `agy`, …): start them inside the folder.
-3. **Paste this sentence:**
+2. **Open it in your AI tool** (see your tool below).
+3. **Paste this sentence** — it is the same for every tool:
 
    ```
    Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it.
    ```
 
-Your assistant downloads everything, checks what your tool can do, opens the panel, and says *“Type `next` to begin.”*
+Your assistant downloads everything, tests what your tool can do, opens the panel, and says *“Type `next` to start your first MAS.”*
+
+## Set up in your tool
+
+<details open>
+<summary><b>Claude Code</b> (terminal)</summary>
+
+1. Install [Claude Code](https://code.claude.com/docs/en/setup) and sign in.
+2. Open a terminal in your empty folder and run:
+   ```
+   claude
+   ```
+3. When asked, choose **trust this folder** — otherwise every file edit asks for permission.
+4. Paste the setup sentence.
+
+Agents run as **real parallel subagents** (the panel shows *Real agents*).
+</details>
+
+<details>
+<summary><b>Claude app</b> (desktop)</summary>
+
+1. Install the [Claude desktop app](https://claude.com/download) and sign in.
+2. Open the **Code** tab → **Open folder…** → choose your empty folder.
+3. Paste the setup sentence. Approve when it asks to download or edit files in this folder.
+4. Tip: click `office/index.html` in the chat to open the panel next to your conversation.
+</details>
+
+<details>
+<summary><b>Codex CLI</b> (terminal)</summary>
+
+1. Install [Codex](https://developers.openai.com/codex) and sign in.
+2. Open a terminal in your empty folder and run:
+   ```
+   codex --search
+   ```
+   (`--search` gives live web results; without it Codex uses cached search.)
+3. Paste the setup sentence. If the download is blocked, approve network access when asked, or use the ZIP below.
+
+Agents run as **real parallel subagents**.
+</details>
+
+<details>
+<summary><b>Codex app</b> (desktop)</summary>
+
+1. Install the [Codex app](https://developers.openai.com/codex) and sign in.
+2. Open your empty folder as a project.
+3. Paste the setup sentence. If Codex says it can't download (its sandbox may block internet for commands), use the ZIP below, then type `next`.
+</details>
+
+<details>
+<summary><b>Antigravity</b> (IDE or CLI)</summary>
+
+1. Install [Antigravity](https://antigravity.google/) and sign in.
+2. **IDE:** *Open Folder* → your empty folder. **CLI:** open a terminal in the folder and run:
+   ```
+   agy
+   ```
+3. Paste the setup sentence. Allow it to edit files in this folder when asked.
+
+Setup tests whether Antigravity can start subagents here. If it can't, your assistant plays each role in turn (*Role-play* in the panel) — the steps and the office are the same, only slower.
+</details>
+
+<details>
+<summary><b>Any other AI coding assistant</b> (Cursor, Copilot, Gemini CLI, opencode, …)</summary>
+
+1. Open your empty folder in the assistant.
+2. Paste the setup sentence.
+3. If it doesn't follow the steps on its own, start each conversation with:
+   ```
+   Read AGENTS.md and follow it.
+   ```
+</details>
 
 **Can't download from inside your tool?** Download [the ZIP](https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip), unzip it, move everything from `awesome-mas-main` into your folder, open the folder in your tool and type `next`.
+
+## What to type
+
+| Type | What happens |
+|---|---|
+| `next` | Do the next step (describe → design → lock → run) |
+| a change in your own words, e.g. *“add a budget checker”* | Change the team before it is locked |
+| `run again` | Re-run the whole team (e.g. after changing a condition in `me/task.md`) |
+| `unlock` | Change a locked team |
+| `new` | Start another MAS in the same folder |
+| *“switch to lisbon trip”* | Continue another MAS |
+
+Every new conversation starts by asking whether to start a new MAS or continue one you have.
 
 ## The 4 steps — type `next` each time
 
