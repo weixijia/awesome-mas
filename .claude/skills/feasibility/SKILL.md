@@ -12,7 +12,7 @@ Idea: $ARGUMENTS
 ## 1. Check the team's agents
 
 Look in `.claude/agents/` for agents whose `name` is `feasibility-reviewer` and `sparring-critic`.
-If either is missing, stop and reply with which one is missing and: "Build it with the prompt in `handouts/role-cards.md`, then run `/feasibility` again." Do not do its job yourself.
+If either is missing, stop and reply with which one is missing and: "Build it with the prompt in `handouts/function-cards.md`, then run `/feasibility` again." Do not do its job yourself.
 
 ## 2. Load context
 
@@ -32,7 +32,7 @@ Launch `feasibility-reviewer` and `sparring-critic` **in parallel**. Give both t
 
 ## 6. Merge
 
-Create `reviews/<YYYY-MM-DD>-<idea-slug>.md` from `harness/templates/feasibility-report.md`:
+Create `outputs/<YYYY-MM-DD>-feasibility-<idea-slug>.md` from `harness/templates/feasibility-report.md`:
 
 - Copy the reviewer's ratings table unchanged. Do not alter any rating.
 - Copy the critic's challenges and open questions unchanged.

@@ -6,7 +6,7 @@
       "WebFetch",
       "Edit(/project/**)",
       "Edit(/wiki/**)",
-      "Edit(/reviews/**)",
+      "Edit(/outputs/**)",
       "Edit(/report/**)",
       "Edit(/panel/**)"
     ],

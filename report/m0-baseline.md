@@ -1,7 +1,7 @@
 # M0 — Web chat baseline (do this before class)
 
 1. Open a **web chat** assistant (claude.ai, ChatGPT, Gemini — any) in a new conversation.
-2. Paste this prompt, filling in your idea (or use the sample idea in `sample-project/brief.md`):
+2. Paste this prompt, filling in your idea (or use the sample idea in `sample-project/brief.md`). Already know your assistant will do a different job (see `handouts/function-cards.md`)? Ask the chat to do that job instead.
 
 > I'm an Innovation Design Engineering student. My thesis idea: **<your idea in 2–3 sentences>**.
 > Is it technically feasible, and how difficult is it to implement? Please cite sources.
