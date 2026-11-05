@@ -1,0 +1,13 @@
+__pycache__/
+.DS_Store
+*.err
+*.out
+agents.json
+AttentionBar.app/
+callcheck/callcheck
+config.json
+control.json
+log.jsonl
+office/agents.js
+state.json
+suggestions.md

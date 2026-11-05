@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agents at work</title>
+<!-- Drawing: awesome-mas office (MIT, Xijia Wei) — see LICENSE-awesome-mas -->
+<link rel="stylesheet" href="style.css">
+<style>
+  body { display: block; height: auto; overflow: hidden auto; background: var(--sheet); }
+  html { height: auto; }
+  .topline { display: flex; align-items: baseline; gap: 10px; padding: 10px 16px 0; font: 600 13px/1.3 var(--sans); color: var(--ink); }
+  .topline .sub { font: 400 12px/1.3 var(--mono); color: var(--ink-2); }
+  .topline .sub b { font-weight: 500; color: var(--ink); }
+  .drawing-host { margin: 4px 8px 0; padding-bottom: 12px; }
+  .drawing-host .notes-list { margin: 0; padding: 0 8px; }
+  /* Up next: the guard's suggestions, drawn as the same cards as the people above */
+  .upnext { margin: 6px 16px 14px; }
+  .upnext h2 { margin: 0 0 2px; font: 500 12px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+  .upnext .alert { margin: 6px 0 8px; padding: 8px 10px; border: 1px solid var(--ink); background: var(--ochre-t); font: 600 14px/1.35 var(--sans); }
+  .upnext .note { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 10px 0; color: inherit; font: inherit; cursor: pointer; }
+  .upnext .n-say { -webkit-line-clamp: 3; }
+  .upnext .n-meta .sess { font: 500 12px var(--mono); color: var(--ink-2); }
+  .upnext .n-meta .copy { font-size: 13px; font-weight: 600; font-stretch: 88%; padding: 0 5px; line-height: 18px; border: 1px solid var(--hair); }
+  .upnext li:first-child .n-k { background: var(--verm); }
+  .upnext .quiet { color: var(--ink-2); font-size: 14px; padding: 8px 0; border-top: 1px solid var(--hair); }
+  .upnext .note:hover .n-t { text-decoration: underline; text-decoration-color: var(--verm); text-underline-offset: 3px; }
+
+  /* Dark mode: follows macOS. Same structure, darker sheet, light ink. */
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: dark;
+      --sheet: #1C1F22; --paper: #262B30; --ink: #DCE0DB; --ink-2: #A3AAB0; --hair: #474E55; --slab: #2C3136; --wall: #5A636C;
+      --verm-ink: #F27E60; --verm-t: #5A3126; --cobalt: #4D78D4; --cobalt-t: #263553; --ochre-t: #54431C; --sage: #6FA067; --sage-t: #2D4A2B; }
+    .axo .board, .axo .paper, .axo .fig .carried, .axo .ball, .axo .bubble path, .axo .net { fill: var(--paper); }
+    .axo .mk-n { fill: var(--sheet); }
+    .notes-list .n-k { color: var(--sheet); }
+    .note[data-state="flagged"] .n-state, .st-flagged { color: #1B1F23; }
+  }
+  .empty-note { position: absolute; inset: 40% 0 auto; text-align: center; font: 400 13px var(--sans); color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="topline"><span id="title">Agents at work</span><span class="sub" id="sub"></span></div>
+<div class="drawing-host" id="drawing-host"></div>
+<section class="upnext" id="upnext" hidden></section>
+<script src="model.js"></script>
+<script src="office.js"></script>
+<script src="agents-app.js"></script>
+</body>
+</html>
