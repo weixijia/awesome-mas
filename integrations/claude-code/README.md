@@ -25,6 +25,25 @@ python3 integrations/claude-code/feed.py
 
 Then open `integrations/claude-code/index.html` in a browser. It works from `file://` and needs no server. To leave some sessions out, add `--ignore ~/some/folder` (repeatable).
 
+## Or: a menu bar app (macOS)
+
+**Agent Office** puts the same office in your menu bar:
+
+- The icon shows how many sessions are working, and turns into an orange hand when one needs you.
+- Click the icon to open the office. Right-click for **Launch at Login**, **Open in Browser** and **Quit**.
+- Inside a team, clicking a person brings the app running that session to the front (Terminal, iTerm2, VS Code, the Claude app, …). In Terminal it also picks the right tab. If the session is no longer running, it copies `claude --resume <id>` instead.
+- The app runs the feed itself and stops it when it quits. Its data stays in `~/Library/Application Support/Agent Office/`.
+
+To install it, run this from the repository root:
+
+```sh
+sh integrations/claude-code/macos/build.sh
+```
+
+This builds `~/Applications/Agent Office.app`. To build elsewhere, pass a folder: `build.sh ./dist`.
+
+The app is built on your own Mac and signed ad hoc, so Gatekeeper does not block it. It needs the Xcode Command Line Tools (`xcode-select --install`), Python 3 and macOS 13 or later. To update, pull and run the script again.
+
 ## What it reads
 
 `feed.py` only reads local files and sends nothing anywhere:

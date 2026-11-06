@@ -136,6 +136,9 @@
     if (!quiet) { tabSig = ''; render(); }
   }
 
+  // Inside the menu bar app (macos/), the app opens the session itself and sizes its popover to the page.
+  const native = (name) => window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[name];
+  function openSession(sid, btn) { const h = native('jump'); if (h) h.postMessage(sid); else copyResume(sid, btn); }
   function copyResume(sid, btn) {
     const cmd = 'claude --resume ' + sid;
     const done = () => { if (btn) { const t = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = t; }, 1500); } };
@@ -146,18 +149,27 @@
     const tab = e.target.closest('[data-tab]');
     if (tab) { setView(tab.dataset.tab); return; }
     const r = e.target.closest('[data-resume]');
-    if (r) copyResume(r.dataset.resume, r);
+    if (r) openSession(r.dataset.resume, r);
   });
   // All: a person (or their card) opens their team. Inside a team: copy the command that resumes that session.
   function select(id) {
     office.setSelected(null);
     const sid = id && sessionOf[id];
     if (!sid) return;
-    if (view === 'all') setView(sid); else copyResume(sid, $('#sub .open'));
+    if (view === 'all') setView(sid); else openSession(sid, $('#sub .open'));
   }
   // Light/dark follows the system: the drawing picks its colours when built, so rebuild on a switch.
   if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => location.reload());
 
+  let told = 0;
+  const tell = () => { // measure the content (scrollHeight never drops below the window, so it could only grow)
+    const h = native('height');
+    if (!h) return;
+    const v = Math.ceil(Math.max(...['.tabs', '.topline', '#drawing-host'].map((q) => { const el = $(q); return el ? el.getBoundingClientRect().bottom + window.scrollY : 0; })));
+    if (v !== told) { told = v; h.postMessage(v); }
+  };
+  if (window.ResizeObserver) new ResizeObserver(tell).observe($('#drawing-host'));
+  setInterval(tell, 1000);
   window.addEventListener('resize', () => office.relayout && office.relayout());
   poll();
   setInterval(poll, 2000);

@@ -12,7 +12,8 @@ These are Claude Code's own working files, not a public API, so a Claude Code up
 may change them. agents.js holds your session names and recent actions: it is in
 .gitignore, keep it out of commits. Stop with Ctrl-C.
 
-usage: python3 feed.py [--once] [--ignore PATH ...]
+usage: python3 feed.py [--once] [--ignore PATH ...] [--parent-pid PID]
+  --parent-pid  stop when that process ends (the menu bar app passes its own pid)
 """
 import glob, json, os, sys, time
 
@@ -26,6 +27,7 @@ MAX_SESSIONS = 9
 SUB_FRESH_S = 120      # an unfinished subagent with no write for this long counts as gone
 TAIL = 400_000         # bytes read from the end of a transcript
 
+PARENT = int(ARGS[ARGS.index("--parent-pid") + 1]) if "--parent-pid" in ARGS else None
 IGNORE = [os.path.expanduser(a).rstrip("/") for i, a in enumerate(ARGS) if i and ARGS[i - 1] == "--ignore"]
 under = lambda cwd, roots: any(cwd == r or cwd.startswith(r + "/") for r in roots)
 
@@ -206,6 +208,11 @@ if __name__ == "__main__":
     if "--once" not in ARGS:
         print("Writing " + OUT + " every 2 s. Open index.html in this folder. Ctrl-C to stop.")
     while True:
+        if PARENT:
+            try:
+                os.kill(PARENT, 0)
+            except OSError:
+                break  # the app that started us has quit
         try:
             write()
         except Exception as e:
