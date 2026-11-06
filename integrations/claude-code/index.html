@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Code · live office</title>
+<link rel="stylesheet" href="../../office/style.css">
+<style>
+  html, body { height: auto; }
+  body { display: block; overflow: hidden auto; }
+  .tabs { display: flex; gap: 2px; padding: 8px 12px 0; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--hair); }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: none; display: inline-flex; align-items: center; gap: 6px; max-width: 180px; padding: 5px 8px 6px; margin-bottom: -1px;
+    background: none; border: 0; border-bottom: 2px solid transparent; color: var(--ink-2); font: 600 13px/1.2 var(--sans); font-stretch: 88%; cursor: pointer; }
+  .tab .tl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab .tx { font: 500 11px var(--mono); color: var(--ink-2); }
+  .tab:hover { color: var(--ink); }
+  .tab.on { color: var(--ink); border-bottom-color: var(--verm); }
+  .tab .dot { flex: none; width: 7px; height: 7px; border: 1px solid var(--ink); background: transparent; }
+  .tab .dot.st-working { background: var(--ink); } .tab .dot.st-flagged { background: var(--ochre); } .tab .dot.st-done { background: var(--sage); border-color: var(--sage); }
+  .tab .dot.st-idle { border-color: var(--hair); }
+  .topline { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 2px; padding: 10px 16px 0; font: 600 15px/1.3 var(--sans); color: var(--ink); }
+  .topline #title { white-space: nowrap; }
+  .topline .sub { font: 400 13px/1.3 var(--mono); color: var(--ink-2); }
+  .topline .sub b { font-weight: 500; color: var(--ink); }
+  .topline .path { color: var(--ink-2); }
+  .topline .open { margin-left: 6px; font: 600 12px/1 var(--sans); font-stretch: 88%; padding: 3px 6px; border: 1px solid var(--ink); background: none; color: var(--ink); cursor: pointer; }
+  .topline .open:hover { background: var(--paper); }
+  .drawing-host { margin: 8px 16px 0; padding-bottom: 16px; }
+  .drawing-host .notes-list { margin: 0; }
+</style>
+</head>
+<body>
+<nav class="tabs" id="tabs" aria-label="Teams"></nav>
+<div class="topline"><span id="title">Claude Code</span><span class="sub" id="sub"></span></div>
+<div class="drawing-host" id="drawing-host"></div>
+<script src="../../office/model.js"></script>
+<script src="../../office/office.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

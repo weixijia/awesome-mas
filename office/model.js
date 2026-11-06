@@ -48,6 +48,7 @@
     return (index > 0 ? 'then ' : '') + g.id + ' · ' + (g.label || 'Group ' + g.id);
   }
   function zoneCaption(g, count) {
+    if (g.room) return g.room; // a group may name its own room (e.g. a live view where rooms are tasks, not run order)
     if (g.after) return g.id + ' · after ' + g.after;
     return g.id + (count > 1 ? ' · in parallel' : ' · first');
   }
@@ -300,6 +301,7 @@
   function planOffice(s, o) {
     const P = PLAN, roles = (s && s.roles) || [];
     const kitchen = !!(o && o.kitchen); // option: a fuller lounge, which needs a wider back row
+    const roam = !!(o && o.roamLead);   // option: no Lead office; the lounge takes the whole back row
     const list = orderGroups(s).map((g) => ({ g, members: roles.filter((r) => r.group === g.id) })).filter((z) => z.members.length);
     const orphans = roles.filter((r) => !list.some((z) => z.g.id === r.group));
     if (orphans.length) list.push({ g: { id: '?', label: 'No group yet', after: null }, members: orphans });
@@ -310,17 +312,22 @@
       const w = Math.max(3.4, cols * P.CELL_X + P.PAD * 2), h = rows * P.CELL_Y + P.PAD * 2;
       if (x > 0 && x + w > P.MAX_ROW) { x = 0; y += rowH + P.GAP; rowH = 0; }
       const inner = (w - cols * P.CELL_X) / 2;
-      rooms.push({ kind: 'group', id: z.g.id, g: z.g, index: i, x0: x, y0: y, x1: x + w, y1: y + h, members: z.members.map((r) => r.id) });
-      z.members.forEach((r, j) => { desks[r.id] = Object.assign({ room: z.g.id, index: i }, deskSpots(x + inner + (j % cols) * P.CELL_X, y + P.PAD + Math.floor(j / cols) * P.CELL_Y)); });
+      const ci = z.g.colorIndex != null ? z.g.colorIndex : i; // a group may keep its colour when shown on its own
+      rooms.push({ kind: 'group', id: z.g.id, g: z.g, index: ci, x0: x, y0: y, x1: x + w, y1: y + h, members: z.members.map((r) => r.id) });
+      z.members.forEach((r, j) => { desks[r.id] = Object.assign({ room: z.g.id, index: ci }, deskSpots(x + inner + (j % cols) * P.CELL_X, y + P.PAD + Math.floor(j / cols) * P.CELL_Y)); });
       x += w + P.GAP; rowH = Math.max(rowH, h); maxX = Math.max(maxX, x - P.GAP);
     });
     const empty = !s;
-    const W = empty ? P.LEAD_W : Math.max(maxX, P.LEAD_W + P.GAP + (kitchen ? P.LOUNGE_KITCHEN : P.LOUNGE_MIN));
+    const lounge = kitchen ? P.LOUNGE_KITCHEN : P.LOUNGE_MIN;
+    const W = empty ? P.LEAD_W : Math.max(maxX, roam ? Math.max(lounge, P.LOUNGE_MIN + 1.4) : P.LEAD_W + P.GAP + lounge);
     const D = list.length ? y + rowH : P.BACK;
-    const lx0 = P.LEAD_W + P.GAP, spots = [];
-    rooms.unshift({ kind: 'lead', id: 'lead', x0: 0, y0: 0, x1: P.LEAD_W, y1: P.BACK });
-    if (!empty) rooms.splice(1, 0, { kind: 'lounge', id: 'lounge', x0: lx0, y0: 0, x1: W, y1: P.BACK });
-    desks.lead = Object.assign({ room: 'lead', index: -1 }, deskSpots(1.1, 0.5));
+    const lx0 = roam ? 0 : P.LEAD_W + P.GAP, spots = [];
+    if (!roam) rooms.unshift({ kind: 'lead', id: 'lead', x0: 0, y0: 0, x1: P.LEAD_W, y1: P.BACK });
+    if (!empty) rooms.splice(roam ? 0 : 1, 0, { kind: 'lounge', id: 'lounge', x0: lx0, y0: 0, x1: W, y1: P.BACK });
+    if (roam) { // no desk: a spot in the main aisle is home base; the desk box is only a label anchor and is never drawn
+      const home = { x: 0.9, y: P.BACK + P.GAP / 2 };
+      desks.lead = Object.assign({ room: 'lounge', index: -1, roam: true }, deskSpots(0.1, P.BACK - 1.4), { seat: home, stand: home, visit: home });
+    } else desks.lead = Object.assign({ room: 'lead', index: -1 }, deskSpots(1.1, 0.5));
     if (!empty) {
       for (let k = 0; k < 2; k++) spots.push({ x: lx0 + 0.75 + k * 0.7, y: 0.82, pose: 'bench' });
       spots.push({ x: W - 0.9, y: 1.55, pose: 'counter' }, { x: W - 2.45, y: 2.25, pose: 'counter' });

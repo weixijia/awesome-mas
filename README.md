@@ -10,6 +10,8 @@ Works with **Claude** (app or Claude Code), **Codex** (app or CLI), **Antigravit
 
 🛠️ **Developer?** awesome-mas is the classroom edition. [**MAS Office**](https://github.com/weixijia/mas-office) is the full version for developers: the same panel driven by a written protocol, Python and JS SDKs, a live server, and integrations for OpenAI Agents SDK, LangGraph, Claude Agent SDK and Claude Code.
 
+👀 **Using Claude Code?** [`integrations/claude-code/`](integrations/claude-code/) shows your own live Claude Code sessions in the same office: one room per session, its subagents inside, tabs to switch between teams.
+
 ---
 
 ## Start in one minute

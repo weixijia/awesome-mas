@@ -1,5 +1,5 @@
 /* awesome-mas · the drawing: a cut-away 30° axonometric of the team's office (read-only).
-   window.MASOffice.create(host, { onSelect, kitchen, deskRest }) → { setData, setSelected, relayout }
+   window.MASOffice.create(host, { onSelect, kitchen, deskRest, roamLead, maxUnit }) → { setData, setSelected, relayout }
    Drawn at true pixel scale and re-laid out on resize, so text never shrinks below its set size. */
 (function () {
   'use strict';
@@ -20,7 +20,7 @@
     return '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
   };
   /* Dark mode (follows the system). Surfaces go dark but keep their light-to-dark order, so the lit top faces stay
-     lightest; ink lines go light, pale room tints go deep, strong colours stay. Skin, hair and the fridge light never change. */
+     lightest; ink lines go light, pale room tints go deep, strong colours stay. Skin, hair, plants and the fridge light never change. */
   const DARK = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   const DARK_FIX = { '#3A4148': '#5A636C', '#2B3036': '#3E454C', '#E3E6E1': '#3A4046', '#2B57B5': '#4D78D4', '#5E8C57': '#6FA067', '#8E4C8A': '#A866A3' };
   const toneCache = {};
@@ -41,7 +41,7 @@
     return (toneCache[key] = '#' + [r1, g1, b1].map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('').toUpperCase());
   }
   const toneAll = (str) => (DARK ? String(str).replace(/#[0-9a-f]{6}\b/gi, tone) : str);
-  const KEEP = /(^|\s)(skull|hair|fr-light)(\s|$)/; // skin, hair and the fridge light look the same in both modes
+  const KEEP = /(^|\s)(skull|hair|fr-light|leaf|stem)(\s|$)/; // skin, hair, plants and the fridge light look the same in both modes
   function svg(tag, attrs, parent) {
     const e = document.createElementNS(NS, tag);
     const keep = DARK && KEEP.test(attrs.class || '');
@@ -81,6 +81,8 @@
   function create(host, opts) {
     const DESK_REST = !!(opts && opts.deskRest); // option: resting people mostly stay at their desk, with short lounge breaks
     const KITCHEN = !!(opts && opts.kitchen);    // option: a fuller lounge (kitchen corner, round table, water cooler, plants, clock)
+    const ROAM = !!(opts && opts.roamLead);      // option: the Lead has no office and walks between the desks
+    const MAX_U = (opts && opts.maxUnit) || 48;  // option: cap the drawing scale (px per plan unit), e.g. in a small window
     const root = document.createElement('div');
     root.className = 'drawing';
     const scene = svg('svg', { class: 'axo', role: 'img', 'aria-label': 'Axonometric drawing of the team office' });
@@ -131,13 +133,13 @@
         }
         // people drawn small beside the labels? a numbered list below lets the drawing itself grow
         // ...or when the margins force long leaders: drafting labels should sit close to what they name
-        const listU = Math.min(48, (width - 24) / extent(1).w);
+        const listU = Math.min(MAX_U, (width - 24) / extent(1).w);
         const longest = ok ? Math.max(0, ...res.labels.map((l) => M.pathLength(l.path))) : 0;
         if (!ok || (U < 32 && listU > U) || listU >= U * 1.3 || (longest > height * 0.4 && listU >= U)) listMode = true;
         else { root.style.height = height + 'px'; sizeSvgs(width, height); }
       }
       if (listMode) {
-        U = Math.min(48, (width - 24) / extent(1).w);
+        U = Math.min(MAX_U, (width - 24) / extent(1).w);
         const h = extent(U).h + 24;
         place(U, width, h);
         root.style.height = h + 'px';
@@ -225,7 +227,8 @@
       });
     }
     function drawBoard() {
-      // the task board hangs on the inner face of the left wall, beside the Lead
+      // the task board hangs on the inner face of the left wall, beside the Lead (no Lead office when roaming: no board)
+      if (ROAM) return;
       const reqs = ((task && task.requirements) || []).slice(0, 8);
       const y0 = 0.3, y1 = 2.55, z0 = 0.22, z1 = 1.14, x = 0.0;
       svg('polygon', { class: 'board', points: pts([P(x, y0, z0), P(x, y1, z0), P(x, y1, z1), P(x, y0, z1)]) }, lay.walls);
@@ -382,6 +385,7 @@
     }
     function drawDesk(id) {
       const d = plan.desks[id], col = colorsFor(plan, id);
+      if (d.roam) return; // a roaming Lead has no desk
       const g = svg('g', { class: 'furn desk', 'data-id': id, 'data-room': d.room }, lay.things);
       g._depth = d.desk.x + d.desk.w / 2 + d.desk.y + d.desk.d;
       box(g, d.chair, [col[1], mix(col[1], '#1B1F23', 0.18), mix(col[1], '#1B1F23', 0.28)], 'chair');
@@ -422,7 +426,7 @@
     function drawRoutes() {
       ((S && S.roles) || []).forEach((r) => {
         const a = plan.desks[r.id], b = plan.desks[r.handsTo || 'lead'];
-        if (!a || !b || r.handsTo === r.id) return;
+        if (!a || !b || b.roam || r.handsTo === r.id) return;
         const path = [a.stand].concat(M.gridRoute(plan, a.stand, b.visit));
         svg('polyline', { class: 'route', 'data-route': r.id, points: pts(path.map((p) => P(p.x, p.y, 0.01))) }, lay.routes);
         const e = P(b.visit.x, b.visit.y, 0.01);
@@ -730,10 +734,34 @@
       if (instant) { f.x = s.x; f.y = s.y; placeFig(f); setCls(f, cls); return; }
       goTo(f, s, () => setCls(f, cls));
     }
+    // roamLead: the Lead walks to whoever is flagged first, else to whoever is working; a short stop beside their desk, then on.
+    function roam(f) {
+      clearTimeout(f.roamT);
+      if (!plan || !plan.desks[f.id] || f.state === 'idle') return;
+      const others = members().filter((id) => !plan.desks[id].roam);
+      const stOf = (id) => statusOf(id).state;
+      let pool = others.filter((id) => stOf(id) === 'flagged');
+      if (!pool.length) pool = others.filter((id) => stOf(id) === 'working');
+      if (!pool.length) pool = others;
+      if (pool.length > 1) pool = pool.filter((id) => id !== f.visiting);
+      const id = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+      f.visiting = id;
+      const v = id && plan.desks[id].visit, to = id ? { x: v.x + 0.4, y: v.y + 0.42 } : plan.desks[f.id].seat; // front-right of their desk, clear of the chair
+      goTo(f, to, () => {
+        setCls(f, id ? (stOf(id) === 'flagged' ? ['stand', 'face-l', 'talk'] : ['stand', 'face-l']) : ['stand']);
+        f.roamT = setTimeout(() => roam(f), (id && stOf(id) === 'flagged' ? 9000 : 5000) + Math.random() * 5000);
+      });
+    }
     function enter(f, st, instant) {
-      clearTimeout(f.timer); clearTimeout(f.later);
+      clearTimeout(f.timer); clearTimeout(f.later); clearTimeout(f.roamT);
       f.station = null; f.activity = null; f.nextAct = 0; f.arrived = false;
       const d = plan.desks[f.id];
+      if (d.roam && st.state !== 'idle' && st.state !== 'done') { // idle or done: the lounge, like everyone else
+        if (instant) { f.x = d.seat.x; f.y = d.seat.y; placeFig(f); }
+        setCls(f, st.state === 'flagged' ? ['stand', 'raise'] : ['stand']);
+        f.roamT = setTimeout(() => roam(f), instant ? 400 : 1200);
+        return;
+      }
       switch (st.state) {
         case 'draft': f.x = d.seat.x; f.y = d.seat.y; placeFig(f); setCls(f, ['sit', 'ghost']); return;
         case 'idle': return DESK_REST && f.id !== 'lead' ? restAtDesk(f, instant) : toIdle(f, instant);
@@ -817,7 +845,7 @@
       if (nextSig !== sig) {
         sig = nextSig;
         S = a.structure;
-        plan = M.planOffice(mode === 'empty' ? null : S, { kitchen: KITCHEN });
+        plan = M.planOffice(mode === 'empty' ? null : S, { kitchen: KITCHEN, roamLead: ROAM });
         lounge = M.loungeLayout(plan, members().length);
         const keep = figs;
         figs = {};

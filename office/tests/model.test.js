@@ -402,6 +402,22 @@ test('kitchen option: off by default; when on, every appliance and chair fits wi
   }
 });
 
+test('roamLead option: no Lead office, the lounge takes the back row, rooms can keep a colour and a caption', () => {
+  const plain = M.planOffice(teamOf(4, 2));
+  assert.ok(plain.rooms.some((r) => r.kind === 'lead') && !plain.desks.lead.roam, 'default keeps the Lead office');
+  for (const kitchen of [false, true]) for (let n = 1; n <= 8; n++) {
+    const plan = M.planOffice(teamOf(n, Math.min(3, n)), { roamLead: true, kitchen }), L = M.loungeLayout(plan, n + 1);
+    assert.ok(!plan.rooms.some((r) => r.kind === 'lead'), 'no Lead office');
+    assert.ok(plan.desks.lead.roam && plan.lounge.x0 === 0, 'roaming Lead, lounge from the wall');
+    assert.ok(plan.desks.lead.seat.y > M.PLAN.BACK, 'home base is in the aisle, not in the lounge');
+    if (kitchen) ['fridge-0', 'micro-0', 'water-0', 'table-0'].forEach((id) => assert.ok(L.stations.some((st) => st.id === id), id + ' with roamLead at n=' + n));
+  }
+  const s = { groups: [{ id: 'x', colorIndex: 4, room: 'my task · 2' }], roles: [{ id: 'a', group: 'x' }] };
+  const plan = M.planOffice(s);
+  assert.strictEqual(plan.rooms.find((r) => r.id === 'x').index, 4, 'colourIndex is kept');
+  assert.strictEqual(M.zoneCaption(s.groups[0], 1), 'my task · 2', 'room caption is used');
+});
+
 test('after-work scheduler: never double-books, only done figures, quiet while the team works', () => {
   const lounge = M.loungeLayout(M.planOffice(teamOf(8, 3)));
   for (let n = 1; n <= 8; n++) {
