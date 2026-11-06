@@ -86,10 +86,10 @@ Input: the student's change in plain words.
 
 ## lock  (step 3 → 4)
 
-1. Show the final team (table) and ask "Lock this team?" — continue on yes.
+1. Show the final team (table) and ask "Lock this team?" — continue on yes. Ask only once: if the student just said yes to "Happy with your team? I'll lock it.", that counts — don't ask again.
 2. Write `team/lead.md` and one `team/<role-id>.md` per role (format in `harness/formats.md`). Write them so a fresh agent can do the job from the file alone.
 3. Set `"locked": true` in both structure files.
-4. Write `mas/status/lead.js` and `mas/status/<role-id>.js` for every role with `state: "idle"`, `say: "Ready"`.
+4. Write `mas/status/lead.js` and `mas/status/<role-id>.js` for every role with `state: "idle"`, `say: "Ready"` — one write per file with your file tool, not a shell loop.
 5. `mas/state.js`: `step: 4`, `phase: "locked"`, `locked: true`, `next: "Type next to run your team."`
 6. Reply: "Your team is locked — each role now has a desk in the office panel." Ask the student to open one file in `team/` and read it: "This file *is* the agent — its whole job description."
 
@@ -101,11 +101,12 @@ The panel animates the office from the status files, so **status updates are par
 
 0. If `outputs/result.md` already exists, copy it unchanged to `outputs/result-run<N>.md` (N = its run number) **before anything else**.
 1. Read `me/task.md`, `mas/structure.js`, every file in `team/`, and `raw/` if any role uses `read my files`.
-2. Rewrite **every** status file: each role `waiting` ("Waiting for my turn"); `lead.js` `working` ("Planning the run"). `mas/state.js`: `phase: "running"`, `next: "Watch the office panel — your team is working."`
+2. Rewrite **every** status file (one write per file with your file tool): each role `waiting` ("Waiting for my turn"); `lead.js` `working` ("Planning the run"). `mas/state.js`: `phase: "running"`, `next: "Watch the office panel — your team is working."`
 3. For each group in order (A, then the group whose `after` is A, …): start every role in the group **at the same time** (AGENTS.md → Running roles as agents), giving each this **role brief**:
 
    > You are **<role name>** in a small multi-agent team. **Work only inside the folder `<folder>/`** — every path below is inside it (write `<folder>/mas/status/<role-id>.js`, not `mas/status/<role-id>.js`).
    > Your job description is in `team/<role-id>.md` — read it first and follow it exactly.
+   > Read and write files with your file tools, one file per call — no shell commands, heredocs or scripts (they trigger approval prompts for the student), and never write outside `<folder>/`.
    > The task is in `me/task.md`. Your inputs: <list the files from roles that hand to you, or "none">.
    > While you work, keep `mas/status/<role-id>.js` updated (format in `harness/formats.md`) — the student is watching these live: `working` when you start, a new short `say` for each major action (e.g. "Searching Currys…"), and finally `handoff` with `"to": "<handsTo>"`. **Whenever you find a problem** (something that breaks a requirement, a doubtful source, a mistake in your input), set `flagged` with a short `flag` (e.g. "Refurbished — breaks R2"), then go back to `working`. Include a rough `progress` (0–100) in every update — the panel shows it as a progress bar under your name.
    > Save each web source you use as a card in `sources/` (format in `harness/formats.md`); never invent sources, prices or quotes.
@@ -113,7 +114,7 @@ The panel animates the office from the status files, so **status updates are par
 
    Wait for the whole group to finish. In sequential mode, do the same yourself for each role in turn.
 4. After each role finishes: make sure its status shows `handoff` to its `handsTo`, then set it to `done` ("Handed over"). Between groups, update `lead.js` (`working`, e.g. "Group A done — starting the checkers").
-5. Lead: status `working` ("Writing the result"). Combine `outputs/work/*.md` into `outputs/result.md` — the answer to the task, every fact linked to its source card, problems the checkers found clearly marked, and a closing line that leaves the decision to the student. **Keep it short and readable for a non-specialist**: start with a 2–3 line answer, then at most one main table and a short "what the checkers caught" list (about one screen in total). Link to `outputs/work/<role-id>.md` for detail instead of copying it. Write `outputs/result.js` (`run` = previous run + 1), including `work`: one 3–5 line summary per role of what it found or decided (the panel shows it when the student clicks that agent). If an earlier `outputs/result.md` exists, first copy it to `outputs/result-run<N>.md`.
+5. Lead: status `working` ("Writing the result"). Combine `outputs/work/*.md` into `outputs/result.md` — the answer to the task, every fact linked to its source card, problems the checkers found clearly marked, and a closing line that leaves the decision to the student. **Keep it short and readable for a non-specialist**: start with a 2–3 line answer, then at most one main table and a short "what the checkers caught" list (about one screen in total). Link to `outputs/work/<role-id>.md` for detail instead of copying it. Write `outputs/result.js` directly with your file tool, not with a script (`run` = previous run + 1), including `work`: one 3–5 line summary per role of what it found or decided (the panel shows it when the student clicks that agent). If an earlier `outputs/result.md` exists, first copy it to `outputs/result-run<N>.md`.
 6. Lead status `done` ("Result ready"). `mas/state.js`: `phase: "done"`, `next: "Done! Change a condition in me/task.md and type run again — or type unlock to change your team."`
 7. Reply: the headline result in 2–4 lines, a link to `outputs/result.md`, and the **"a chat can't do this"** moments the student just saw: agents working at the same time, a checker catching what a finder missed (if it happened), every claim linked to a source they can open, and that `run again` repeats the whole workflow in one line.
 

@@ -7,9 +7,9 @@ Every step writes two kinds of file:
 
 **Where files go:** `home/` is shared by the whole folder. Every other path in this file is inside the current MAS folder — `me/task.md` means e.g. `headphone-deals/me/task.md`.
 
-All data files are plain JavaScript that assign one global. Write valid JSON inside the assignment (double quotes, no trailing commas, no comments).
+All data files are plain JavaScript that assign one global. Write valid JSON inside the assignment (double quotes, no trailing commas, no comments). Write each file whole with your file tool; inside JSON strings write a newline as `\n` and a double quote as `\"`. Don't use a script to generate or check these files.
 
-Times (`t`, `updated`, `setupAt`, …) are optional. Only write a time you actually know (e.g. from your environment or a `date` command you may run); never guess one — leave the field out instead.
+Times (`t`, `updated`, `setupAt`, …) are optional. Only write a time you actually know (e.g. shown by your environment or in a tool result you already have); never run a command just to get the time, and never guess one — leave the field out instead.
 
 ---
 

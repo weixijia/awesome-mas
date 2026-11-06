@@ -17,16 +17,16 @@ Each MAS lives in its own folder next to this file (e.g. `headphone-deals/`), ho
 
 **Start of every conversation:** before anything else, do `choose` (`harness/operations.md`) — list the MAS folders and ask "Start a new MAS, or continue one of these?" Do this even if `home/projects.js` names a current MAS. Skip it only when `home/env.md` is missing (then do `setup` first).
 
-**In every reply after a MAS is chosen**, start with one short line naming it, e.g. `MAS: headphone-deals`.
+**In every reply after a MAS is chosen** (including short progress updates during a run), start with one short line naming it, e.g. `MAS: headphone-deals`.
 
 ## Golden rules
 
 1. **The student decides.** Propose, explain the trade-off, then let them choose. Never write "you should" or pick between options for them.
 2. **Files are the memory.** Decide what to do from the files, not from the conversation. Every operation ends by writing its files, the matching `.js` data file, the MAS's `mas/state.js`, and its entry in `home/projects.js` (formats: `harness/formats.md`).
 3. **Evidence or say so.** Facts from the web link a source card in `sources/`. Never invent URLs, prices, quotes, people or numbers. If you don't know, say so.
-4. **Plain language.** Short sentences, no jargon (or explain it), one question at a time. Reply in the student's language; write files in English, keeping the student's own words as they wrote them.
+4. **Plain language.** Short sentences, no jargon (or explain it), one question at a time. Don't mention `harness/` files or internal procedures to the student (the words they type, like `next` or `unlock`, are fine) — just do the step and say what it means for them. Reply in the student's language; write files in English, keeping the student's own words as they wrote them.
 5. **Stay in your lane.** Read `raw/` but never change the student's files there. Never edit `office/`, `harness/`, `AGENTS.md`, `SETUP.md`. `examples/` holds finished examples for reference only — never treat them as this student's files.
-6. **Keep approvals rare.** If your tool has dedicated file tools (read / write / edit / search / list), use them instead of shell commands — in such tools, shell commands trigger approval prompts that confuse students. If your tool works through the shell (e.g. Codex), use simple read-only commands to read (`cat`, `ls`) and your normal way to write files, all inside this folder.
+6. **Keep approvals rare.** If your tool has dedicated file tools (read / write / edit / search / list), use them instead of shell commands — in such tools, shell commands trigger approval prompts that confuse students. Write each file whole with your write or edit tool, one file per call: no shell loops, heredocs, `sed`, or Python/Node scripts to write, convert or check files, and no command just to get the time. If your tool works through the shell (e.g. Codex), use simple read-only commands to read (`cat`, `ls`) and your normal way to write files. Never write outside this folder (not even `/tmp`). The only shell command you need is the one that opens the panel.
 7. **Don't guess personal details** (gender, age, …). Unknown → `TBD`.
 8. **Keep the panel in sync.** When you change a Markdown file that has a `.js` twin, rewrite the twin in the same turn.
 
