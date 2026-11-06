@@ -284,7 +284,7 @@
   const statusKey = (x) => (x ? [x.state, x.say, x.to, x.flag].join('|') : '');
 
   /* ---------- the drawing: plan geometry (units ≈ metres) ---------- */
-  const PLAN = { CELL_X: 2.5, CELL_Y: 2.4, PAD: 0.3, GAP: 0.3, BACK: 3.0, LEAD_W: 3.8, LOUNGE_MIN: 4.6, MAX_ROW: 11.6, WALL: 1.25 };
+  const PLAN = { CELL_X: 2.5, CELL_Y: 2.4, PAD: 0.3, GAP: 0.3, BACK: 3.0, LEAD_W: 3.8, LOUNGE_MIN: 4.6, LOUNGE_KITCHEN: 8.4, MAX_ROW: 11.6, WALL: 1.25 };
   // Desk cell → furniture and the spots a figure can stand or sit on.
   function deskSpots(x, y) {
     return {
@@ -297,8 +297,9 @@
       stack: { x: x + 1.42, y: y + 0.42 }
     };
   }
-  function planOffice(s) {
+  function planOffice(s, o) {
     const P = PLAN, roles = (s && s.roles) || [];
+    const kitchen = !!(o && o.kitchen); // option: a fuller lounge, which needs a wider back row
     const list = orderGroups(s).map((g) => ({ g, members: roles.filter((r) => r.group === g.id) })).filter((z) => z.members.length);
     const orphans = roles.filter((r) => !list.some((z) => z.g.id === r.group));
     if (orphans.length) list.push({ g: { id: '?', label: 'No group yet', after: null }, members: orphans });
@@ -314,19 +315,19 @@
       x += w + P.GAP; rowH = Math.max(rowH, h); maxX = Math.max(maxX, x - P.GAP);
     });
     const empty = !s;
-    const W = empty ? P.LEAD_W : Math.max(maxX, P.LEAD_W + P.GAP + P.LOUNGE_MIN);
+    const W = empty ? P.LEAD_W : Math.max(maxX, P.LEAD_W + P.GAP + (kitchen ? P.LOUNGE_KITCHEN : P.LOUNGE_MIN));
     const D = list.length ? y + rowH : P.BACK;
-    rooms.unshift({ kind: 'lead', id: 'lead', x0: 0, y0: 0, x1: P.LEAD_W, y1: P.BACK });
-    if (!empty) rooms.splice(1, 0, { kind: 'lounge', id: 'lounge', x0: P.LEAD_W + P.GAP, y0: 0, x1: W, y1: P.BACK });
-    desks.lead = Object.assign({ room: 'lead', index: -1 }, deskSpots(1.1, 0.5));
     const lx0 = P.LEAD_W + P.GAP, spots = [];
+    rooms.unshift({ kind: 'lead', id: 'lead', x0: 0, y0: 0, x1: P.LEAD_W, y1: P.BACK });
+    if (!empty) rooms.splice(1, 0, { kind: 'lounge', id: 'lounge', x0: lx0, y0: 0, x1: W, y1: P.BACK });
+    desks.lead = Object.assign({ room: 'lead', index: -1 }, deskSpots(1.1, 0.5));
     if (!empty) {
       for (let k = 0; k < 2; k++) spots.push({ x: lx0 + 0.75 + k * 0.7, y: 0.82, pose: 'bench' });
       spots.push({ x: W - 0.9, y: 1.55, pose: 'counter' }, { x: W - 2.45, y: 2.25, pose: 'counter' });
       for (let k = 2; k < 4; k++) spots.push({ x: lx0 + 0.75 + k * 0.7, y: 0.82, pose: 'bench' });
       for (let k = 0; k < 8; k++) spots.push({ x: lx0 + 0.6 + (k % 4) * 0.75, y: 2.15 + Math.floor(k / 4) * 0.5, pose: 'stand' });
     }
-    return { W, D, rooms, desks, spots, door: { x: 0.25, y: P.BACK + P.GAP / 2 }, aisle: P.BACK + P.GAP / 2, lounge: empty ? null : { x0: lx0, x1: W } };
+    return { W, D, rooms, desks, spots, door: { x: 0.25, y: P.BACK + P.GAP / 2 }, aisle: P.BACK + P.GAP / 2, lounge: empty ? null : { x0: lx0, x1: W, kitchen } };
   }
   // Walk along the plan grid (x then y legs), using the main aisle between the back row and the rooms.
   function gridRoute(plan, a, b) {
@@ -564,7 +565,7 @@
     return b;
   }
   const boxesOverlap = (a, b, gap) => a.x0 < b.x1 + gap && b.x0 < a.x1 + gap && a.y0 < b.y1 + gap && b.y0 < a.y1 + gap;
-  const poseOf = (st) => (st.kind === 'sofa' ? 'sit' : st.kind === 'chat' ? 'chat-' + st.side : 'stand');
+  const poseOf = (st) => (st.kind === 'sofa' || st.kind === 'table' ? 'sit' : st.kind === 'chat' ? 'chat-' + st.side : 'stand');
   // Furniture and stations inside the lounge rectangle (plan units). Every spot is nudged (≤ 0.6) until it is inside the
   // lounge, clear of furniture, and its figure box clears every other spot's, so any set of them can be occupied at once.
   // A pair (table tennis, chat) is kept whole or dropped. The party ring is built the same way (used on its own), and
@@ -574,12 +575,28 @@
     if (!L) return { furniture: [], stations: [], party: null, overflow: [] };
     const x0 = L.x0, x1 = L.x1, w = x1 - x0, D = PLAN.BACK, GAP = 0.06;
     const furniture = [];
-    const sofaW = Math.max(1.6, Math.min(2.8, w - 2.4)), seats = Math.max(2, Math.min(3, Math.floor(sofaW / 0.9)));
+    let sofaW = Math.max(1.6, Math.min(2.8, w - 2.4));
+    // Back wall, right to left: fridge in the open corner (its door swings out into view), microwave counter, coffee counter.
+    let kit = null, counterX = x1 - 1.25;
+    if (L.kitchen) {
+      const fr = { kind: 'fridge', x: x1 - 0.14 - 0.64, y: 0.12, w: 0.64, d: 0.62, h: 1.2 };
+      const mw = { kind: 'kitchen', x: fr.x - 0.5 - 0.9, y: 0.15, w: 0.9, d: 0.6, h: 0.95 }; // 0.5 gap: where you stand at the fridge
+      const cx = mw.x - 0.62 - 1.05, room = cx - 0.12 - (x0 + 0.3); // a gap: room to stand at the microwave
+      if (room - 0.5 >= 1.6) { kit = { mw, fr }; counterX = cx; sofaW = Math.min(sofaW, room - 0.5); } // 0.5 left for a plant by the sofa
+    }
+    const seats = Math.max(2, Math.min(3, Math.floor(sofaW / 0.9)));
     furniture.push({ kind: 'sofa', x: x0 + 0.3, y: 0.12, w: sofaW, d: 0.62, h: 0.42 });
-    furniture.push({ kind: 'counter', x: x1 - 1.25, y: 0.15, w: 1.05, d: 0.6, h: 0.95 });
+    furniture.push({ kind: 'counter', x: counterX, y: 0.15, w: 1.05, d: 0.6, h: 0.95 });
     const pc = { x: x0 + w * 0.56, y: 1.6 };
-    furniture.push({ kind: 'party', x: pc.x - 0.3, y: pc.y - 0.3, w: 0.6, d: 0.6, h: 1.0 });
+    // kitchen option: a big round table with chairs instead of the small square snack table
+    const RT = 0.6, rtc = kit ? { x: x0 + Math.max(2.9, w * 0.47), y: 1.78 } : null;
+    if (rtc) { pc.x = rtc.x; pc.y = rtc.y; furniture.push({ kind: 'roundtable', x: rtc.x - RT, y: rtc.y - RT, w: 2 * RT, d: 2 * RT, h: 0.74, r: RT, chairs: [] }); }
+    else furniture.push({ kind: 'party', x: pc.x - 0.3, y: pc.y - 0.3, w: 0.6, d: 0.6, h: 1.0 });
     furniture.push({ kind: 'tt', x: x0 + 0.55, y: 2.15, w: 1.3, d: 0.62, h: 0.72 });
+    if (kit) furniture.push(kit.fr, kit.mw); // after tt: furniture[3] stays the table-tennis table
+    const cooler = kit ? { kind: 'cooler', x: x1 - 0.5, y: D - 0.62, w: 0.36, d: 0.36, h: 0.86 } : null;
+    if (cooler) furniture.push(cooler);
+    if (kit) furniture.push({ kind: 'clock', x: x0 + 0.3 + sofaW / 2, y: 0, w: 0, d: 0, h: 0 });
     const inside = (p) => p.x >= x0 + 0.12 && p.x <= x1 - 0.12 && p.y >= 0.12 && p.y <= D - 0.12;
     const clear = (p, m) => !furniture.some((f) => p.x > f.x - m && p.x < f.x + f.w + m && p.y > f.y - m && p.y < f.y + f.d + m);
     const OFFS = [[0, 0]];
@@ -601,6 +618,14 @@
     const chatAt = (cx, gap) => [{ id: 'chat-0', kind: 'chat', side: 'l', pair: 'chat-1', x: cx - gap / 2, y: 2.6 }, { id: 'chat-1', kind: 'chat', side: 'r', pair: 'chat-0', x: cx + gap / 2, y: 2.6 }];
     const tryChat = () => [x1 - 1.55, x1 - 2.2, x0 + w * 0.62].some((cx) => [1.1, 0.95].some((gp) => place(chatAt(cx, gp))));
     const sofa = furniture[0], sofaSeat = (k, n) => ({ id: 'sofa-' + k, kind: 'sofa', x: x0 + 0.3 + (sofa.w * (k + 0.5)) / n, y: 0.95 });
+    if (rtc) { // four chairs round the table; a chair whose sitter would collide is left out
+      const rt = furniture.find((f) => f.kind === 'roundtable'), dist = RT + 0.34;
+      [[-1, 0, 'back'], [0, -1, 'back'], [1, 0, 'front'], [0, 1, 'front']].forEach(([dx, dy, side], k) => {
+        const c = { id: 'table-' + k, kind: 'table', x: rtc.x + dx * dist, y: rtc.y + dy * dist, face: [-dx, -dy], side };
+        if (place([c], true)) rt.chairs.push(c);
+      });
+    }
+    if (cooler) place([{ id: 'water-0', kind: 'water', x: cooler.x - 0.3, y: cooler.y + 0.2 }]);
     const mark = stations.length;
     for (let k = 0; k < seats; k++) place([sofaSeat(k, seats)], true);
     if (!tryChat()) { // a conversation reads better than a long sofa: a two-seater frees the front corner, then try again
@@ -609,9 +634,29 @@
       for (let k = 0; k < 2; k++) place([sofaSeat(k, 2)], true);
       tryChat();
     }
-    place([{ id: 'coffee-0', kind: 'coffee', x: x1 - 0.72, y: 1.1 }]);
+    place([{ id: 'coffee-0', kind: 'coffee', x: counterX + (kit ? 0.36 : 0.53), y: 1.1 }]);
     const c0 = stations.find((c) => c.id === 'coffee-0');
     if (c0) place([{ id: 'coffee-1', kind: 'coffee', x: c0.x, y: c0.y + 1.2 }], true); // the queue, 1.2 behind along the counter's axis
+    if (kit) {
+      // stand in the gap beside each appliance, back to the wall: in front of it you would hide it from this angle
+      place([{ id: 'fridge-0', kind: 'fridge', x: kit.fr.x - 0.25, y: kit.fr.y + kit.fr.d - 0.12 }]);
+      place([{ id: 'micro-0', kind: 'microwave', x: kit.mw.x - 0.31, y: kit.mw.y + kit.mw.d - 0.12 }]);
+    }
+    // plants: wherever they clear the furniture and every spot where someone can stand or sit
+    if (kit) {
+      const sofaEnd = x0 + 0.3 + furniture[0].w;
+      const cand = [[sofaEnd + 0.26, 0.32, 'tall'], [counterX - 0.26, 0.32, 'tall']];
+      const gap = counterX - 0.26 - (sofaEnd + 0.26);
+      if (gap > 1.6) cand.push([sofaEnd + 0.26 + gap / 2, 0.3, 'bush']); // a long bare wall gets one more in the middle
+      cand.push([x0 + 0.24, D - 0.28, 'bush'], [x1 - 0.3, 1.5, 'bush']);
+      cand.forEach(([px, py, type]) => {
+        const p = { x: px, y: py };
+        if (inside({ x: px, y: Math.min(py, D - 0.13) }) && clear(p, 0.08) && stations.every((st) => Math.hypot(st.x - px, st.y - py) > 0.5))
+          furniture.push({ kind: 'plant', type, x: px - 0.18, y: py - 0.18, w: 0.36, d: 0.36, h: type === 'tall' ? 1.2 : 0.75 });
+      });
+      // and one in the back-right corner of every work room (clear of desks, chairs and the boss's path)
+      (plan.rooms || []).filter((r) => r.kind === 'group').forEach((r) => furniture.push({ kind: 'plant', type: 'bush', x: r.x1 - 0.5, y: r.y0 + 0.14, w: 0.36, d: 0.36, h: 0.75, room: r.id }));
+    }
     // party ring: front of the table first, then round the sides; boxes only need to clear each other
     const cand = [];
     [0.85, 1.15, 1.45, 1.75].forEach((r) => { for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2; cand.push({ x: pc.x + Math.cos(a) * r, y: pc.y + Math.sin(a) * r * 0.8, r, a }); } });
@@ -628,12 +673,12 @@
   // Next after-work station for a figure, or null (stay). Only done figures get one; while the team still works,
   // finishers stay quiet (coffee, then the sofa); a half-filled pair is joined first; once three or more are done the
   // sofa fills before standing spots; nothing is ever double-booked.
-  const AFTER_WORK = ['tt', 'chat', 'coffee', 'sofa'];
+  const AFTER_WORK = ['tt', 'chat', 'coffee', 'sofa', 'fridge', 'microwave', 'water', 'table'];
   function pickStation(lounge, occupied, fig, opt) {
     const o = opt || {};
     if (!fig || fig.state !== 'done' || !lounge || !lounge.stations.length) return null;
     const free = lounge.stations.filter((s) => (!occupied[s.id] || occupied[s.id] === fig.id) && s.id !== o.current);
-    const kinds = o.teamBusy ? ['coffee', 'sofa'] : AFTER_WORK;
+    const kinds = o.teamBusy ? ['coffee', 'sofa', 'fridge', 'microwave', 'water', 'table'] : AFTER_WORK;
     const pool = free.filter((s) => kinds.includes(s.kind));
     if (!pool.length) return null;
     const many = (o.doneCount || 0) >= 3;

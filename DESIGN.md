@@ -171,6 +171,14 @@ A cool neutral sheet, a near-black ink, and four primary group fills (vermilion,
 - **Slab** (slab) and **Wall** (wall): the building slab top, which is also the halo behind room labels, and the wall faces.
 - **Plain floor** (floor-plain): the lounge floor.
 
+### Dark mode
+Follows the system (`prefers-color-scheme`). The CSS variables swap to a dark sheet (`#1C1F22`), dark paper and light ink. The drawing's own colours go through `tone()` in office.js, so no second palette is kept by hand:
+- neutral surfaces become one cool dark grey, keeping their light-to-dark order (lit top faces stay lightest);
+- ink lines and wall caps become light;
+- pale tints (room floors, chairs) become deep tints of the same hue;
+- strong group colours stay, with cobalt, sage and plum lifted slightly for contrast;
+- skin, hair and the fridge light never change.
+
 ### Named Rules
 **The One Ink Rule.** Line and type are ink or ink-2. Colour exists only as flat fills.
 **The Vermilion-Ink Rule.** Vermilion fills and strokes; verm-ink writes.
@@ -293,6 +301,8 @@ Work motion eases out and never loops for decoration. The one sanctioned ambient
 - **Work motion:** figures walk along the axo grid (x then y legs) with a 160ms anticipation lean, a two-frame step and a 220ms settle; poses ease out (`cubic-bezier(.16, 1, .3, 1)`). One rAF loop runs only while something moves, and stops while the tab is hidden or the drawing is off screen (IntersectionObserver); CSS animations pause with it.
 - **After-work life (done figures only):** the lounge holds a sofa (2–3 seats, seated lean-back, optional cup), a coffee counter (queue of 2, cup in hand with a slow sip every 7s), a table-tennis table (two players with bats; a ball crosses end to end on an arc every 1.2s, seven hits, a pause, then a re-serve), a standing chat pair (facing each other; a hairline three-dot bubble alternates between them every 2–4s with a head tilt, always on the speaker's outer side so it never covers the partner) and a high party table with snack blocks. Every spot is placed so that no two head-and-chest boxes overlap on screen, whichever spots are occupied (tested for 1–8 roles). Once three or more are done the sofa fills first and a seated figure stays seated. In the lounge and at the party the head tick is hidden (being there already says done); it stays at the desk. Each figure picks a free station every 8–16s, seeded per figure and run so choices are stable across re-renders; a station is never double-booked. While anyone still works, finished figures stay quiet: coffee first, then the sofa. Nobody plays while working, waiting, flagged or handing off. Overflow stands in a ring round the party table.
 - **Wrap party (one-shot, per run):** when every figure is done and the result is ready, everyone (Lead included) walks to a front-first arc round the party table, spaced so nobody hides behind anyone, and cheers twice; bunting in the group colours is drawn along the lounge's back wall (ink line via stroke-dashoffset, then the flags drop in), and one burst of flat paper chips falls and lands on the floor. Bunting and confetti stay as static parts of the drawing. After ~9.5s figures disperse, pairs first. It plays only when the finish is seen live; reopening a finished run draws the decorations statically. A new run, or a demo replay, can party again.
+- **Lounge options (off by default; `MASOffice.create(host, { kitchen, deskRest })`, or `?kitchen=1` / `?deskRest=1` on the panel):** `kitchen` widens the lounge (8.4 units) and adds a kitchen corner along the back wall (coffee counter, a counter with a microwave whose window glows while someone heats lunch, a fridge whose door opens with the light on), a round table with four chairs people sit at, a water cooler that bubbles while used, potted plants (also one per work room) and a wall clock showing the real time. People stand beside an appliance, never in front of it, so it stays visible. `deskRest` keeps finished figures mostly at their own desk, sitting without typing; every 15–40 s there is a one-in-three chance of a 15–35 s break at a lounge station, then they walk back.
+- **Re-planning:** when the team changes (a role added or removed during refine), desks are re-planned and every figure walks to its new place, so nobody is left standing at a desk that now belongs to someone else.
 - **Reduced motion:** no walking, ball, confetti fall or bunting draw; figures are placed straight at their stations in static poses (cup in hand, seated, one chat bubble), and the decorations are drawn finished. State labels are unchanged.
 
 ## Do's and Don'ts

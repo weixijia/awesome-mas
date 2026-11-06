@@ -266,7 +266,9 @@
   }
 
   /* ---------- the drawing ---------- */
-  const office = window.MASOffice.create($('#drawing-host'), { onSelect: (id) => select(id) });
+  // Optional lounge life, off by default: ?kitchen=1 (kitchen corner, round table, water cooler, plants, clock),
+  // ?deskRest=1 (finished people mostly stay at their desk, with short lounge breaks).
+  const office = window.MASOffice.create($('#drawing-host'), { onSelect: (id) => select(id), kitchen: params.get('kitchen') === '1', deskRest: params.get('deskRest') === '1' });
   function renderOffice() {
     $('#drawing-host').hidden = S.index;
     $('#index-sheet').hidden = !S.index;
@@ -331,7 +333,7 @@
       '<ul class="reqs">' + reqs.map((r) => {
         const ids = cov.servedBy[r.id] || [], miss = s && !ids.length;
         return '<li data-req="' + esc(r.id) + '">' + rid(r.id, task) + '<span class="rt">' + esc(r.text) + '</span>' +
-          (miss ? '<span class="who miss">' + ICON.warn + 'no one</span>' : '<span class="who">' + ids.map((id) => '<span class="who-r"><span class="sw" style="background:' + (id === 'lead' ? '#1B1F23' : groupColor(s, (M.member(s, id) || {}).group)) + '"></span>' + esc(nameOf(s, id)) + '</span>').join('') + '</span>') + '</li>';
+          (miss ? '<span class="who miss">' + ICON.warn + 'no one</span>' : '<span class="who">' + ids.map((id) => '<span class="who-r"><span class="sw" style="background:' + (id === 'lead' ? 'var(--ink)' : groupColor(s, (M.member(s, id) || {}).group)) + '"></span>' + esc(nameOf(s, id)) + '</span>').join('') + '</span>') + '</li>';
       }).join('') + '</ul>';
   }
   function stateWord(id) {
@@ -346,7 +348,7 @@
     const lead = s.lead || {}, roles = s.roles || [], cost = M.costInfo(roles.length);
     const row = (id, m, color) => '<button class="org-row" type="button" data-select="' + esc(id) + '"><span class="sw" style="background:' + color + '"></span><span class="on-name">' + esc(m.name || id) + '</span>' +
       '<span class="reqs-in">' + (m.serves || []).map((r) => rid(r, task)).join('') + '</span><span class="st st-' + esc(stateWord(id)) + '">' + esc(stateWord(id)) + '</span></button>';
-    let html = '<h2>Team ' + num((s.locked ? 'v' : 'draft v') + (s.version || 1)) + '</h2><div class="org">' + row('lead', Object.assign({ name: 'Lead' }, lead), '#1B1F23');
+    let html = '<h2>Team ' + num((s.locked ? 'v' : 'draft v') + (s.version || 1)) + '</h2><div class="org">' + row('lead', Object.assign({ name: 'Lead' }, lead), 'var(--ink)');
     M.orderGroups(s).forEach((g, i) => {
       const ms = roles.filter((r) => r.group === g.id);
       if (!ms.length) return;
