@@ -367,3 +367,25 @@ body.isolate .role [data-req] { opacity: 1; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .sc-tick { stroke-dashoffset: 0; }
 }
+
+/* ---------- fuller lounge (MASOffice option `kitchen`): fridge door and light, microwave glow, water cooler bubbles ---------- */
+.lounge-fridge .inside, .lounge-fridge .door-open { display: none; }
+.lounge-fridge.open .inside, .lounge-fridge.open .door-open { display: inline; }
+.lounge-kitchen.on .mw-win { fill: #F3B53F; animation: mwglow 1.4s ease-in-out infinite; }
+.lounge-kitchen.on .mw-led { fill: #E04E2A; }
+@keyframes mwglow { 50% { fill: #F7D27A; } }
+.lounge-cooler .bubble-w { display: none; }
+.lounge-cooler.on .bubble-w { display: inline; animation: bubble 1.5s ease-in infinite; }
+@keyframes bubble { from { transform: translateY(0); opacity: .9; } to { transform: translateY(-14px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .lounge-kitchen.on .mw-win, .lounge-cooler.on .bubble-w { animation: none; } }
+
+/* ---------- dark mode: follows the system. Same sheet, darker paper, light ink (drawing colours: tone() in office.js) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark;
+    --sheet: #1C1F22; --paper: #262B30; --ink: #DCE0DB; --ink-2: #A3AAB0; --hair: #474E55; --slab: #2C3136; --wall: #5A636C;
+    --verm-ink: #F27E60; --verm-t: #5A3126; --cobalt: #4D78D4; --cobalt-t: #263553; --ochre-t: #54431C; --sage: #6FA067; --sage-t: #2D4A2B; }
+  .axo .board, .axo .paper, .axo .fig .carried, .axo .ball, .axo .bubble path, .axo .net { fill: var(--paper); }
+  .axo .mk-n { fill: var(--sheet); }
+  .notes-list .n-k { color: var(--sheet); }
+  .note[data-state="flagged"] .n-state, .st-flagged { color: #1B1F23; }
+}

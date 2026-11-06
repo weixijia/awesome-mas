@@ -1,5 +1,5 @@
 /* awesome-mas · the drawing: a cut-away 30° axonometric of the team's office (read-only).
-   window.MASOffice.create(host, { onSelect }) → { setData, setSelected, relayout }
+   window.MASOffice.create(host, { onSelect, kitchen, deskRest, roamLead, maxUnit }) → { setData, setSelected, relayout }
    Drawn at true pixel scale and re-laid out on resize, so text never shrinks below its set size. */
 (function () {
   'use strict';
@@ -19,9 +19,33 @@
     const c = [16, 8, 0].map((s) => Math.round(((a >> s) & 255) * (1 - f) + ((b >> s) & 255) * f));
     return '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
   };
+  /* Dark mode (follows the system). Surfaces go dark but keep their light-to-dark order, so the lit top faces stay
+     lightest; ink lines go light, pale room tints go deep, strong colours stay. Skin, hair, plants and the fridge light never change. */
+  const DARK = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const DARK_FIX = { '#3A4148': '#5A636C', '#2B3036': '#3E454C', '#E3E6E1': '#3A4046', '#2B57B5': '#4D78D4', '#5E8C57': '#6FA067', '#8E4C8A': '#A866A3' };
+  const toneCache = {};
+  function tone(hex) {
+    if (!DARK || typeof hex !== 'string' || !/^#[0-9a-f]{6}$/i.test(hex)) return hex;
+    const key = hex.toUpperCase();
+    if (DARK_FIX[key]) return DARK_FIX[key];
+    if (toneCache[key]) return toneCache[key];
+    const n = parseInt(key.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), L = (mx + mn) / 2, d = mx - mn;
+    let S = d === 0 ? 0 : d / (1 - Math.abs(2 * L - 1)), H = 0;
+    if (d) H = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    let L2 = L;
+    if (S < 0.2) { L2 = L >= 0.5 ? 0.15 + 0.15 * (L - 0.5) / 0.5 : 0.86 - 0.5 * L; H = 3.5; S = 0.07; } // surfaces dark (order kept) · ink light · one cool grey
+    else if (L > 0.68) { L2 = 0.27; S *= 0.55; }                                    // pale tints → deep tints
+    const C = (1 - Math.abs(2 * L2 - 1)) * S, X = C * (1 - Math.abs(H % 2 - 1)), m = L2 - C / 2;
+    const [r1, g1, b1] = H < 1 ? [C, X, 0] : H < 2 ? [X, C, 0] : H < 3 ? [0, C, X] : H < 4 ? [0, X, C] : H < 5 ? [X, 0, C] : [C, 0, X];
+    return (toneCache[key] = '#' + [r1, g1, b1].map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('').toUpperCase());
+  }
+  const toneAll = (str) => (DARK ? String(str).replace(/#[0-9a-f]{6}\b/gi, tone) : str);
+  const KEEP = /(^|\s)(skull|hair|fr-light|leaf|stem)(\s|$)/; // skin, hair, plants and the fridge light look the same in both modes
   function svg(tag, attrs, parent) {
     const e = document.createElementNS(NS, tag);
-    for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    const keep = DARK && KEEP.test(attrs.class || '');
+    for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, !keep && (k === 'fill' || k === 'stroke' || k === 'stop-color') ? tone(attrs[k]) : attrs[k]);
     if (parent) parent.appendChild(e);
     return e;
   }
@@ -55,6 +79,10 @@
   };
 
   function create(host, opts) {
+    const DESK_REST = !!(opts && opts.deskRest); // option: resting people mostly stay at their desk, with short lounge breaks
+    const KITCHEN = !!(opts && opts.kitchen);    // option: a fuller lounge (kitchen corner, round table, water cooler, plants, clock)
+    const ROAM = !!(opts && opts.roamLead);      // option: the Lead has no office and walks between the desks
+    const MAX_U = (opts && opts.maxUnit) || 48;  // option: cap the drawing scale (px per plan unit), e.g. in a small window
     const root = document.createElement('div');
     root.className = 'drawing';
     const scene = svg('svg', { class: 'axo', role: 'img', 'aria-label': 'Axonometric drawing of the team office' });
@@ -105,13 +133,13 @@
         }
         // people drawn small beside the labels? a numbered list below lets the drawing itself grow
         // ...or when the margins force long leaders: drafting labels should sit close to what they name
-        const listU = Math.min(48, (width - 24) / extent(1).w);
+        const listU = Math.min(MAX_U, (width - 24) / extent(1).w);
         const longest = ok ? Math.max(0, ...res.labels.map((l) => M.pathLength(l.path))) : 0;
         if (!ok || (U < 32 && listU > U) || listU >= U * 1.3 || (longest > height * 0.4 && listU >= U)) listMode = true;
         else { root.style.height = height + 'px'; sizeSvgs(width, height); }
       }
       if (listMode) {
-        U = Math.min(48, (width - 24) / extent(1).w);
+        U = Math.min(MAX_U, (width - 24) / extent(1).w);
         const h = extent(U).h + 24;
         place(U, width, h);
         root.style.height = h + 'px';
@@ -154,8 +182,8 @@
       deskEls = {};
       const W = plan.W, D = plan.D, wall = M.PLAN.WALL;
       box(lay.slab, { x: -0.12, y: -0.12, z: -0.3, w: W + 0.27, d: D + 0.27, h: 0.3 }, ['#DCE0DB', '#C9CEC8', '#D3D7D1'], 'slab');
-      box(lay.walls, { x: -0.12, y: -0.12, w: W + 0.12, d: 0.12, h: wall }, ['#1B1F23', '#3A4148', '#3A4148'], 'wall');
-      box(lay.walls, { x: -0.12, y: 0, w: 0.12, d: D, h: wall }, ['#1B1F23', '#3A4148', '#4A5259'], 'wall');
+      box(lay.walls, { x: -0.12, y: -0.12, w: W + 0.12, d: 0.12, h: wall }, [DARK ? '#7D868E' : '#1B1F23', '#3A4148', '#3A4148'], 'wall');
+      box(lay.walls, { x: -0.12, y: 0, w: 0.12, d: D, h: wall }, [DARK ? '#7D868E' : '#1B1F23', '#3A4148', DARK ? '#4B535B' : '#4A5259'], 'wall');
       if (mode !== 'empty') { // door: a gap in the left wall with a frame
         const dy = plan.door.y - 0.45;
         svg('polygon', { class: 'door', points: pts([P(0, dy, 0), P(0, dy + 0.9, 0), P(0, dy + 0.9, 1.0), P(0, dy, 1.0)]) }, lay.walls);
@@ -199,7 +227,8 @@
       });
     }
     function drawBoard() {
-      // the task board hangs on the inner face of the left wall, beside the Lead
+      // the task board hangs on the inner face of the left wall, beside the Lead (no Lead office when roaming: no board)
+      if (ROAM) return;
       const reqs = ((task && task.requirements) || []).slice(0, 8);
       const y0 = 0.3, y1 = 2.55, z0 = 0.22, z1 = 1.14, x = 0.0;
       svg('polygon', { class: 'board', points: pts([P(x, y0, z0), P(x, y1, z0), P(x, y1, z1), P(x, y0, z1)]) }, lay.walls);
@@ -214,7 +243,24 @@
         t.textContent = r.id;
       });
     }
+    let clockEl = null;
+    function tickClock() {
+      if (!clockEl) return;
+      const d = new Date(), mins = d.getMinutes() + d.getSeconds() / 60, hrs = (d.getHours() % 12) + mins / 60;
+      const hand = (el, frac, len) => { const a = frac * Math.PI * 2; el.setAttribute('points', pts([P(clockEl.x, 0.006, clockEl.z), P(clockEl.x + Math.sin(a) * len, 0.006, clockEl.z + Math.cos(a) * len)])); };
+      hand(clockEl.h, hrs / 12, clockEl.r * 0.55); hand(clockEl.m, mins / 60, clockEl.r * 0.85);
+    }
+    // Appliances react to whoever is using them.
+    function tickKitchen() {
+      const fr = lay.things.querySelector('.lounge-fridge'), mw = lay.things.querySelector('.lounge-kitchen');
+      const at = (sid) => { const x = figAt(sid); return !!(x && x.arrived); };
+      if (fr) fr.classList.toggle('open', at('fridge-0'));
+      if (mw) mw.classList.toggle('on', at('micro-0'));
+      const wc = lay.things.querySelector('.lounge-cooler');
+      if (wc) wc.classList.toggle('on', at('water-0'));
+    }
     function drawLounge() {
+      clockEl = null;
       const fills = ['#FAFBF9', '#DCE0DB', '#C9CEC8'];
       ball.el = null;
       lounge.furniture.forEach((f) => {
@@ -235,6 +281,72 @@
             const c = GROUP[k % GROUP.length];
             box(g, { x: f.x + dx, y: f.y + dy, z: f.h, w: 0.16, d: 0.12, h: 0.07 }, [c[1], c[0], mix(c[0], '#1B1F23', 0.22)]);
           });
+        } else if (f.kind === 'fridge') { // white fridge: freezer line, handles, magnets; the door swings open while someone is there
+          const front = f.y + f.d, zs = f.h * 0.64;
+          box(g, f, ['#FAFBF9', '#E4E7E2', '#CDD2CB']);
+          svg('polygon', { class: 'inside fr-light', points: pts([P(f.x + 0.05, front, 0.06), P(f.x + f.w - 0.05, front, 0.06), P(f.x + f.w - 0.05, front, zs - 0.04), P(f.x + 0.05, front, zs - 0.04)]), fill: '#FFF3C4' }, g);
+          [0.25, 0.45].forEach((zz) => svg('polygon', { class: 'inside', points: pts([P(f.x + 0.05, front - 0.3, zz), P(f.x + f.w - 0.05, front - 0.3, zz), P(f.x + f.w - 0.05, front, zz), P(f.x + 0.05, front, zz)]), fill: '#E4E7E2' }, g));
+          svg('polyline', { class: 'fr-line', points: pts([P(f.x, front, zs), P(f.x + f.w, front, zs)]), fill: 'none', stroke: '#1B1F23' }, g);
+          [[zs + 0.08, zs + 0.3], [zs - 0.32, zs - 0.08]].forEach(([a, b]) => svg('polyline', { class: 'fr-handle', points: pts([P(f.x + 0.08, front + 0.01, a), P(f.x + 0.08, front + 0.01, b)]), fill: 'none', stroke: '#1B1F23', 'stroke-width': 2.2 }, g));
+          [[0.3, zs + 0.18, 0], [0.42, zs + 0.3, 1], [0.34, zs - 0.22, 2], [0.48, zs - 0.12, 3]].forEach(([dx, zz, k]) => svg('polygon', { class: 'magnet',
+            points: pts([P(f.x + dx, front + 0.01, zz), P(f.x + dx + 0.08, front + 0.01, zz), P(f.x + dx + 0.08, front + 0.01, zz + 0.07), P(f.x + dx, front + 0.01, zz + 0.07)]), fill: GROUP[k % GROUP.length][0] }, g));
+          svg('polygon', { class: 'door-open', points: pts([P(f.x + f.w, front, 0.02), P(f.x + f.w, front + f.w * 0.92, 0.02), P(f.x + f.w, front + f.w * 0.92, zs - 0.02), P(f.x + f.w, front, zs - 0.02)]), fill: '#E4E7E2' }, g);
+        } else if (f.kind === 'roundtable') { // pedestal table: base disc, column, round top with a front edge; chairs drawn on their own
+          const R = f.r, cx = f.x + R, cy = f.y + R, top = f.h, th = 0.06;
+          const arc = (r, z, a0, a1, n) => Array.from({ length: n + 1 }, (_, k) => { const a = a0 + ((a1 - a0) * k) / n; return P(cx + Math.cos(a) * r, cy + Math.sin(a) * r, z); });
+          svg('polygon', { class: 'rt-base', points: pts(arc(0.26, 0.01, 0, Math.PI * 2, 24)), fill: '#3A4148' }, g);
+          box(g, { x: cx - 0.05, y: cy - 0.05, w: 0.1, d: 0.1, h: top - th }, ['#3A4148', '#1B1F23', '#2B3036']);
+          const front = arc(R, top, -Math.PI / 4, (3 * Math.PI) / 4, 16);
+          svg('polygon', { class: 'rt-edge', points: pts(front.concat(arc(R, top - th, (3 * Math.PI) / 4, -Math.PI / 4, 16))), fill: '#CDD2CB' }, g);
+          svg('polygon', { class: 'rt-top', points: pts(arc(R, top, 0, Math.PI * 2, 36)), fill: '#FAFBF9' }, g);
+          // a few things on the table: a vase and two mugs
+          box(g, { x: cx - 0.06, y: cy - 0.06, z: top, w: 0.12, d: 0.12, h: 0.18 }, [GROUP[1][1], GROUP[1][0], mix(GROUP[1][0], '#1B1F23', 0.22)]);
+          [[0.28, -0.12], [-0.2, 0.26]].forEach(([dx, dy]) => box(g, { x: cx + dx, y: cy + dy, z: top, w: 0.08, d: 0.08, h: 0.08 }, ['#FAFBF9', '#E04E2A', '#B23D20']));
+          (f.chairs || []).forEach((c) => { // seat facing the table; chairs behind the table get a back, front ones are stools
+            const cg = svg('g', { class: 'furn lounge-chair', 'data-room': 'lounge' }, lay.things);
+            cg._depth = c.x + c.y - 0.01;
+            const sw = 0.4, sx = c.x - sw / 2, sy = c.y - sw / 2 + 0.06;
+            box(cg, { x: sx, y: sy, w: sw, d: sw, h: 0.42 }, ['#F3DCA6', '#D89A12', mix('#D89A12', '#1B1F23', 0.2)]);
+            if (c.side === 'back') {
+              const bx = c.face[0] > 0 ? { x: sx - 0.06, y: sy, w: 0.07, d: sw, h: 0.78 } : { x: sx, y: sy - 0.06, w: sw, d: 0.07, h: 0.78 };
+              box(cg, bx, ['#F3DCA6', '#D89A12', mix('#D89A12', '#1B1F23', 0.2)]);
+            }
+          });
+        } else if (f.kind === 'cooler') { // water cooler: cabinet, blue bottle with bubbles while someone fills a cup
+          box(g, f, ['#FAFBF9', '#E4E7E2', '#CDD2CB']);
+          const fy = f.y + f.d + 0.005;
+          [[0.08, '#2B57B5'], [0.22, '#E04E2A']].forEach(([dx, c]) => svg('polygon', { class: 'tap', points: pts([P(f.x + dx, fy, 0.62), P(f.x + dx + 0.06, fy, 0.62), P(f.x + dx + 0.06, fy, 0.7), P(f.x + dx, fy, 0.7)]), fill: c }, g));
+          svg('polygon', { class: 'tray', points: pts([P(f.x + 0.05, fy, 0.36), P(f.x + 0.31, fy, 0.36), P(f.x + 0.31, fy, 0.42), P(f.x + 0.05, fy, 0.42)]), fill: '#3A4148' }, g);
+          box(g, { x: f.x + 0.05, y: f.y + 0.05, z: f.h, w: 0.26, d: 0.26, h: 0.42 }, ['#DCE6F7', '#BDCBEA', '#9FB3DD'], 'bottle');
+          box(g, { x: f.x + 0.13, y: f.y + 0.13, z: f.h + 0.42, w: 0.1, d: 0.1, h: 0.05 }, ['#2B57B5', '#2B57B5', '#1F3F86']);
+          [[0.12, 0], [0.2, 0.5], [0.15, 1]].forEach(([dx, k]) => { const b = P(f.x + dx, f.y + f.d - 0.04, f.h + 0.06); svg('circle', { class: 'bubble-w', cx: b[0].toFixed(1), cy: b[1].toFixed(1), r: Math.max(1.4, 0.03 * U), style: 'animation-delay:' + k * 0.5 + 's', fill: '#FAFBF9' }, g); });
+        } else if (f.kind === 'plant') { // terracotta pot and leaves; a tall one has a stem
+          const cx = f.x + f.w / 2, cy = f.y + f.d / 2, ph = 0.24;
+          if (f.room) g.setAttribute('data-room', f.room);
+          box(g, { x: f.x + 0.05, y: f.y + 0.05, w: f.w - 0.1, d: f.d - 0.1, h: ph }, ['#E5B795', '#C98D63', '#9C6A47'], 'pot');
+          const leaf = (dx, dy, z, r, c) => { const q = P(cx + dx, cy + dy, z); svg('circle', { class: 'leaf', cx: q[0].toFixed(1), cy: q[1].toFixed(1), r: (r * U).toFixed(1), fill: c }, g); };
+          if (f.type === 'tall') {
+            const a = P(cx, cy, ph), b = P(cx, cy, f.h - 0.2);
+            svg('polyline', { class: 'stem', points: pts([a, b]), fill: 'none', stroke: '#4A3426', 'stroke-width': 1.6 }, g);
+            [[0.1, 0, 0.62, 0.16, '#5E8C57'], [-0.08, 0.06, 0.8, 0.17, '#8AA884'], [0.04, -0.08, 0.98, 0.18, '#5E8C57'], [0, 0.04, 1.12, 0.15, '#8AA884']].forEach((l) => leaf(...l));
+          } else {
+            [[-0.09, 0.04, 0.42, 0.19, '#5E8C57'], [0.1, -0.03, 0.46, 0.18, '#8AA884'], [-0.02, 0.1, 0.5, 0.17, '#8AA884'], [0, -0.02, 0.62, 0.19, '#5E8C57']].forEach((l) => leaf(...l));
+          }
+        } else if (f.kind === 'kitchen') { // counter with a microwave and a fruit bowl
+          box(g, f, fills);
+          const m = { x: f.x + 0.06, y: f.y + 0.14, z: f.h, w: 0.52, d: 0.36, h: 0.3 };
+          box(g, m, ['#E4E7E2', '#3A4148', '#2B3036']);
+          const fy = m.y + m.d + 0.005;
+          svg('polygon', { class: 'mw-win', points: pts([P(m.x + 0.05, fy, m.z + 0.05), P(m.x + 0.36, fy, m.z + 0.05), P(m.x + 0.36, fy, m.z + m.h - 0.05), P(m.x + 0.05, fy, m.z + m.h - 0.05)]), fill: '#1B1F23' }, g);
+          svg('polygon', { class: 'mw-led', points: pts([P(m.x + 0.4, fy, m.z + 0.19), P(m.x + 0.48, fy, m.z + 0.19), P(m.x + 0.48, fy, m.z + 0.24), P(m.x + 0.4, fy, m.z + 0.24)]), fill: '#5E8C57' }, g);
+          [[0.7, 0.3, 0], [0.78, 0.36, 2], [0.72, 0.42, 3]].forEach(([dx, dy, k]) => box(g, { x: f.x + dx, y: f.y + dy, z: f.h, w: 0.09, d: 0.09, h: 0.08 }, [GROUP[k][1], GROUP[k][0], mix(GROUP[k][0], '#1B1F23', 0.22)]));
+        } else if (f.kind === 'clock') { // a wall clock above the sofa, showing the real time
+          g.remove();
+          const cg = svg('g', { class: 'wall-clock', 'data-room': 'lounge' }, lay.walls), z = 0.92, r = 0.15;
+          const ring = (rr) => pts(Array.from({ length: 24 }, (_, k) => { const a = (k / 24) * Math.PI * 2; return P(f.x + Math.cos(a) * rr, 0.005, z + Math.sin(a) * rr); }));
+          svg('polygon', { points: ring(r), fill: '#FAFBF9', stroke: '#1B1F23', 'stroke-width': 1.4 }, cg);
+          clockEl = { g: cg, x: f.x, z, r, h: svg('polyline', { class: 'clk-h', fill: 'none', stroke: '#1B1F23', 'stroke-width': 1.8 }, cg), m: svg('polyline', { class: 'clk-m', fill: 'none', stroke: '#E04E2A', 'stroke-width': 1.2 }, cg) };
+          tickClock();
         } else if (f.kind === 'tt') { // table-tennis table: legs, top, net
           [0.12, f.w - 0.2].forEach((dx) => box(g, { x: f.x + dx, y: f.y + f.d / 2 - 0.04, w: 0.08, d: 0.08, h: f.h - 0.05 }, ['#3A4148', '#1B1F23', '#3A4148']));
           box(g, { x: f.x, y: f.y, z: f.h - 0.05, w: f.w, d: f.d, h: 0.05 }, ['#CFE0C9', '#9DBA97', '#8AA884']);
@@ -273,6 +385,7 @@
     }
     function drawDesk(id) {
       const d = plan.desks[id], col = colorsFor(plan, id);
+      if (d.roam) return; // a roaming Lead has no desk
       const g = svg('g', { class: 'furn desk', 'data-id': id, 'data-room': d.room }, lay.things);
       g._depth = d.desk.x + d.desk.w / 2 + d.desk.y + d.desk.d;
       box(g, d.chair, [col[1], mix(col[1], '#1B1F23', 0.18), mix(col[1], '#1B1F23', 0.28)], 'chair');
@@ -308,12 +421,12 @@
       const de = deskEls[id];
       if (!de || de.act === act) return;
       de.act = act;
-      de.inner.innerHTML = '<g class="scr act-' + act + '">' + (SCREEN[act] || SCREEN.off) + '</g>';
+      de.inner.innerHTML = toneAll('<g class="scr act-' + act + '">' + (SCREEN[act] || SCREEN.off) + '</g>');
     }
     function drawRoutes() {
       ((S && S.roles) || []).forEach((r) => {
         const a = plan.desks[r.id], b = plan.desks[r.handsTo || 'lead'];
-        if (!a || !b || r.handsTo === r.id) return;
+        if (!a || !b || b.roam || r.handsTo === r.id) return;
         const path = [a.stand].concat(M.gridRoute(plan, a.stand, b.visit));
         svg('polyline', { class: 'route', 'data-route': r.id, points: pts(path.map((p) => P(p.x, p.y, 0.01))) }, lay.routes);
         const e = P(b.visit.x, b.visit.y, 0.01);
@@ -357,8 +470,8 @@
       svg('path', { class: 'hair', d: 'M' + (hc[0] - r) + ' ' + (hc[1] + 0.1 * r) + 'A' + r + ' ' + r + ' 0 0 1 ' + (hc[0] + r) + ' ' + (hc[1] + 0.1 * r) + 'Q' + hc[0] + ' ' + (hc[1] - 0.35 * r) + ' ' + (hc[0] - r) + ' ' + (hc[1] + 0.1 * r) + 'Z', fill: HAIR[(h >> 4) % HAIR.length] }, head);
       const badge = svg('g', { class: 'badge', transform: 'translate(' + (hc[0] + r + 4).toFixed(1) + ' ' + (hc[1] - r - 6).toFixed(1) + ')' }, g);
       const s = Math.max(14, 0.32 * U);
-      svg('g', { class: 'b-tick' }, badge).innerHTML = '<rect x="0" y="0" width="' + s + '" height="' + s + '" fill="#5E8C57" stroke="#1B1F23"/><path d="M' + s * 0.24 + ' ' + s * 0.52 + 'l' + s * 0.18 + ' ' + s * 0.18 + ' ' + s * 0.36 + '-' + s * 0.42 + '" fill="none" stroke="#fff" stroke-width="2"/>';
-      svg('g', { class: 'b-warn' }, badge).innerHTML = '<path d="M' + s / 2 + ' 0L' + s * 1.1 + ' ' + s + 'H' + -s * 0.1 + 'Z" fill="#D89A12" stroke="#1B1F23" stroke-linejoin="round"/><path d="M' + s / 2 + ' ' + s * 0.32 + 'v' + s * 0.34 + 'M' + s / 2 + ' ' + s * 0.78 + 'v' + s * 0.06 + '" stroke="#1B1F23" stroke-width="2"/>';
+      svg('g', { class: 'b-tick' }, badge).innerHTML = toneAll('<rect x="0" y="0" width="' + s + '" height="' + s + '" fill="#5E8C57" stroke="#1B1F23"/><path d="M' + s * 0.24 + ' ' + s * 0.52 + 'l' + s * 0.18 + ' ' + s * 0.18 + ' ' + s * 0.36 + '-' + s * 0.42 + '" fill="none" stroke="#fff" stroke-width="2"/>');
+      svg('g', { class: 'b-warn' }, badge).innerHTML = toneAll('<path d="M' + s / 2 + ' 0L' + s * 1.1 + ' ' + s + 'H' + -s * 0.1 + 'Z" fill="#D89A12" stroke="#1B1F23" stroke-linejoin="round"/><path d="M' + s / 2 + ' ' + s * 0.32 + 'v' + s * 0.34 + 'M' + s / 2 + ' ' + s * 0.78 + 'v' + s * 0.06 + '" stroke="#1B1F23" stroke-width="2"/>');
       // speech bubble, drawn on the side away from the chat partner (right for the right-hand speaker, mirrored for the left)
       const bw = Math.max(26, 0.62 * U), bh = Math.max(14, 0.3 * U), bx = hc[0] + r * 0.4, by = hc[1] - r - bh - 6;
       ['r', 'l'].forEach((side) => {
@@ -441,7 +554,7 @@
       const clock = busy && t.start ? M.formatClock(Date.now() - t.start) : st.state === 'done' && t.start && t.end ? M.formatClock(t.end - t.start) : '';
       const word = st.state === 'draft' ? 'draft' : st.state;
       b.querySelector('.n-state').textContent = word;
-      b.querySelector('.n-ico').innerHTML = st.state === 'flagged' ? ICON.warn : st.state === 'done' ? ICON.tick : '';
+      b.querySelector('.n-ico').innerHTML = toneAll(st.state === 'flagged' ? ICON.warn : st.state === 'done' ? ICON.tick : '');
       const bar = b.querySelector('.n-bar');
       bar.hidden = p == null || !(busy || st.state === 'done');
       bar.firstChild.style.width = (p || 0) + '%';
@@ -502,7 +615,7 @@
     if (window.IntersectionObserver) new IntersectionObserver((es) => { onscreen = es.some((e) => e.isIntersecting); setPaused(); }).observe(root);
 
     /* ----- after-work life (only for figures whose work is done) ----- */
-    const WORDS = { coffee: 'coffee', sofa: 'on the sofa', tt: 'table tennis', chat: 'chatting', party: 'wrap party' };
+    const WORDS = { coffee: 'coffee', sofa: 'on the sofa', tt: 'table tennis', chat: 'chatting', party: 'wrap party', fridge: 'getting a drink', microwave: 'heating lunch', water: 'at the water cooler', table: 'at the round table' };
     const occupied = () => { const o = {}; Object.values(figs).forEach((x) => { if (x.station) o[x.station] = x.id; }); return o; };
     const figAt = (sid) => Object.values(figs).find((x) => x.station === sid);
     const teamBusy = () => members().some((id) => { const st = statusOf(id).state; return st !== 'done' && st !== 'idle'; });
@@ -511,6 +624,10 @@
     function poseFor(s, f) {
       if (s.kind === 'sofa') return ['sit', 'lounge', 'away', rngFor(f)() < 0.5 && 'cup'];
       if (s.kind === 'coffee') return ['stand', 'cup', 'away'];
+      if (s.kind === 'fridge') return ['stand', 'face-r', 'away'];
+      if (s.kind === 'microwave') return ['stand', 'face-r', 'away'];
+      if (s.kind === 'water') return ['stand', 'face-r', 'cup', 'away'];
+      if (s.kind === 'table') return ['sit', 'lounge', 'away', rngFor(f)() < 0.6 && 'cup'].filter(Boolean);
       if (s.kind === 'tt') return ['stand', 'away', s.side === 'l' ? 'tt-l' : 'tt-r'];
       if (s.kind === 'chat') return ['stand', 'chat', 'away', s.side === 'l' ? 'face-r chat-l' : 'face-l chat-r'];
       return ['stand', 'away'];
@@ -519,7 +636,10 @@
     function goStation(f, s, instant) {
       f.station = s.id; f.activity = s.kind; f.arrived = false;
       if (!f.cls.includes('away')) setCls(f, f.cls.concat('away'));
-      const arrive = () => { setCls(f, poseFor(s, f).concat('done')); f.arrived = true; ballCheck(); };
+      const arrive = () => {
+        setCls(f, poseFor(s, f).concat('done')); f.arrived = true; ballCheck();
+        if (s.kind === 'fridge') setTimeout(() => { if (f.station === s.id) setCls(f, ['stand', 'face-r', 'cup', 'away', 'done']); }, 2500); // door open, grab a can
+      };
       if (instant || reduced()) { f.x = s.x; f.y = s.y; f.path = []; placeFig(f); arrive(); return; }
       goTo(f, s, arrive);
     }
@@ -531,6 +651,19 @@
     }
     const ringSpot = (i) => (lounge.party.ring[i] ? Object.assign({ id: 'ring-' + i, kind: 'ring' }, lounge.party.ring[i]) : null);
     const overSpots = () => (lounge ? lounge.overflow.map((p, i) => Object.assign({ id: 'over-' + i, kind: 'over' }, p)) : []);
+    // deskRest: resting (done or idle) people sit at their own desk, not typing; now and then a short lounge break, then back.
+    function restAtDesk(f, instant) {
+      f.station = null; f.activity = null; f.arrived = false; f.breakUntil = 0;
+      atSeat(f, instant, ['sit', f.state === 'done' ? 'done' : 'idle']);
+      f.nextAct = reduced() ? Infinity : Date.now() + 15000 + Math.random() * 25000;
+    }
+    function restTick(f, now) {
+      if (f.go || !f.nextAct || now < f.nextAct || party.active) return;
+      if (f.breakUntil) { restAtDesk(f, false); f.nextAct = now + 25000 + Math.random() * 35000; return; } // break over: back to the desk
+      const s = lounge && Math.random() < 0.35 && M.pickStation(lounge, occupied(), { id: f.id, state: 'done' }, { teamBusy: true, rng: rngFor(f) });
+      if (s) { goStation(f, s, false); f.breakUntil = f.nextAct = now + 15000 + Math.random() * 20000; return; }
+      f.nextAct = now + 15000 + Math.random() * 25000;
+    }
     function toIdle(f, instant) { // before a run: people rest in the lounge, without after-work props
       const spots = lounge ? lounge.stations.concat(overSpots()) : [];
       if (!spots.length) return atSeat(f, instant, ['sit', 'idle']);
@@ -601,16 +734,41 @@
       if (instant) { f.x = s.x; f.y = s.y; placeFig(f); setCls(f, cls); return; }
       goTo(f, s, () => setCls(f, cls));
     }
+    // roamLead: the Lead walks to whoever is flagged first, else to whoever is working; a short stop beside their desk, then on.
+    function roam(f) {
+      clearTimeout(f.roamT);
+      if (!plan || !plan.desks[f.id] || f.state === 'idle') return;
+      const others = members().filter((id) => !plan.desks[id].roam);
+      const stOf = (id) => statusOf(id).state;
+      let pool = others.filter((id) => stOf(id) === 'flagged');
+      if (!pool.length) pool = others.filter((id) => stOf(id) === 'working');
+      if (!pool.length) pool = others;
+      if (pool.length > 1) pool = pool.filter((id) => id !== f.visiting);
+      const id = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+      f.visiting = id;
+      const v = id && plan.desks[id].visit, to = id ? { x: v.x + 0.4, y: v.y + 0.42 } : plan.desks[f.id].seat; // front-right of their desk, clear of the chair
+      goTo(f, to, () => {
+        setCls(f, id ? (stOf(id) === 'flagged' ? ['stand', 'face-l', 'talk'] : ['stand', 'face-l']) : ['stand']);
+        f.roamT = setTimeout(() => roam(f), (id && stOf(id) === 'flagged' ? 9000 : 5000) + Math.random() * 5000);
+      });
+    }
     function enter(f, st, instant) {
-      clearTimeout(f.timer); clearTimeout(f.later);
+      clearTimeout(f.timer); clearTimeout(f.later); clearTimeout(f.roamT);
       f.station = null; f.activity = null; f.nextAct = 0; f.arrived = false;
       const d = plan.desks[f.id];
+      if (d.roam && st.state !== 'idle' && st.state !== 'done') { // idle or done: the lounge, like everyone else
+        if (instant) { f.x = d.seat.x; f.y = d.seat.y; placeFig(f); }
+        setCls(f, st.state === 'flagged' ? ['stand', 'raise'] : ['stand']);
+        f.roamT = setTimeout(() => roam(f), instant ? 400 : 1200);
+        return;
+      }
       switch (st.state) {
         case 'draft': f.x = d.seat.x; f.y = d.seat.y; placeFig(f); setCls(f, ['sit', 'ghost']); return;
-        case 'idle': return toIdle(f, instant);
+        case 'idle': return DESK_REST && f.id !== 'lead' ? restAtDesk(f, instant) : toIdle(f, instant);
         case 'working': f.nextThink = Date.now() + 4000 + Math.random() * 6000; return atSeat(f, instant, ['sit', 'type']);
         case 'flagged': return atSeat(f, instant, ['stand', 'raise', 'flag']);
         case 'done': // lean back with a tick; then (if the party is not starting) stretch and go for coffee
+          if (DESK_REST && f.id !== 'lead') return restAtDesk(f, instant);
           if (instant || reduced()) { atSeat(f, true, ['sit', 'done']); if (teamBusy()) afterWork(f, true); return; }
           atSeat(f, false, ['sit', 'done']);
           f.later = setTimeout(() => {
@@ -645,6 +803,7 @@
     function pulse() {
       if (!plan || paused()) return;
       pulseN++;
+      tickClock(); tickKitchen();
       const now = Date.now();
       Object.keys(noteEls).forEach(fillNote);
       if (reduced()) { // static after-work: one chat bubble, no rotation
@@ -660,6 +819,7 @@
         }
       });
       if (lounge && !party.active) Object.values(figs).forEach((f) => { // one after-work action per 8–16 s
+        if (DESK_REST && f.id !== 'lead') { if (f.state === 'done' || f.state === 'idle') restTick(f, now); return; }
         if (f.state === 'done' && f.nextAct && !f.go && now >= f.nextAct) afterWork(f, false);
       });
       const c0 = figAt('chat-0'), c1 = figAt('chat-1'), chatting = c0 && c1 && c0.arrived && c1.arrived;
@@ -685,7 +845,7 @@
       if (nextSig !== sig) {
         sig = nextSig;
         S = a.structure;
-        plan = M.planOffice(mode === 'empty' ? null : S);
+        plan = M.planOffice(mode === 'empty' ? null : S, { kitchen: KITCHEN, roamLead: ROAM });
         lounge = M.loungeLayout(plan, members().length);
         const keep = figs;
         figs = {};
@@ -694,6 +854,7 @@
           const old = keep[id];
           figs[id] = old || { id, x: plan.door.x, y: plan.door.y, path: [], cls: [], state: null, key: null };
           if (!old || entering) { const s = entering ? plan.door : plan.desks[id].seat; figs[id].x = s.x; figs[id].y = s.y; figs[id].key = null; figs[id].state = null; }
+          else { old.key = null; old.moved = true; old.station = null; } // desks were re-planned: walk to the new place, never stay on someone else's
           figs[id].enterDelay = entering ? 900 + i * 420 : 0;
         });
         Object.keys(keep).forEach((id) => { if (!figs[id] && keep[id].g) keep[id].g.remove(); });
@@ -714,7 +875,8 @@
         const key = M.statusKey(st);
         if (key === f.key) return;
         const instant = (first || f.state === null) && !entering && !f.enterDelay;
-        const same = f.state === st.state && !f.go && (st.state === 'working' || st.state === 'flagged');
+        const same = !f.moved && f.state === st.state && !f.go && (st.state === 'working' || st.state === 'flagged');
+        f.moved = false;
         f.key = key; f.state = st.state;
         if (same) return;
         if (f.enterDelay) { const dl = f.enterDelay; f.enterDelay = 0; f.timer = setTimeout(() => enter(f, statusOf(id), false), dl); return; }

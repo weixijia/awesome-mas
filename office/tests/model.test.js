@@ -377,6 +377,47 @@ test('after-work: lounge spots fit, never touch furniture, and no two figures ov
   }
 });
 
+test('kitchen option: off by default; when on, every appliance and chair fits with no overlaps (1–8 roles)', () => {
+  const pose = (st) => (st.kind === 'sofa' || st.kind === 'table' ? 'sit' : st.kind === 'chat' ? 'chat-' + st.side : 'stand');
+  const extra = ['fridge', 'kitchen', 'cooler', 'roundtable', 'plant', 'clock'];
+  const plain = M.loungeLayout(M.planOffice(teamOf(3, 2)), 4);
+  assert.ok(!plain.furniture.some((f) => extra.includes(f.kind)), 'no kitchen furniture without the option');
+  assert.ok(plain.furniture.some((f) => f.kind === 'party'), 'the default snack table stays');
+  for (let n = 1; n <= 8; n++) for (let g = 1; g <= Math.min(3, n); g++) {
+    const plan = M.planOffice(teamOf(n, g), { kitchen: true }), L = M.loungeLayout(plan, n + 1);
+    ['fridge', 'kitchen', 'cooler', 'roundtable'].forEach((k) => assert.ok(L.furniture.some((f) => f.kind === k), k + ' at n=' + n + '/' + g));
+    ['fridge-0', 'micro-0', 'water-0', 'table-0', 'coffee-0'].forEach((id) => assert.ok(L.stations.some((st) => st.id === id), id + ' at n=' + n + '/' + g));
+    const solid = L.furniture.filter((f) => f.kind !== 'clock' && !f.room); // the clock hangs on the wall; room plants are outside the lounge
+    L.stations.forEach((p) => {
+      assert.ok(p.x > plan.lounge.x0 && p.x < plan.lounge.x1 && p.y > 0 && p.y < M.PLAN.BACK, 'inside the lounge: ' + p.id);
+      solid.forEach((f) => assert.ok(!(p.x > f.x - 0.12 && p.x < f.x + f.w + 0.12 && p.y > f.y - 0.12 && p.y < f.y + f.d + 0.12), p.id + ' clear of ' + f.kind));
+    });
+    const boxes = L.stations.map((st) => [st.id, M.figBox(st, pose(st))]);
+    boxes.forEach(([ia, a], i) => boxes.slice(i + 1).forEach(([ib, b]) => assert.ok(!M.boxesOverlap(a, b, 0), 'figures overlap at n=' + n + '/' + g + ': ' + ia + ' × ' + ib)));
+    plan.rooms.filter((r) => r.kind === 'group').forEach((r) => {
+      const pl = L.furniture.find((f) => f.kind === 'plant' && f.room === r.id);
+      assert.ok(pl, 'a plant in room ' + r.id);
+      r.members.forEach((id) => { const d = plan.desks[id].desk; assert.ok(pl.x >= d.x + d.w || pl.y + pl.d <= d.y, 'room plant clear of the desk of ' + id); });
+    });
+  }
+});
+
+test('roamLead option: no Lead office, the lounge takes the back row, rooms can keep a colour and a caption', () => {
+  const plain = M.planOffice(teamOf(4, 2));
+  assert.ok(plain.rooms.some((r) => r.kind === 'lead') && !plain.desks.lead.roam, 'default keeps the Lead office');
+  for (const kitchen of [false, true]) for (let n = 1; n <= 8; n++) {
+    const plan = M.planOffice(teamOf(n, Math.min(3, n)), { roamLead: true, kitchen }), L = M.loungeLayout(plan, n + 1);
+    assert.ok(!plan.rooms.some((r) => r.kind === 'lead'), 'no Lead office');
+    assert.ok(plan.desks.lead.roam && plan.lounge.x0 === 0, 'roaming Lead, lounge from the wall');
+    assert.ok(plan.desks.lead.seat.y > M.PLAN.BACK, 'home base is in the aisle, not in the lounge');
+    if (kitchen) ['fridge-0', 'micro-0', 'water-0', 'table-0'].forEach((id) => assert.ok(L.stations.some((st) => st.id === id), id + ' with roamLead at n=' + n));
+  }
+  const s = { groups: [{ id: 'x', colorIndex: 4, room: 'my task · 2' }], roles: [{ id: 'a', group: 'x' }] };
+  const plan = M.planOffice(s);
+  assert.strictEqual(plan.rooms.find((r) => r.id === 'x').index, 4, 'colourIndex is kept');
+  assert.strictEqual(M.zoneCaption(s.groups[0], 1), 'my task · 2', 'room caption is used');
+});
+
 test('after-work scheduler: never double-books, only done figures, quiet while the team works', () => {
   const lounge = M.loungeLayout(M.planOffice(teamOf(8, 3)));
   for (let n = 1; n <= 8; n++) {
