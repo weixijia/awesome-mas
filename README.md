@@ -6,11 +6,24 @@ Describe a task in your own words. Your AI designs a small team of agents for it
 
 Works with **Claude** (app or Claude Code), **Codex** (app or CLI), **Antigravity** (IDE or CLI) and most other AI coding assistants.
 
-📖 **Step-by-step guide:** https://weixijia.github.io/awesome-mas/
+📖 **Step-by-step tutorial** (every message you type, with pictures of each step): **https://www.xijiawei.com/awesome-mas/**
 
 🛠️ **Developer?** awesome-mas is the classroom edition. [**MAS Office**](https://github.com/weixijia/mas-office) is the full version for developers: the same panel driven by a written protocol, Python and JS SDKs, a live server, and integrations for OpenAI Agents SDK, LangGraph, Claude Agent SDK and Claude Code.
 
 ---
+
+## The whole journey: set up once, then 4 steps
+
+| | You type | You get | Time |
+|---|---|---|---|
+| **Set up** (once per folder) | the setup sentence below | your folder ready, the live panel open | 5–10 min |
+| **Name your MAS** | `next`, then a few words | a folder for this MAS | 1 min |
+| **Step 1 · Describe** | `next`, then **5 answers**, one per question | your requirements R1, R2… | 10–15 min |
+| **Step 2 · Design** | `next` | a draft team for your requirements | 2 min + reading |
+| **Step 3 · Refine & lock** | changes in your own words, then `next` → *yes* | one job file per agent | 10–20 min |
+| **Step 4 · Run** | `next`, then wait | a result with sources you can open | 3–8 min |
+
+**Five questions is not five steps:** the five questions are all inside step 1. You type `next` once to name your MAS, then once to start each of the 4 steps.
 
 ## Start in one minute
 
@@ -110,13 +123,13 @@ Setup tests whether Antigravity can start subagents here. If it can't, your assi
 
 Every new conversation starts by asking whether to start a new MAS or continue one you have.
 
-## The 4 steps — type `next` each time
+## The 4 steps — type `next` to start each one
 
 | Step | You | You'll see |
 |---|---|---|
-| **1 · Describe** | Answer 5 short questions about your task | Your requirements R1, R2… |
+| **1 · Describe** | Answer 5 short questions, one at a time (all part of step 1): what to help with, your preferences and limits, what a good result looks like, whether you'll repeat it, and any files of your own | Your requirements R1, R2… |
 | **2 · Design** | — | A draft team for *your* requirements appears in the office, with who reports to whom |
-| **3 · Refine & lock** | Change roles in words (*“add a budget checker”*); then lock | Your team moves into the office |
+| **3 · Refine & lock** | Change roles in words (*“add a budget checker”*); then type `next` and answer *yes* to lock | Your team moves into the office |
 | **4 · Run** | — | Agents working side by side, handing work to each other, checking each other — then a result with sources you can open |
 
 Afterwards: change a condition and type `run again`, type `unlock` to redesign your team, or type `new` to start another MAS. One folder can hold several MAS, each in its own folder; every new conversation starts by asking which one to work on.
@@ -124,7 +137,7 @@ Afterwards: change a condition and type `run again`, type `unlock` to redesign y
 ## Talk here, watch there
 
 - **Talk** to your assistant — in a terminal or an app. That's where everything happens: answer questions, ask for changes (*“add a budget checker”*), type `next`.
-- **Watch** the panel (`office/index.html`, any browser). It's a live view: your task board, your team, each agent at its desk with what it's doing and how far it is, and the result in the side panel when the work is done. Nothing to click.
+- **Watch** the panel (`office/index.html`, any browser). It's a live view: your task board, your team, each agent at its desk with what it's doing and how far it is, and the result in the side panel when the work is done. Nothing to click. Put the chat and the panel side by side.
 
 ## What's inside
 

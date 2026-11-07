@@ -3,230 +3,639 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>awesome-mas · Guide</title>
-<meta name="description" content="Build your own multi-agent assistant for any task, with the AI tool you already use.">
+<title>awesome-mas · Tutorial</title>
+<meta name="description" content="A step-by-step tutorial: set up awesome-mas once, then four steps to design and run your own team of AI agents for any task, with the AI tool you already use.">
 <style>
   @font-face { font-family: "Archivo"; src: url("fonts/archivo-latin-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
   @font-face { font-family: "Archivo"; src: url("fonts/archivo-latin-ext-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
   @font-face { font-family: "Red Hat Mono"; src: url("fonts/red-hat-mono-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
   @font-face { font-family: "Red Hat Mono"; src: url("fonts/red-hat-mono-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
   :root {
-    --sheet: #F3F4F1; --paper: #FAFBF9; --ink: #1B1F23; --ink-2: #4A5259; --hair: #B9C0C6; --verm: #E04E2A; --verm-ink: #B53A1C;
+    --sheet: #F3F4F1; --paper: #FAFBF9; --white: #FFFFFF; --ink: #1B1F23; --ink-2: #4A5259; --hair: #B9C0C6;
+    --verm: #E04E2A; --verm-ink: #B53A1C; --verm-t: #F4C2B1; --cobalt: #2B57B5; --cobalt-t: #BDCBEA;
+    --ochre: #D89A12; --ochre-t: #F3DCA6; --sage: #5E8C57; --sage-t: #CFE0C9;
     --sans: "Archivo", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
     --mono: "Red Hat Mono", ui-monospace, Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
+    --ease: cubic-bezier(.16, 1, .3, 1);
+    --rail: 248px; --measure: 68ch;
     color-scheme: light;
   }
   * { box-sizing: border-box; }
-  html { background: var(--sheet); }
-  body { margin: 0; color: var(--ink); font: 400 16px/1.55 var(--sans); font-variant-numeric: tabular-nums; }
-  ::selection { background: #F4C2B1; color: var(--ink); }
-  a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  html { background: var(--sheet); scroll-padding-top: 84px; }
+  body { margin: 0; color: var(--ink); font: 400 17px/1.6 var(--sans); }
+  ::selection { background: var(--verm-t); color: var(--ink); }
+  * { scrollbar-width: thin; scrollbar-color: var(--hair) transparent; }
+  a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--verm); text-decoration-thickness: 1px; text-underline-offset: 3px; }
   a:hover { color: var(--verm-ink); }
   :focus-visible { outline: 2px solid var(--verm); outline-offset: 2px; }
-  code { font: 500 .88em/1 var(--mono); background: var(--paper); border: 1px solid var(--hair); padding: 2px 5px; }
-  .sheet { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+  code, kbd { font: 400 .9em/1 var(--mono); background: var(--paper); border: 1px solid var(--hair); padding: 2px 5px; overflow-wrap: anywhere; }
+  .num { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
 
-  .rule { display: flex; align-items: center; gap: 24px; height: 64px; border-bottom: 1px solid var(--ink); }
-  .wm { font-weight: 700; font-size: 20px; letter-spacing: -.02em; font-stretch: 95%; }
-  .rule nav { margin-left: auto; display: flex; gap: 22px; font-size: 15px; }
+  /* top rule */
+  .rule { position: sticky; top: 0; z-index: 10; background: var(--sheet); border-bottom: 1px solid var(--ink); }
+  .rule .wrap { display: flex; align-items: center; gap: 18px; height: 64px; }
+  .wm { font-weight: 800; font-size: 20px; letter-spacing: -.02em; text-decoration: none; }
+  .wm-sub { font-size: 15px; color: var(--ink-2); }
+  .rule nav { margin-left: auto; display: flex; gap: 22px; font-size: 15px; align-items: center; }
+  .rule nav a { text-decoration: none; }
+  .rule nav a:hover { text-decoration: underline; text-decoration-color: var(--verm); }
 
-  h1 { font-weight: 600; font-size: clamp(34px, 4.6vw, 60px); line-height: 1.02; letter-spacing: -.035em; margin: 44px 0 14px; max-width: 24ch; text-wrap: balance; }
-  .lede { font-size: 19px; color: var(--ink-2); max-width: 62ch; margin: 0; }
+  /* opening */
+  .opening { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 48px; align-items: end; padding: 56px 0 40px; }
+  h1 { font-weight: 600; font-size: clamp(36px, 4.4vw, 58px); line-height: 1.03; letter-spacing: -.035em; margin: 0 0 18px; text-wrap: balance; }
+  .lede { font-size: 19px; color: var(--ink-2); margin: 0 0 24px; max-width: 46ch; }
+  .shot { margin: 0; border: 1px solid var(--ink); background: var(--white); }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot figcaption { border-top: 1px solid var(--hair); padding: 10px 14px; font-size: 14px; color: var(--ink-2); background: var(--sheet); }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); margin: 0; }
+  .facts div { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 10px 14px 12px; background: var(--paper); }
+  .facts dt { font-size: 13px; color: var(--ink-2); }
+  .facts dd { margin: 2px 0 0; font-weight: 600; font-size: 16px; line-height: 1.35; }
 
-  .opening { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin-top: 36px; }
-  .drawing, .start { min-width: 0; }
-  .drawing { padding: 18px 8px 8px 0; border-right: 1px solid var(--ink); }
-  .drawing svg { width: 100%; height: auto; display: block; }
-  .drawing .n { font: 500 18px var(--mono); fill: var(--verm-ink); }
-  .drawing .t { font: 600 26px var(--sans); fill: var(--ink); }
-  .drawing .s { font: 400 20px var(--sans); fill: var(--ink-2); }
-  .start { display: flex; flex-direction: column; }
-  .cell { padding: 20px 22px; border-bottom: 1px solid var(--hair); }
-  .cell:last-child { border-bottom: 0; }
-  .cell h2 { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 10px; }
-  .cell p { margin: 0 0 10px; }
-  .sentence { font: 500 15px/1.5 var(--mono); background: var(--paper); border: 1px solid var(--ink); padding: 14px 16px; margin: 0 0 12px; overflow-wrap: anywhere; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font: 600 15px var(--sans); cursor: pointer; border-radius: 2px; }
-  .btn:hover { background: #2E343A; }
-  .btn svg { width: 16px; height: 16px; }
-  .quiet { color: var(--ink-2); font-size: 15px; }
+  /* the route: answers "how many steps?" */
+  .route { border: 1px solid var(--ink); background: var(--paper); margin: 0 0 8px; }
+  .route-head { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; padding: 16px 20px; border-bottom: 1px solid var(--ink); }
+  .route-head h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.015em; }
+  .route-head p { margin: 0; color: var(--ink-2); font-size: 16px; }
+  .route ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1.15fr .8fr repeat(4, 1fr) .9fr; }
+  .route li { border-right: 1px solid var(--hair); min-width: 0; }
+  .route li:last-child { border-right: 0; }
+  .route li.once { background: var(--sheet); }
+  .route a { display: block; height: 100%; padding: 14px 14px 16px; text-decoration: none; }
+  .route a:hover { background: var(--white); }
+  .route a:hover .r-t { text-decoration: underline; text-decoration-color: var(--verm); }
+  .r-n { display: block; font: 500 13px var(--mono); color: var(--verm-ink); }
+  .route li.once .r-n, .route li.after .r-n { color: var(--ink-2); }
+  .r-t { display: block; font-weight: 600; font-size: 17px; line-height: 1.25; margin: 2px 0 6px; }
+  .r-d { display: block; font-size: 14px; color: var(--ink-2); line-height: 1.4; }
+  .r-d code { font-size: 12.5px; }
+  .route-foot { border-top: 1px solid var(--ink); padding: 12px 20px; font-size: 15px; display: flex; gap: 10px; align-items: flex-start; }
+  .route-foot svg { flex: none; width: 18px; height: 18px; margin-top: 2px; }
 
-  section { padding: 56px 0 8px; }
-  section > h2 { font-size: clamp(26px, 3vw, 34px); font-weight: 600; letter-spacing: -.025em; margin: 0 0 8px; }
-  section > p.sub { color: var(--ink-2); margin: 0 0 24px; max-width: 62ch; }
+  /* body: contents rail + article */
+  .body { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); gap: 56px; padding-top: 32px; }
+  .toc { position: sticky; top: 88px; align-self: start; max-height: calc(100vh - 104px); overflow: auto; padding-bottom: 24px; }
+  .toc-label { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding-bottom: 8px; border-bottom: 1px solid var(--ink); margin: 0; }
+  .toc ol { list-style: none; margin: 0; padding: 0; }
+  .toc li a { display: grid; grid-template-columns: 30px 1fr; gap: 4px; padding: 8px 0 8px; border-bottom: 1px solid var(--hair); text-decoration: none; font-size: 15px; line-height: 1.35; color: var(--ink-2); }
+  .toc li a .num { font-size: 13px; padding-top: 1px; }
+  .toc li a:hover { color: var(--ink); }
+  .toc li a[aria-current="true"] { color: var(--ink); font-weight: 600; }
+  .toc li a[aria-current="true"] .num { color: var(--verm-ink); }
+  .toc .sub a { padding-left: 0; font-size: 14px; }
 
-  .tabs { display: flex; flex-wrap: wrap; border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
-  .tab { border: 0; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); background: var(--paper); color: var(--ink); font: 500 15px var(--sans); padding: 12px 18px; cursor: pointer; min-height: 44px; }
+  article { min-width: 0; }
+  .part { padding: 8px 0 56px; border-top: 2px solid var(--ink); margin-top: 8px; }
+  .part:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+  .part > header { padding-top: 22px; }
+  .p-n { font: 500 15px var(--mono); color: var(--verm-ink); margin: 0 0 4px; }
+  .part h2 { font-size: clamp(28px, 3vw, 38px); font-weight: 600; letter-spacing: -.028em; line-height: 1.1; margin: 0 0 14px; text-wrap: balance; }
+  .part h3 { font-size: 21px; font-weight: 600; letter-spacing: -.012em; line-height: 1.25; margin: 36px 0 10px; }
+  .part h4 { font-size: 17px; font-weight: 600; margin: 24px 0 8px; }
+  .part p, .part li { max-width: var(--measure); }
+  .part p { margin: 0 0 14px; }
+  .part ul, .part ol { margin: 0 0 14px; padding-left: 22px; }
+  .part li { margin: 6px 0; }
+  .part li::marker { font: 500 14px var(--mono); color: var(--ink-2); }
+  .quiet { color: var(--ink-2); }
+  .small { font-size: 15px; }
+
+  /* the step's "at a glance" ruled strip */
+  .glance { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); margin: 6px 0 24px; max-width: 880px; }
+  .glance div { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 9px 14px 11px; background: var(--paper); min-width: 0; }
+  .glance dt { font-size: 13px; color: var(--ink-2); }
+  .glance dd { margin: 2px 0 0; font-weight: 600; font-size: 16px; line-height: 1.35; }
+  .glance dd code { font-weight: 500; }
+
+  /* "type this" block */
+  .type { display: flex; align-items: stretch; border: 1px solid var(--ink); background: var(--white); max-width: 880px; margin: 0 0 16px; }
+  .type-k { flex: none; display: flex; align-items: center; padding: 0 14px; border-right: 1px solid var(--ink); font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; background: var(--paper); }
+  .type-v { flex: 1; min-width: 0; padding: 14px 16px; font: 500 16px/1.5 var(--mono); overflow-wrap: anywhere; }
+  .copy { flex: none; display: inline-flex; align-items: center; gap: 8px; border: 0; border-left: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 0 18px; min-height: 48px; font: 600 15px var(--sans); cursor: pointer; }
+  .copy:hover { background: #2E343A; }
+  .copy svg { width: 16px; height: 16px; }
+
+  /* a short exchange in the chat */
+  .chat { border: 1px solid var(--ink); background: var(--paper); max-width: 880px; margin: 0 0 18px; }
+  .chat-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); border-bottom: 1px solid var(--hair); }
+  .chat-row:last-child { border-bottom: 0; }
+  .who { padding: 12px 14px; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; border-right: 1px solid var(--hair); }
+  .chat-row.you .who { background: var(--white); }
+  .chat-row.you .said { background: var(--white); font-family: var(--mono); font-size: 15px; }
+  .said { padding: 12px 16px; min-width: 0; }
+  .said p { margin: 0 0 8px; }
+  .said p:last-child { margin-bottom: 0; }
+  .said .reqs { list-style: none; padding: 0; margin: 6px 0 0; }
+  .said .reqs li { display: grid; grid-template-columns: 34px 1fr; gap: 8px; margin: 4px 0; }
+  .rid { font: 500 13px/20px var(--mono); border: 1px solid var(--ink); padding: 0 5px; background: var(--paper); justify-self: start; }
+
+  /* the five questions */
+  .qs { list-style: none; padding: 0 !important; margin: 0 0 18px; border-top: 1px solid var(--ink); max-width: 880px; counter-reset: q; }
+  .qs > li { display: grid; grid-template-columns: 56px minmax(0, 1fr); border-bottom: 1px solid var(--hair); margin: 0; max-width: none; padding: 14px 0; }
+  .qs > li:last-child { border-bottom: 1px solid var(--ink); }
+  .q-n { font: 500 15px var(--mono); color: var(--verm-ink); padding-top: 2px; }
+  .part .q-t { font-weight: 600; font-size: 18px; line-height: 1.35; margin: 0 0 2px; }
+  .part .q-h { color: var(--ink-2); font-size: 15px; margin: 0 0 10px; }
+  .part .q-ex { font-size: 15px; margin: 0; padding: 8px 12px; background: var(--paper); border: 1px solid var(--hair); }
+  .q-ex b { font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-right: 8px; }
+
+  /* a panel picture inside a step */
+  .see { max-width: 980px; margin: 4px 0 22px; }
+
+  /* check before moving on */
+  .check { list-style: none; padding: 0 !important; margin: 0 0 18px; max-width: 880px; border-top: 1px solid var(--ink); }
+  .check li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--hair); margin: 0; max-width: none; }
+  .check svg { width: 18px; height: 18px; margin-top: 3px; }
+
+  /* one moment per step that a chat can't do */
+  .moment { display: grid; grid-template-columns: 172px minmax(0, 1fr); border: 1px solid var(--ink); max-width: 880px; margin: 24px 0 0; }
+  .moment-k { background: var(--ink); color: var(--paper); padding: 12px 14px; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; line-height: 1.4; }
+  .moment-k .ing { display: block; margin-top: 6px; letter-spacing: 0; text-transform: none; font-size: 15px; }
+  .moment p { margin: 0; max-width: none; }
+  .moment p:not(.moment-k) { padding: 12px 16px; background: var(--white); }
+
+  /* tool tabs */
+  .tabs { display: flex; flex-wrap: wrap; border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); max-width: 880px; }
+  .tab { border: 0; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); background: var(--paper); color: var(--ink); font: 500 15px var(--sans); padding: 12px 16px; cursor: pointer; min-height: 46px; }
+  .tab:hover { background: var(--white); }
   .tab[aria-selected="true"] { background: var(--ink); color: var(--paper); }
-  .panel { border: 1px solid var(--ink); border-top: 0; background: var(--paper); padding: 22px 26px; }
+  .panel { border: 1px solid var(--ink); border-top: 0; background: var(--paper); padding: 20px 24px 8px; max-width: 880px; margin-bottom: 18px; }
   .panel[hidden] { display: none; }
-  .panel ol { margin: 0; padding-left: 22px; max-width: 70ch; }
-  .panel li { margin: 8px 0; }
-  .panel li::marker { font: 500 14px var(--mono); color: var(--verm-ink); }
+  .panel ol { padding-left: 24px; }
+  .panel li::marker { color: var(--verm-ink); }
 
-  .steps { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
-  .steps > div { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 18px 18px 22px; background: var(--paper); }
-  .steps .n { font: 500 14px var(--mono); color: var(--verm-ink); }
-  .steps h3 { font-size: 20px; font-weight: 600; letter-spacing: -.015em; margin: 6px 0 8px; }
-  .steps p { margin: 0 0 12px; color: var(--ink-2); font-size: 15px; }
-  .steps .ing { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
-
-  .two { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
-  .two > div { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 20px 22px; background: var(--paper); }
-  .two h3 { margin: 0 0 6px; font-size: 19px; font-weight: 600; }
-  .two p { margin: 0; color: var(--ink-2); }
-
-  table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--ink); }
-  th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  table { width: 100%; max-width: 880px; border-collapse: collapse; background: var(--paper); border: 1px solid var(--ink); margin: 0 0 18px; font-size: 16px; }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--hair); vertical-align: top; }
   th { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; border-bottom: 1px solid var(--ink); }
-  td:first-child { font-weight: 600; width: 220px; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .t-key td:first-child { white-space: nowrap; }
 
-  details { border-bottom: 1px solid var(--hair); padding: 14px 0; }
+  pre.tree { font: 400 14.5px/1.6 var(--mono); background: var(--paper); border: 1px solid var(--ink); padding: 16px 18px; overflow-x: auto; max-width: 880px; margin: 0 0 18px; }
+
+  details { border-bottom: 1px solid var(--hair); max-width: 880px; }
   details:first-of-type { border-top: 1px solid var(--ink); }
-  summary { cursor: pointer; font-weight: 600; font-size: 17px; }
-  details p { color: var(--ink-2); margin: 8px 0 0; max-width: 70ch; }
+  summary { cursor: pointer; font-weight: 600; font-size: 17px; padding: 14px 28px 14px 0; position: relative; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: ""; position: absolute; right: 4px; top: 22px; width: 9px; height: 9px; border-right: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); transform: rotate(45deg); transition: transform .25s var(--ease); }
+  details[open] summary::after { transform: rotate(-135deg); top: 26px; }
+  details > div { padding: 0 0 16px; color: var(--ink-2); }
+  details > div p { margin: 0 0 10px; }
 
-  .titleblock { margin: 64px 0 40px; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--ink); border-left: 1px solid var(--ink); font-size: 13px; }
+  .titleblock { margin: 24px 0 40px; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--ink); border-left: 1px solid var(--ink); font-size: 13px; }
   .titleblock div { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 10px 14px; color: var(--ink-2); }
   .titleblock b { display: block; color: var(--ink); font-size: 15px; font-weight: 600; }
-  .toast { position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 8px); background: var(--ink); color: var(--paper); padding: 10px 16px; font-size: 14px; opacity: 0; transition: opacity .25s cubic-bezier(.16,1,.3,1), transform .25s cubic-bezier(.16,1,.3,1); pointer-events: none; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 8px); background: var(--ink); color: var(--paper); padding: 10px 16px; font-size: 14px; opacity: 0; transition: opacity .25s var(--ease), transform .25s var(--ease); pointer-events: none; z-index: 20; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .mobile-toc { display: none; }
 
-  @media (max-width: 900px) {
-    .opening { grid-template-columns: 1fr; }
-    .drawing { border-right: 0; border-bottom: 1px solid var(--ink); }
-    .steps { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 1100px) {
+    .route ol { grid-template-columns: repeat(4, 1fr); }
+    .route li { border-bottom: 1px solid var(--hair); }
+    .route li:nth-child(4) { border-right: 0; }
+    .route li:nth-child(n+5) { border-bottom: 0; }
+  }
+  @media (max-width: 960px) {
+    .opening { grid-template-columns: 1fr; gap: 28px; padding-top: 36px; }
+    .body { grid-template-columns: 1fr; gap: 0; }
+    .toc { display: none; }
+    .mobile-toc { display: block; border: 1px solid var(--ink); background: var(--paper); padding: 4px 16px 6px; margin-bottom: 28px; }
+    .mobile-toc summary { font-size: 16px; }
+    .mobile-toc ol { margin: 0 0 10px; padding-left: 0; list-style: none; }
+    .mobile-toc li { margin: 0; border-top: 1px solid var(--hair); }
+    .mobile-toc a { display: block; padding: 8px 0; text-decoration: none; }
+    .glance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 16px; }
+    body { font-size: 16px; }
+    .rule .wrap { height: 56px; }
+    .wm-sub { display: none; }
+    .rule nav { gap: 16px; font-size: 14px; }
+    .lede { font-size: 17px; }
+    .facts { grid-template-columns: 1fr; }
+    .route ol { grid-template-columns: 1fr 1fr; }
+    .route li { border-right: 1px solid var(--hair) !important; border-bottom: 1px solid var(--hair) !important; }
+    .route li:nth-child(2n) { border-right: 0 !important; }
+    .route li:last-child { border-bottom: 0 !important; grid-column: 1 / -1; }
+    .chat-row { grid-template-columns: 1fr; }
+    .who { border-right: 0; border-bottom: 1px solid var(--hair); padding: 8px 14px; }
+    .qs > li { grid-template-columns: 40px minmax(0, 1fr); }
+    .moment { grid-template-columns: 1fr; }
+    .type { flex-wrap: wrap; }
+    .type-k { padding: 8px 14px; border-right: 0; border-bottom: 1px solid var(--ink); width: 100%; }
+    .copy { width: 100%; justify-content: center; border-left: 0; border-top: 1px solid var(--ink); }
+    .panel { padding: 16px 16px 4px; }
+    th, td { padding: 10px 12px; }
+    .t-key td:first-child { white-space: normal; }
     .titleblock { grid-template-columns: 1fr 1fr; }
   }
-  @media (max-width: 600px) {
-    .rule nav { gap: 14px; font-size: 14px; }
-    h1 { margin-top: 32px; }
-    .lede { font-size: 17px; }
-    .steps, .two { grid-template-columns: 1fr; }
-    td:first-child { width: auto; }
-    .panel { padding: 18px; }
-    .drawing .ann, .drawing .n, .drawing .t, .drawing .s { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
   }
-  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
 </style>
 </head>
 <body>
-<div class="sheet">
-  <header class="rule">
-    <span class="wm">awesome-mas</span>
+<header class="rule">
+  <div class="wrap">
+    <a class="wm" href="#top">awesome-mas</a>
+    <span class="wm-sub">Tutorial</span>
     <nav aria-label="Project"><a href="https://github.com/weixijia/awesome-mas">GitHub</a><a href="https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip">Download ZIP</a></nav>
-  </header>
+  </div>
+</header>
 
-  <main>
-    <h1>Build your own multi-agent assistant, for any task.</h1>
-    <p class="lede">Describe a task. Your AI designs a team of agents for it, you shape the team by chatting, and you watch the agents work together in an animated office. No coding, nothing extra to install.</p>
-
+<main id="top">
+  <div class="wrap">
     <div class="opening">
-      <div class="drawing"><svg viewBox="0 0 1180 580" role="img" aria-label="An axonometric drawing of a small office: the Lead's room with a task board, two finders in a vermilion room handing work to a checker in a cobalt room, and a lounge. Four annotations point to the steps: Describe, Design, Lock, Run."><polygon points="254.2,247 617.9,457 617.9,445 254.2,235" fill="#C3C9C2" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="903.7,292 617.9,457 617.9,445 903.7,280" fill="#CFD4CE" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="540,70 903.7,280 617.9,445 254.2,235" fill="#DCE0DB" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="540,79 677.7,158.5 571.2,220 433.5,140.5" fill="#E3E6E1" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="417.9,149.5 592,250 443.9,335.5 269.8,235" fill="#F4C2B1" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="607.5,259 766,350.5 617.9,436 459.5,344.5" fill="#BDCBEA" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="693.3,167.5 888.1,280 781.6,341.5 586.8,229" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="533.5,73.8 897.2,283.8 897.2,238.8 533.5,28.8" fill="#5A6168" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="903.7,280 897.2,283.8 897.2,238.8 903.7,235" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="540,25 903.7,235 897.2,238.8 533.5,28.8" fill="#1B1F23" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="254.2,235 260.7,238.8 260.7,193.8 254.2,190" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="546.5,73.8 260.7,238.8 260.7,193.8 546.5,28.8" fill="#5A6168" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="540,25 546.5,28.8 260.7,193.8 254.2,190" fill="#1B1F23" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="564.4,76.9 647.6,124.9 647.6,99.4 564.4,51.4" fill="#FAFBF9" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="572,75.5 584.9,83 584.9,69.5 572,62" fill="#F3DCA6" stroke="#1B1F23" stroke-width="0.8" stroke-linejoin="round"/><polygon points="592.7,87.5 605.7,95 605.7,81.5 592.7,74" fill="#F4C2B1" stroke="#1B1F23" stroke-width="0.8" stroke-linejoin="round"/><polygon points="613.5,99.6 626.5,107.1 626.5,93.6 613.5,86.1" fill="#BDCBEA" stroke="#1B1F23" stroke-width="0.8" stroke-linejoin="round"/><polygon points="631.7,110.1 644.7,117.6 644.7,104.1 631.7,96.6" fill="#CFE0C9" stroke="#1B1F23" stroke-width="0.8" stroke-linejoin="round"/><polygon points="529.6,142 576.4,169 576.4,146.5 529.6,119.5" fill="#D3D8D2" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="602.4,154 576.4,169 576.4,146.5 602.4,131.5" fill="#C2C8C1" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="555.6,104.5 602.4,131.5 576.4,146.5 529.6,119.5" fill="#FFFFFF" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="565.2,117 580.8,125.9 580.8,112.4 565.2,103.5" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="582.9,124.8 580.8,125.9 580.8,112.4 582.9,111.3" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="567.3,102.3 582.9,111.3 580.8,112.4 565.2,103.5" fill="#1B1F23" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="529.6,163 541.3,169.8 541.3,136.8 529.6,130" fill="#1B1F23" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="553,163 541.3,169.8 541.3,136.8 553,130" fill="#1B1F23" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="541.3,123.3 553,130 541.3,136.8 529.6,130" fill="#1B1F23" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><circle cx="541.6" cy="121" r="7.5" fill="#F0D3BC" stroke="#1B1F23" stroke-width="1.2"/><polygon points="386.7,197.5 433.5,224.5 433.5,202 386.7,175" fill="#D3D8D2" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="459.5,209.5 433.5,224.5 433.5,202 459.5,187" fill="#C2C8C1" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="412.7,160 459.5,187 433.5,202 386.7,175" fill="#FFFFFF" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="422.3,172.4 437.9,181.4 437.9,167.9 422.3,158.9" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="440,180.3 437.9,181.4 437.9,167.9 440,166.8" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="424.4,157.8 440,166.8 437.9,167.9 422.3,158.9" fill="#1B1F23" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="386.7,218.5 398.4,225.3 398.4,192.3 386.7,185.5" fill="#E04E2A" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="410.1,218.5 398.4,225.3 398.4,192.3 410.1,185.5" fill="#E04E2A" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="398.4,178.8 410.1,185.5 398.4,192.3 386.7,185.5" fill="#E04E2A" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><circle cx="398.7" cy="176.5" r="7.5" fill="#F0D3BC" stroke="#1B1F23" stroke-width="1.2"/><polygon points="404.9,271 451.7,298 451.7,275.5 404.9,248.5" fill="#D3D8D2" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="477.6,283 451.7,298 451.7,275.5 477.6,260.5" fill="#C2C8C1" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="430.9,233.5 477.6,260.5 451.7,275.5 404.9,248.5" fill="#FFFFFF" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="440.5,246 456.1,254.9 456.1,241.4 440.5,232.5" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="458.2,253.8 456.1,254.9 456.1,241.4 458.2,240.3" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="442.6,231.3 458.2,240.3 456.1,241.4 440.5,232.5" fill="#1B1F23" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="404.9,292 416.6,298.8 416.6,265.8 404.9,259" fill="#E04E2A" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="428.3,292 416.6,298.8 416.6,265.8 428.3,259" fill="#E04E2A" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="416.6,252.3 428.3,259 416.6,265.8 404.9,259" fill="#E04E2A" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><circle cx="416.9" cy="250" r="7.5" fill="#F0D3BC" stroke="#1B1F23" stroke-width="1.2"/><polygon points="576.4,337 623.1,364 623.1,341.5 576.4,314.5" fill="#D3D8D2" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="649.1,349 623.1,364 623.1,341.5 649.1,326.5" fill="#C2C8C1" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="602.4,299.5 649.1,326.5 623.1,341.5 576.4,314.5" fill="#FFFFFF" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="612,311.9 627.6,320.9 627.6,307.4 612,298.4" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="629.6,319.8 627.6,320.9 627.6,307.4 629.6,306.3" fill="#3A4148" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="614,297.3 629.6,306.3 627.6,307.4 612,298.4" fill="#1B1F23" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="576.4,358 588.1,364.8 588.1,331.8 576.4,325" fill="#2B57B5" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="599.8,358 588.1,364.8 588.1,331.8 599.8,325" fill="#2B57B5" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="588.1,318.3 599.8,325 588.1,331.8 576.4,325" fill="#2B57B5" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><circle cx="588.3" cy="316" r="7.5" fill="#F0D3BC" stroke="#1B1F23" stroke-width="1.2"/><polygon points="688.1,224.5 766,269.5 766,254.5 688.1,209.5" fill="#4E7A48" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="792,254.5 766,269.5 766,254.5 792,239.5" fill="#56834F" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="714.1,194.5 792,239.5 766,254.5 688.1,209.5" fill="#5E8C57" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="784.2,277 815.4,295 815.4,268 784.2,250" fill="#D3D8D2" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="846.6,277 815.4,295 815.4,268 846.6,250" fill="#C2C8C1" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><polygon points="815.4,232 846.6,250 815.4,268 784.2,250" fill="#FFFFFF" stroke="#1B1F23" stroke-width="1.2" stroke-linejoin="round"/><path d="M451.7,257.5 L589.4,325" fill="none" stroke="#1B1F23" stroke-width="1.2" stroke-dasharray="5 4"/><polyline points="605,86.5 268,54 258,54" fill="none" stroke="#1B1F23" stroke-width="1" class="ann"/><circle cx="605" cy="86.5" r="3" fill="#1B1F23" class="ann"/><text x="252" y="36" text-anchor="end" class="n">01</text><text x="252" y="66" text-anchor="end" class="t">Describe</text><text x="252" y="92" text-anchor="end" class="s">Your task on the board</text><polyline points="541.6,121 892,54 902,54" fill="none" stroke="#1B1F23" stroke-width="1" class="ann"/><circle cx="541.6" cy="121" r="3" fill="#1B1F23" class="ann"/><text x="908" y="36" text-anchor="start" class="n">02</text><text x="908" y="66" text-anchor="start" class="t">Design</text><text x="908" y="92" text-anchor="start" class="s">A team from your requirements</text><polyline points="398.7,176.5 268,354 258,354" fill="none" stroke="#1B1F23" stroke-width="1" class="ann"/><circle cx="398.7" cy="176.5" r="3" fill="#1B1F23" class="ann"/><text x="252" y="336" text-anchor="end" class="n">03</text><text x="252" y="366" text-anchor="end" class="t">Lock</text><text x="252" y="392" text-anchor="end" class="s">Each role gets a desk</text><polyline points="612.7,301 892,354 902,354" fill="none" stroke="#1B1F23" stroke-width="1" class="ann"/><circle cx="612.7" cy="301" r="3" fill="#1B1F23" class="ann"/><text x="908" y="336" text-anchor="start" class="n">04</text><text x="908" y="366" text-anchor="start" class="t">Run</text><text x="908" y="392" text-anchor="start" class="s">They work, hand off, check</text></svg></div>
-      <div class="start">
-        <div class="cell">
-          <h2>Start here</h2>
-          <p>Make an empty folder, open it in your AI tool, then paste this sentence:</p>
-          <p class="sentence" id="setup-sentence">Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it.</p>
-          <button class="btn" data-copy="setup-sentence" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8.5" height="8.5"/><path d="M3 10.5V2.5h8"/></svg>Copy sentence</button>
-        </div>
-        <div class="cell">
-          <h2>You need</h2>
-          <p>One AI coding assistant, already signed in: Claude (app or Claude Code), Codex (app or CLI), Antigravity (IDE or CLI) or similar. Most need a paid plan.</p>
-          <p class="quiet">Any browser shows the live panel. Nothing to click or connect.</p>
-        </div>
+      <div>
+        <h1>Build your own team of AI agents, step by step.</h1>
+        <p class="lede">Pick a task you really care about. Your AI assistant designs a small team of agents for it, you shape the team by chatting, and you watch the agents work together in a live office. This page walks you through every message you type, from an empty folder to a finished result.</p>
+        <dl class="facts">
+          <div><dt>You need</dt><dd>An AI coding assistant you are signed in to</dd></div>
+          <div><dt>Time</dt><dd>About <span class="num">60</span>–<span class="num">90</span> min the first time</dd></div>
+          <div><dt>Coding</dt><dd>None. You only chat.</dd></div>
+        </dl>
       </div>
+      <figure class="shot">
+        <img src="img/step4-result.webp" width="1440" height="900" alt="The awesome-mas panel after a finished run: an axonometric office where five agents gathered at the party table, and on the right the result: a shortlist of three headphone offers with total prices and links.">
+        <figcaption>Where you will end: your team in the office, and the answer to your task on the right. This is a real run from the price-comparison example.</figcaption>
+      </figure>
     </div>
 
-    <section aria-labelledby="setup">
-      <h2 id="setup">Set up in one minute</h2>
-      <p class="sub">Pick your tool, then follow three steps.</p>
-      <div class="tabs" role="tablist" aria-label="Your AI tool">
-        <button class="tab" role="tab" aria-selected="true" aria-controls="t-claude-app" id="b-claude-app">Claude app</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="t-claude-code" id="b-claude-code" tabindex="-1">Claude Code</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-app" id="b-codex-app" tabindex="-1">Codex app</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-cli" id="b-codex-cli" tabindex="-1">Codex CLI</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="t-agy" id="b-agy" tabindex="-1">Antigravity</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="t-other" id="b-other" tabindex="-1">Other</button>
+    <section class="route" aria-labelledby="route-h">
+      <div class="route-head">
+        <h2 id="route-h">The whole journey: set up once, then <span class="num">4</span> steps</h2>
+        <p>You type <code>next</code> once to name your MAS, then once to start each of the <span class="num">4</span> steps.</p>
       </div>
-      <div class="panel" role="tabpanel" id="t-claude-app" aria-labelledby="b-claude-app"><ol>
-        <li>Install the <a href="https://claude.com/download">Claude desktop app</a> and sign in.</li>
-        <li>Make a new, empty folder (e.g. <code>my-mas</code> on your Desktop). In the app open the <strong>Code</strong> tab, then <strong>Open folder…</strong>, and choose it.</li>
-        <li>Paste the setup sentence and press Enter. Approve when it asks to download files or edit files in this folder.</li></ol>
-        <p class="quiet">Tip: click <code>office/index.html</code> in the chat to open the panel in the app's browser pane, next to your conversation.</p></div>
-      <div class="panel" role="tabpanel" id="t-claude-code" aria-labelledby="b-claude-code" hidden><ol>
-        <li>Install Claude Code (<a href="https://code.claude.com/docs/en/setup">instructions</a>) and sign in.</li>
-        <li>Make a new, empty folder, open a terminal in it and type <code>claude</code>. When asked, choose to trust the folder.</li>
-        <li>Paste the setup sentence.</li></ol></div>
-      <div class="panel" role="tabpanel" id="t-codex-app" aria-labelledby="b-codex-app" hidden><ol>
-        <li>Install the Codex app (<a href="https://developers.openai.com/codex">instructions</a>) and sign in.</li>
-        <li>Make a new, empty folder and open it as a project.</li>
-        <li>Paste the setup sentence. If Codex says it can't download (its sandbox may block internet for commands), use the ZIP option below, then type <code>next</code>.</li></ol></div>
-      <div class="panel" role="tabpanel" id="t-codex-cli" aria-labelledby="b-codex-cli" hidden><ol>
-        <li>Install Codex CLI (<a href="https://developers.openai.com/codex">instructions</a>) and sign in.</li>
-        <li>Make a new, empty folder, open a terminal in it and type <code>codex</code> (add <code>--search</code> for live web results).</li>
-        <li>Paste the setup sentence. If the download is blocked, approve network access when asked, or use the ZIP option.</li></ol></div>
-      <div class="panel" role="tabpanel" id="t-agy" aria-labelledby="b-agy" hidden><ol>
-        <li>Install <a href="https://antigravity.google/">Antigravity</a> and sign in.</li>
-        <li>Make a new, empty folder. IDE: <strong>Open Folder</strong>. CLI: open a terminal in the folder and type <code>agy</code>.</li>
-        <li>Paste the setup sentence. Allow it to edit files in this folder when asked.</li></ol></div>
-      <div class="panel" role="tabpanel" id="t-other" aria-labelledby="b-other" hidden><ol>
-        <li>Open a new, empty folder in your AI coding assistant.</li>
-        <li>Paste the setup sentence.</li>
-        <li>If your assistant doesn't read <code>AGENTS.md</code> on its own, start each session with: <code>Read AGENTS.md and follow it.</code></li></ol></div>
-      <p class="quiet" style="margin-top:14px">No download from inside your tool? Get the <a href="https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip">ZIP</a>, unzip it, move everything from <code>awesome-mas-main</code> into your folder, open the folder in your tool and type <code>next</code>.</p>
+      <ol>
+        <li class="once"><a href="#setup"><span class="r-n">Part A · once</span><span class="r-t">Set up</span><span class="r-d">Empty folder, open it in your tool, paste one sentence.</span></a></li>
+        <li class="once"><a href="#name"><span class="r-n">Then</span><span class="r-t">Name your MAS</span><span class="r-d">A few words, e.g. <em>headphone deals</em>.</span></a></li>
+        <li><a href="#step-1"><span class="r-n">Step 1</span><span class="r-t">Describe</span><span class="r-d"><code>next</code> → answer <span class="num">5</span> questions, one at a time.</span></a></li>
+        <li><a href="#step-2"><span class="r-n">Step 2</span><span class="r-t">Design</span><span class="r-d"><code>next</code> → read the team it proposes.</span></a></li>
+        <li><a href="#step-3"><span class="r-n">Step 3</span><span class="r-t">Refine &amp; lock</span><span class="r-d">Ask for changes, then <code>next</code> → <em>yes</em>.</span></a></li>
+        <li><a href="#step-4"><span class="r-n">Step 4</span><span class="r-t">Run</span><span class="r-d"><code>next</code> → watch the team work, read the result.</span></a></li>
+        <li class="after"><a href="#after"><span class="r-n">After</span><span class="r-t">Again or new</span><span class="r-d"><code>run again</code>, <code>unlock</code>, <code>new</code>.</span></a></li>
+      </ol>
+      <p class="route-foot"><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M8.9 8v5M8.9 5.2v.6" stroke="#1B1F23" stroke-width="1.6" stroke-linecap="round"/></svg><span><b>Five questions is not five steps.</b> The five questions are all inside step 1. Your assistant asks them one at a time, and step 1 is done when it shows you your requirements.</span></p>
     </section>
 
-    <section aria-labelledby="steps">
-      <h2 id="steps">Then four steps, one word</h2>
-      <p class="sub">Type <code>next</code> in your assistant each time. Keep the panel (<code>office/index.html</code>) open beside it: it updates by itself.</p>
-      <div class="steps">
-        <div><span class="n">01</span><h3>Describe</h3><p>Answer five short questions about your task: comparing prices, planning a trip, checking a thesis idea, anything.</p><span class="ing">Memory</span></div>
-        <div><span class="n">02</span><h3>Design</h3><p>Your assistant designs a team of agents from your requirements; the draft team appears in the office.</p><span class="ing">Division of labour</span></div>
-        <div><span class="n">03</span><h3>Refine &amp; lock</h3><p>Ask for changes in words. Watch the cost line: more agents, more tokens. Then lock.</p><span class="ing">Your decision</span></div>
-        <div><span class="n">04</span><h3>Run</h3><p>Watch agents work side by side, hand work over and catch each other's mistakes. Open every source.</p><span class="ing">Tools &amp; workflow</span></div>
-      </div>
-      <p class="quiet" style="margin-top:14px">Afterwards: change a condition and type <code>run again</code>, type <code>unlock</code> to redesign your team, or type <code>new</code> to start another MAS.</p>
-    </section>
+    <div class="body">
+      <nav class="toc" aria-label="Contents">
+        <p class="toc-label">Contents</p>
+        <ol>
+          <li><a href="#before"><span class="num">0</span><span>Before you start</span></a></li>
+          <li><a href="#setup"><span class="num">A</span><span>Set up (once)</span></a></li>
+          <li><a href="#name"><span class="num">B</span><span>Name your MAS</span></a></li>
+          <li><a href="#step-1"><span class="num">1</span><span>Describe</span></a></li>
+          <li><a href="#step-2"><span class="num">2</span><span>Design</span></a></li>
+          <li><a href="#step-3"><span class="num">3</span><span>Refine &amp; lock</span></a></li>
+          <li><a href="#step-4"><span class="num">4</span><span>Run</span></a></li>
+          <li><a href="#after"><span class="num">→</span><span>After the run</span></a></li>
+          <li><a href="#words"><span class="num">≡</span><span>Words you can type</span></a></li>
+          <li><a href="#help"><span class="num">?</span><span>If something goes wrong</span></a></li>
+          <li><a href="#why"><span class="num">∴</span><span>Why a team of agents</span></a></li>
+        </ol>
+      </nav>
 
-    <section aria-labelledby="modes">
-      <h2 id="modes">Talk here, watch there</h2>
-      <div class="two">
-        <div><h3>Your assistant</h3><p>Everything happens in the chat, in a terminal or an app: answer questions, ask for changes, type <code>next</code>.</p></div>
-        <div><h3>The live panel</h3><p>A read-only drawing of your office: the task board, your team, each agent at its desk with what it is doing and how far along, and the result when the work is done.</p></div>
-      </div>
-    </section>
+      <article>
+        <details class="mobile-toc"><summary>Contents</summary><ol>
+          <li><a href="#before">Before you start</a></li><li><a href="#setup">A · Set up (once)</a></li><li><a href="#name">B · Name your MAS</a></li>
+          <li><a href="#step-1">Step 1 · Describe</a></li><li><a href="#step-2">Step 2 · Design</a></li><li><a href="#step-3">Step 3 · Refine &amp; lock</a></li>
+          <li><a href="#step-4">Step 4 · Run</a></li><li><a href="#after">After the run</a></li><li><a href="#words">Words you can type</a></li>
+          <li><a href="#help">If something goes wrong</a></li><li><a href="#why">Why a team of agents</a></li></ol></details>
 
-    <section aria-labelledby="why">
-      <h2 id="why">Why a team of agents?</h2>
-      <table>
-        <thead><tr><th scope="col">Ingredient</th><th scope="col">What you'll notice</th></tr></thead>
-        <tbody>
-          <tr><td>Memory</td><td>Close and reopen: it still knows your task, because it lives in files.</td></tr>
-          <tr><td>Tools</td><td>Agents search the web and save every source, so you can check each claim.</td></tr>
-          <tr><td>Division of labour</td><td>Specialists work at the same time, and checkers catch what finders miss.</td></tr>
-          <tr><td>Workflow</td><td><code>run again</code> repeats the whole process in one line.</td></tr>
-        </tbody>
-      </table>
-    </section>
+        <!-- 0 -->
+        <section class="part" id="before" aria-labelledby="before-h">
+          <header><p class="p-n">Before you start</p><h2 id="before-h">Three things to have ready</h2></header>
+          <ol>
+            <li><b>An AI coding assistant, signed in.</b> Claude (the desktop app or Claude Code), Codex (the app or the CLI), Antigravity (the IDE or the CLI), or a similar assistant that can read and write files in a folder. Most need a paid plan. Your normal chat website is not enough: it cannot keep files.</li>
+            <li><b>A task you genuinely want help with.</b> Comparing prices before a purchase, planning a trip, checking whether a thesis idea is feasible, finding a flat, planning meals, preparing job applications. Anything works, as long as you can say what a good answer looks like.</li>
+            <li><b>A browser for the live panel.</b> Any modern browser. There is nothing to click or connect in it; it only shows what your team is doing.</li>
+          </ol>
+          <p class="quiet small">A full run uses a real share of your plan's usage, because every agent reads and writes on its own. Keep your first team small: a Lead plus <span class="num">2</span>–<span class="num">4</span> agents.</p>
+        </section>
 
-    <section aria-labelledby="faq">
-      <h2 id="faq">Questions</h2>
-      <details><summary>My assistant ran out of usage.</summary><p>Double-click <code>examples/index.html</code> in your folder to watch finished example teams at work and read their results. Your own files are safe; continue when your usage resets.</p></details>
-      <details><summary>The panel doesn't update.</summary><p>Reload the page. Make sure you opened the <code>office/index.html</code> inside your project folder.</p></details>
-      <details><summary>My assistant doesn't follow the steps.</summary><p>Say <code>Read AGENTS.md and follow it.</code> Then type <code>next</code>.</p></details>
-      <details><summary>Can I build more than one MAS?</summary><p>Yes. Each MAS gets its own folder inside your project folder. Every new conversation starts by asking whether to start a new one or continue one you have; type <code>new</code> or a name at any time to switch. The panel follows along.</p></details>
-      <details><summary>Can it run agents at the same time?</summary><p>If your tool can start sub-agents, yes. Otherwise your assistant plays each role in turn: slower, but the steps and the office are the same, and the panel says which mode you are in.</p></details>
-    </section>
-  </main>
+        <!-- A -->
+        <section class="part" id="setup" aria-labelledby="setup-h">
+          <header><p class="p-n">Part A · do this once</p><h2 id="setup-h">Set up your folder</h2></header>
+          <dl class="glance">
+            <div><dt>You type</dt><dd>One sentence</dd></div>
+            <div><dt>Time</dt><dd>About <span class="num">5</span>–<span class="num">10</span> min</dd></div>
+            <div><dt>You approve</dt><dd>A download and file edits</dd></div>
+            <div><dt>Ends with</dt><dd>“Type <code>next</code>…”</dd></div>
+          </dl>
+          <p>One folder can later hold several MAS, so you set it up only once. Everything your team writes stays in this folder, as plain files you can open.</p>
 
-  <footer class="titleblock">
-    <div>Project<b>awesome-mas</b></div>
-    <div>Source<b><a href="https://github.com/weixijia/awesome-mas">GitHub</a></b></div>
-    <div>Licence<b>MIT</b></div>
-    <div>Sheet<b>Guide</b></div>
-  </footer>
-</div>
+          <h3>A1 · Make an empty folder</h3>
+          <p>Make a new, empty folder somewhere easy to find, for example <code>my-mas</code> on your Desktop. Empty matters: your assistant will not touch files that are already there.</p>
+
+          <h3>A2 · Open the folder in your AI tool</h3>
+          <p>Pick your tool. Your choice is remembered next time you open this page.</p>
+          <div class="tabs" role="tablist" aria-label="Your AI tool">
+            <button class="tab" role="tab" aria-selected="true" aria-controls="t-claude-app" id="b-claude-app">Claude app</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="t-claude-code" id="b-claude-code" tabindex="-1">Claude Code</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-app" id="b-codex-app" tabindex="-1">Codex app</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-cli" id="b-codex-cli" tabindex="-1">Codex CLI</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="t-agy" id="b-agy" tabindex="-1">Antigravity</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="t-other" id="b-other" tabindex="-1">Other</button>
+          </div>
+          <div class="panel" role="tabpanel" id="t-claude-app" aria-labelledby="b-claude-app"><ol>
+            <li>Install the <a href="https://claude.com/download">Claude desktop app</a> and sign in.</li>
+            <li>Open the <b>Code</b> tab, choose <b>Open folder…</b> and pick your empty folder.</li>
+            <li>If the app asks whether you trust this folder, choose <b>trust</b>. Without it, the folder's own settings don't apply and every file edit asks for permission.</li>
+            <li>During setup, approve when it asks to download files or to edit files in this folder.</li></ol>
+            <p class="quiet small">Tip: once setup has run, click <code>office/index.html</code> in the chat to open the panel in the app's browser pane, right next to your conversation.</p></div>
+          <div class="panel" role="tabpanel" id="t-claude-code" aria-labelledby="b-claude-code" hidden><ol>
+            <li>Install Claude Code (<a href="https://code.claude.com/docs/en/setup">instructions</a>) and sign in.</li>
+            <li>Open a terminal in your empty folder and type <code>claude</code>, then press Enter.</li>
+            <li>When it asks whether you trust this folder, choose <b>Yes, I trust this folder</b>. Without it, the folder's own settings don't apply and every file edit asks for permission.</li>
+            <li>During setup, approve the one download command when asked.</li></ol>
+            <p class="quiet small">Claude Code runs your agents as real parallel subagents: two finders really work at the same time.</p></div>
+          <div class="panel" role="tabpanel" id="t-codex-app" aria-labelledby="b-codex-app" hidden><ol>
+            <li>Install the Codex app (<a href="https://developers.openai.com/codex">instructions</a>) and sign in.</li>
+            <li>Open your empty folder as a project.</li>
+            <li>If Codex says it can't download (its sandbox may block the internet for commands), use the ZIP route at the end of A3, then type <code>next</code>.</li></ol></div>
+          <div class="panel" role="tabpanel" id="t-codex-cli" aria-labelledby="b-codex-cli" hidden><ol>
+            <li>Install Codex CLI (<a href="https://developers.openai.com/codex">instructions</a>) and sign in.</li>
+            <li>Open a terminal in your empty folder and type <code>codex --search</code>. The <code>--search</code> part gives live web results; without it Codex uses cached results.</li>
+            <li>If the download is blocked, approve network access when asked, or use the ZIP route at the end of A3.</li></ol>
+            <p class="quiet small">Codex runs your agents as real parallel subagents.</p></div>
+          <div class="panel" role="tabpanel" id="t-agy" aria-labelledby="b-agy" hidden><ol>
+            <li>Install <a href="https://antigravity.google/">Antigravity</a> and sign in.</li>
+            <li>IDE: <b>Open Folder</b> and pick your empty folder. CLI: open a terminal in the folder and type <code>agy</code>.</li>
+            <li>Allow it to edit files in this folder when asked (or start the CLI in a mode that accepts file edits).</li></ol>
+            <p class="quiet small">Setup tests whether Antigravity can start subagents here. If it can't, your assistant plays each role in turn: slower, and the panel says so, but the steps and the office are the same.</p></div>
+          <div class="panel" role="tabpanel" id="t-other" aria-labelledby="b-other" hidden><ol>
+            <li>Open your empty folder in your AI coding assistant (Cursor, Copilot, Gemini CLI, opencode…).</li>
+            <li>Allow it to edit files in this folder and to search the web.</li>
+            <li>If it doesn't follow the steps on its own later, start each conversation with <code>Read AGENTS.md and follow it.</code></li></ol></div>
+
+          <h3>A3 · Paste the setup sentence</h3>
+          <p>It is the same sentence for every tool. Paste it into your assistant and press Enter.</p>
+          <div class="type">
+            <span class="type-k">Type</span>
+            <span class="type-v" id="setup-sentence">Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it.</span>
+            <button class="copy" type="button" data-copy="setup-sentence"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8.5" height="8.5"/><path d="M3 10.5V2.5h8"/></svg>Copy</button>
+          </div>
+          <p class="quiet small">Can't download from inside your tool? Get the <a href="https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip">ZIP</a>, unzip it, move everything inside <code>awesome-mas-main</code> into your folder, open the folder in your tool and type <code>next</code>.</p>
+
+          <h3>A4 · Let your assistant set things up</h3>
+          <p>You don't need to do anything here except approve. Your assistant explains each step in one sentence while it:</p>
+          <ol>
+            <li>downloads awesome-mas into your folder (you approve once);</li>
+            <li>writes a small file to check it can save files;</li>
+            <li>runs one tiny web search to check it can search;</li>
+            <li>starts one tiny test agent to check whether it can run agents at the same time, and tells you honestly: <em>real agents</em> or <em>role-play</em>;</li>
+            <li>opens the live panel, <code>office/index.html</code>, in your browser.</li>
+          </ol>
+          <div class="chat" role="group" aria-label="How setup ends">
+            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Welcome to awesome-mas. … This folder can hold several MAS, one folder each. Keep <code>office/index.html</code> open: it follows whichever MAS we work on.</p><p><b>Type <code>next</code> to start your first MAS.</b></p></div></div>
+          </div>
+
+          <h3>A5 · Put the chat and the panel side by side</h3>
+          <p>From now on you <b>talk</b> in your assistant and <b>watch</b> the panel. Put the chat on the left half of your screen and the panel on the right. The panel updates by itself; if it ever looks stuck, reload the page.</p>
+        </section>
+
+        <!-- B -->
+        <section class="part" id="name" aria-labelledby="name-h">
+          <header><p class="p-n">Part B · once per MAS</p><h2 id="name-h">Name your MAS</h2></header>
+          <p>Type <code>next</code>. Before step 1, your assistant asks what to call this MAS. A few words are enough; it becomes a folder with that name inside your project folder.</p>
+          <div class="chat" role="group" aria-label="Naming a MAS">
+            <div class="chat-row you"><span class="who">You</span><div class="said">next</div></div>
+            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>What should we call your new MAS? A few words are enough, e.g. <em>headphone deals</em>.</p></div></div>
+            <div class="chat-row you"><span class="who">You</span><div class="said">headphone deals</div></div>
+            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>MAS: headphone-deals</p><p>Type <code>next</code> to describe your task.</p></div></div>
+          </div>
+          <p class="quiet small">Every new conversation in this folder starts the same way: your assistant lists your MAS and asks whether to start a new one or continue one. Each reply then begins with a line like <code>MAS: headphone-deals</code>, so you always know which one you are in.</p>
+        </section>
+
+        <!-- 1 -->
+        <section class="part" id="step-1" aria-labelledby="s1-h">
+          <header><p class="p-n">Step 1 of 4</p><h2 id="s1-h">Describe your task</h2></header>
+          <dl class="glance">
+            <div><dt>You type</dt><dd><code>next</code>, then <span class="num">5</span> answers</dd></div>
+            <div><dt>Time</dt><dd>About <span class="num">10</span>–<span class="num">15</span> min</dd></div>
+            <div><dt>You get</dt><dd>Requirements <span class="num">R1</span>, <span class="num">R2</span>…</dd></div>
+            <div><dt>Ingredient</dt><dd>Memory</dd></div>
+          </dl>
+          <p>Type <code>next</code>. Your assistant interviews you with <b>five questions, one at a time</b>, and waits for each answer. Answer in your own words, in any language. The example answers below are from the real price-comparison example in your folder.</p>
+          <ol class="qs">
+            <li><span class="q-n">Q1</span><div><p class="q-t">What should your assistant help you do?</p><p class="q-h">Say the task in one or two sentences.</p><p class="q-ex"><b>Example</b>Compare prices before I buy noise-cancelling headphones (Sony WH-1000XM6 or similar).</p></div></li>
+            <li><span class="q-n">Q2</span><div><p class="q-t">What are your preferences and limits?</p><p class="q-h">Budget, time, things to avoid. Numbers help: they become checkable requirements.</p><p class="q-ex"><b>Example</b>Under £280 total including delivery, must be brand new (not refurbished), delivered within 3 days, UK shops only.</p></div></li>
+            <li><span class="q-n">Q3</span><div><p class="q-t">What does a good result look like? How will you judge it?</p><p class="q-h">The shape of the answer you want to receive.</p><p class="q-ex"><b>Example</b>A short list of the 2–3 best offers with total price and links I can check.</p></div></li>
+            <li><span class="q-n">Q4</span><div><p class="q-t">Will you do this again? How often?</p><p class="q-h">This tells your assistant whether a reusable team is worth it.</p><p class="q-ex"><b>Example</b>Yes, I'll use it again for a monitor next month.</p></div></li>
+            <li><span class="q-n">Q5</span><div><p class="q-t">Do you have your own material for it?</p><p class="q-h">Notes, a reading list, a brief. If yes, it tells you which <code>raw/</code> folder to put the files in; your agents read them but never change them.</p><p class="q-ex"><b>Example</b>No.</p></div></li>
+          </ol>
+          <p class="small quiet">If an answer is unclear, your assistant may ask one short follow-up. That is still step 1.</p>
+          <h4>You'll see</h4>
+          <p>Your assistant turns your answers into <b>requirements</b>: short, checkable lines that everything later is measured against.</p>
+          <div class="chat" role="group" aria-label="The end of step 1">
+            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Your requirements:</p><ul class="reqs">
+              <li><span class="rid">R1</span><span>Total price (including delivery) is under £280</span></li>
+              <li><span class="rid">R2</span><span>Brand new only (no refurbished)</span></li>
+              <li><span class="rid">R3</span><span>Delivered within 3 days, from UK shops only</span></li>
+              <li><span class="rid">R4</span><span>A short list of the 2–3 best offers, each with total price and a link I can check</span></li></ul>
+              <p>Type <code>next</code> to design your team.</p></div></div>
+          </div>
+          <figure class="shot see">
+            <img src="img/step1-describe.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel after step 1: the Lead alone in a small room, the requirements R1 to R4 pinned on the wall board, and the task with its four requirements listed in the sidebar.">
+            <figcaption>In the panel: your requirements are pinned on the board and listed on the right. The Lead is the only one in the office so far.</figcaption>
+          </figure>
+          <h4>Check before moving on</h4>
+          <ul class="check">
+            <li><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M5 9.2l2.6 2.6L13 6.4" fill="none" stroke="#1B1F23" stroke-width="1.6"/></svg><span>Each requirement is something you actually said. If one is wrong, just say so: “R2 should be ‘new or open-box’”.</span></li>
+            <li><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M5 9.2l2.6 2.6L13 6.4" fill="none" stroke="#1B1F23" stroke-width="1.6"/></svg><span>Each one can be checked. “Cheap” is hard to check; “under £280 including delivery” is easy.</span></li>
+          </ul>
+          <div class="moment"><p class="moment-k">A chat can't do this<span class="ing">Memory</span></p><p>Close the conversation and start a new one in the same folder. Your assistant lists your MAS and picks this one up from <code>me/task.md</code>. A web chat forgets when you close it; your task now lives in a file.</p></div>
+        </section>
+
+        <!-- 2 -->
+        <section class="part" id="step-2" aria-labelledby="s2-h">
+          <header><p class="p-n">Step 2 of 4</p><h2 id="s2-h">Let it design a team</h2></header>
+          <dl class="glance">
+            <div><dt>You type</dt><dd><code>next</code></dd></div>
+            <div><dt>Time</dt><dd>About <span class="num">2</span> min, then read</dd></div>
+            <div><dt>You get</dt><dd>A draft team</dd></div>
+            <div><dt>Ingredient</dt><dd>Division of labour</dd></div>
+          </dl>
+          <p>Type <code>next</code>. Your assistant derives a team from <em>your</em> requirements: a <b>Lead</b> who writes the final answer, plus a few <b>roles</b>. A new role only exists for a reason: a different source or expertise, work that can run at the same time, an independent check, or combining results.</p>
+          <h4>You'll see</h4>
+          <p>A small table in the chat. This is the team from the price-comparison example:</p>
+          <table>
+            <thead><tr><th scope="col">Role</th><th scope="col">Serves</th><th scope="col">Why it exists</th><th scope="col">Group</th></tr></thead>
+            <tbody>
+              <tr><td>Sony deal finder</td><td><span class="num">R1 R3</span></td><td>Searches UK shops for the exact model</td><td><span class="num">A</span></td></tr>
+              <tr><td>Similar-model finder</td><td><span class="num">R1 R3</span></td><td>A different source: similar headphones, at the same time</td><td><span class="num">A</span></td></tr>
+              <tr><td>Catch checker</td><td><span class="num">R2 R3</span></td><td>An independent check for refurbished stock and slow delivery</td><td><span class="num">B</span></td></tr>
+              <tr><td>Budget checker</td><td><span class="num">R1</span></td><td>An independent check of every total, delivery included</td><td><span class="num">B</span></td></tr>
+            </tbody>
+          </table>
+          <div class="chat" role="group" aria-label="Under the team table">
+            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>These run at the same time: the two finders (group A), then the two checkers (group B).</p><p>Cost: <span class="num">5</span> agents ≈ <span class="num">5</span>× the tokens of one assistant.</p><p>Change anything by telling me, and the panel shows the updated team. When you're happy, type <code>next</code> to lock.</p></div></div>
+          </div>
+          <figure class="shot see">
+            <img src="img/step2-design.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel in step 2: the office drawn as a dashed blueprint, with rooms for group A (in parallel) and group B (after A), and the draft team listed in the sidebar with each role's requirements.">
+            <figcaption>In the panel: a dashed blueprint. Each group gets a room; the sidebar shows which role serves which requirement, and what the team will cost.</figcaption>
+          </figure>
+          <h4>Read it like a designer</h4>
+          <ul class="check">
+            <li><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M5 9.2l2.6 2.6L13 6.4" fill="none" stroke="#1B1F23" stroke-width="1.6"/></svg><span>Every requirement is served by at least one role.</span></li>
+            <li><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M5 9.2l2.6 2.6L13 6.4" fill="none" stroke="#1B1F23" stroke-width="1.6"/></svg><span>You can say in one sentence why each role exists.</span></li>
+            <li><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M5 9.2l2.6 2.6L13 6.4" fill="none" stroke="#1B1F23" stroke-width="1.6"/></svg><span>You know which roles run at the same time, and who checks whom.</span></li>
+          </ul>
+          <div class="moment"><p class="moment-k">A chat can't do this<span class="ing">Division of labour</span></p><p>Your task became a team you can point at: each role traces back to your own words, and the checkers are separate from the finders they check.</p></div>
+        </section>
+
+        <!-- 3 -->
+        <section class="part" id="step-3" aria-labelledby="s3-h">
+          <header><p class="p-n">Step 3 of 4</p><h2 id="s3-h">Refine the team, then lock it</h2></header>
+          <dl class="glance">
+            <div><dt>You type</dt><dd>Changes in words, then <code>next</code> and <em>yes</em></dd></div>
+            <div><dt>Time</dt><dd>About <span class="num">10</span>–<span class="num">20</span> min</dd></div>
+            <div><dt>You get</dt><dd>One job file per agent</dd></div>
+            <div><dt>Ingredient</dt><dd>Your decision</dd></div>
+          </dl>
+          <p>This is the step where you decide. Ask for as many changes as you like, one message each, in plain words. Your assistant updates the team, tells you the effect on <b>speed</b>, <b>cost</b> and <b>coverage</b>, and the blueprint in the panel changes with it.</p>
+          <h4>Things you can say</h4>
+          <ul>
+            <li><em>“Add a budget checker that re-checks every total.”</em></li>
+            <li><em>“Merge the two finders into one.”</em> (cheaper, but no longer at the same time)</li>
+            <li><em>“The catch checker should also check the seller is in the UK.”</em></li>
+            <li><em>“Remove the similar-model finder; I only want the Sony.”</em></li>
+            <li><em>“Why do we need two checkers?”</em> (questions are fine too)</li>
+          </ul>
+          <p>Push back on every extra agent: more agents means more tokens and more time. If a change leaves a requirement unserved, your assistant tells you, but the choice stays yours.</p>
+          <h4>Lock it</h4>
+          <div class="chat" role="group" aria-label="Locking the team">
+            <div class="chat-row you"><span class="who">You</span><div class="said">next</div></div>
+            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Happy with your team? I'll lock it.</p></div></div>
+            <div class="chat-row you"><span class="who">You</span><div class="said">yes</div></div>
+            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Your team is locked: each role now has a desk in the office panel. Open one file in <code>team/</code> and read it: this file <em>is</em> the agent, its whole job description.</p><p>Type <code>next</code> to run your team.</p></div></div>
+          </div>
+          <figure class="shot see">
+            <img src="img/step3-lock.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel after locking: the rooms are coloured in, each role has a desk, and the agents stand in the office waiting to start. The sidebar lists the locked team, version 1.">
+            <figcaption>In the panel: the blueprint is inked in, every role gets a desk, and the team walks in, ready.</figcaption>
+          </figure>
+          <p>Do open one of the files in <code>team/</code> (for example <code>team/catch-checker.md</code>). It is short: the job, the tools, the rules and the output it must produce. Nothing else makes that agent.</p>
+          <div class="moment"><p class="moment-k">A chat can't do this<span class="ing">Your decision</span></p><p>You designed the structure, and you can see its price: the team, who checks whom, and how many agents you are paying for.</p></div>
+        </section>
+
+        <!-- 4 -->
+        <section class="part" id="step-4" aria-labelledby="s4-h">
+          <header><p class="p-n">Step 4 of 4</p><h2 id="s4-h">Run it and watch</h2></header>
+          <dl class="glance">
+            <div><dt>You type</dt><dd><code>next</code>, then wait</dd></div>
+            <div><dt>Time</dt><dd>About <span class="num">3</span>–<span class="num">8</span> min</dd></div>
+            <div><dt>You get</dt><dd>A result with sources</dd></div>
+            <div><dt>Ingredients</dt><dd>Tools, workflow</dd></div>
+          </dl>
+          <p>Type <code>next</code>. Your assistant tells you honestly how the agents will run: <em>separate subagents, each with its own context</em> (group A at the same time), or <em>role-play</em>, where it plays each role in turn. Then the team starts, group by group. You don't need to type anything until it says the result is ready.</p>
+          <h4>What to watch in the panel</h4>
+          <ul>
+            <li><b>The big sentence at the top</b> says what is happening right now, e.g. two finders working at the same time.</li>
+            <li><b>Each person</b> sits at a desk and types; the line next to them says what they are doing and how far along they are.</li>
+            <li><b>Hand-offs:</b> when a finder is done, it carries a sheet of paper along the dashed line to the checker.</li>
+            <li><b>Flags:</b> an agent that finds a problem stands up and raises a hand, with a yellow warning, e.g. “Refurbished: breaks R2”.</li>
+            <li><b>Click a person</b> to follow only their thread; everything else dims. Click again to go back.</li>
+          </ul>
+          <figure class="shot see">
+            <img src="img/step4-run.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel during a run: the headline reads that the Sony deal finder and the Similar-model finder are working at the same time; both sit typing in the vermilion room of group A while the two checkers wait in the blue room of group B.">
+            <figcaption>During the run: group A's two finders work at the same time while group B's checkers wait their turn.</figcaption>
+          </figure>
+          <h4>When it's done</h4>
+          <p>Your assistant gives you the answer in a few lines and points to <code>outputs/result.md</code>. The panel shows the same result on the right, every source with a link you can open, and an evidence grade from <span class="num">A</span> (you can buy or run it) to <span class="num">D</span> (opinion). The team gathers for a short celebration.</p>
+          <ul>
+            <li>Open two or three sources and check a claim yourself.</li>
+            <li>Look at what the checkers caught: that is what a single chat would have missed.</li>
+            <li>Click a person to read their own work summary.</li>
+          </ul>
+          <div class="moment"><p class="moment-k">A chat can't do this<span class="ing">Tools · workflow</span></p><p>Agents worked at the same time, a checker caught what a finder missed, and every claim links to a source you can open. Next time, one line repeats the whole process.</p></div>
+        </section>
+
+        <!-- after -->
+        <section class="part" id="after" aria-labelledby="after-h">
+          <header><p class="p-n">After the run</p><h2 id="after-h">Run it again, change the team, or start another</h2></header>
+          <table class="t-key">
+            <thead><tr><th scope="col">You want to</th><th scope="col">Do this</th></tr></thead>
+            <tbody>
+              <tr><td>Run with a new condition</td><td>Change it in <code>me/task.md</code> (e.g. the budget), then type <code>run again</code>. The old result is kept as <code>result-run1.md</code>.</td></tr>
+              <tr><td>Change the team</td><td>Type <code>unlock</code>, ask for changes, then <code>next</code> to lock it again.</td></tr>
+              <tr><td>Start another MAS</td><td>Type <code>new</code> and give it a name. Both MAS stay in the same folder.</td></tr>
+              <tr><td>Go back to another MAS</td><td>Say e.g. <em>“switch to lisbon trip”</em>. The panel follows.</td></tr>
+              <tr><td>Continue another day</td><td>Open the folder in your tool and say anything. Your assistant lists your MAS and asks which one.</td></tr>
+            </tbody>
+          </table>
+          <h3>What's in your folder now</h3>
+          <pre class="tree">my-mas/
+  office/index.html   the live panel (open it in a browser)
+  home/               what your tool can do, and the list of your MAS
+  headphone-deals/    one folder per MAS:
+    me/               your task, in your words
+    mas/              the team's structure and live status
+    team/             one job description per agent
+    sources/          every web source your agents used
+    outputs/          the result (result.md), and each agent's own work
+    raw/              your own files for the agents to read (optional)
+  examples/           three finished examples: double-click examples/index.html
+  AGENTS.md, harness/ the instructions your assistant follows</pre>
+        </section>
+
+        <!-- words -->
+        <section class="part" id="words" aria-labelledby="words-h">
+          <header><p class="p-n">Cheat sheet</p><h2 id="words-h">Words you can type</h2></header>
+          <table class="t-key">
+            <thead><tr><th scope="col">Type</th><th scope="col">What happens</th></tr></thead>
+            <tbody>
+              <tr><td><code>next</code></td><td>Do the next step: describe, design, lock, run.</td></tr>
+              <tr><td>a change in your own words</td><td>Change the team before it is locked, e.g. <em>“add a budget checker”</em>.</td></tr>
+              <tr><td><code>run again</code></td><td>Run the whole team again.</td></tr>
+              <tr><td><code>unlock</code></td><td>Change a locked team.</td></tr>
+              <tr><td><code>new</code></td><td>Start another MAS in the same folder.</td></tr>
+              <tr><td><em>switch to …</em></td><td>Continue another MAS.</td></tr>
+              <tr><td><code>Read AGENTS.md and follow it.</code></td><td>Get your assistant back on track if it forgets the steps.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- help -->
+        <section class="part" id="help" aria-labelledby="help-h">
+          <header><p class="p-n">Troubleshooting</p><h2 id="help-h">If something goes wrong</h2></header>
+          <details><summary>The setup sentence fails: it can't download.</summary><div><p>Use the ZIP: download it from the link in A3, unzip it, move everything inside <code>awesome-mas-main</code> into your folder, then open the folder in your tool and type <code>next</code>.</p></div></details>
+          <details><summary>Every file edit asks me for permission.</summary><div><p>Your tool doesn't trust the folder yet. In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.</p></div></details>
+          <details><summary>The panel doesn't update.</summary><div><p>Reload the browser page. Make sure you opened the <code>office/index.html</code> inside your project folder, not a copy somewhere else.</p></div></details>
+          <details><summary>My assistant doesn't follow the steps.</summary><div><p>Type <code>Read AGENTS.md and follow it.</code> and then <code>next</code>.</p></div></details>
+          <details><summary>It says role-play instead of real agents.</summary><div><p>Your tool can't start separate agents here, so your assistant plays each role in turn. The steps and the office are the same; it just takes longer, and the panel says so honestly.</p></div></details>
+          <details><summary>An agent says a web page wouldn't open.</summary><div><p>Some sites block automated readers. Your agents are told to say so and use another source instead of guessing. If an important source is missing, open it yourself and check.</p></div></details>
+          <details><summary>The run takes too long.</summary><div><p>Say <em>“finish with what you have”</em>. Next time, use a smaller team (type <code>unlock</code>, merge or remove roles).</p></div></details>
+          <details><summary>I ran out of usage.</summary><div><p>Your files are safe; continue when your usage resets. Meanwhile, double-click <code>examples/index.html</code> to watch finished example teams and read their results.</p></div></details>
+        </section>
+
+        <!-- why -->
+        <section class="part" id="why" aria-labelledby="why-h">
+          <header><p class="p-n">The idea</p><h2 id="why-h">Why a team of agents instead of one chat?</h2></header>
+          <p>Each step shows you one ingredient a single chat window doesn't have.</p>
+          <table>
+            <thead><tr><th scope="col">Ingredient</th><th scope="col">Where you saw it</th><th scope="col">What it means</th></tr></thead>
+            <tbody>
+              <tr><td>Memory</td><td>Step 1</td><td>Your task lives in files, so closing the chat loses nothing.</td></tr>
+              <tr><td>Division of labour</td><td>Steps 2 and 4</td><td>Specialists work at the same time, and checkers catch what finders miss.</td></tr>
+              <tr><td>Tools</td><td>Step 4</td><td>Agents search the web and save every source, so you can check each claim.</td></tr>
+              <tr><td>Workflow</td><td>After the run</td><td><code>run again</code> repeats the whole process in one line.</td></tr>
+            </tbody>
+          </table>
+          <p class="quiet">More agents also means more tokens. The panel shows the trade-off, and the choice is yours.</p>
+        </section>
+
+        <footer class="titleblock">
+          <div>Project<b>awesome-mas</b></div>
+          <div>Source<b><a href="https://github.com/weixijia/awesome-mas">GitHub</a></b></div>
+          <div>For developers<b><a href="https://github.com/weixijia/mas-office">MAS Office</a></b></div>
+          <div>Licence<b>MIT</b></div>
+        </footer>
+      </article>
+    </div>
+  </div>
+</main>
 <div class="toast" id="toast" role="status" aria-live="polite">Copied</div>
 <script>
   const tabs = [...document.querySelectorAll('.tab')];
@@ -252,6 +661,19 @@
     }
     const t = document.getElementById('toast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1400);
   }));
+  // Contents rail: mark the part being read.
+  const links = [...document.querySelectorAll('.toc a')];
+  const parts = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  if ('IntersectionObserver' in window && parts.length) {
+    const seen = new Map();
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => seen.set(e.target.id, e.isIntersecting));
+      const cur = parts.find(p => seen.get(p.id));
+      if (cur) links.forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + cur.id ? 'true' : 'false'));
+    }, { rootMargin: '-90px 0px -60% 0px' });
+    parts.forEach(p => io.observe(p));
+  }
+  document.querySelectorAll('.mobile-toc a').forEach(a => a.addEventListener('click', () => a.closest('details').removeAttribute('open')));
 </script>
 </body>
 </html>
