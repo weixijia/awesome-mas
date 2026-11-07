@@ -29,6 +29,7 @@
   a:hover { color: var(--verm-ink); }
   :focus-visible { outline: 2px solid var(--verm); outline-offset: 2px; }
   code, kbd { font: 400 .9em/1 var(--mono); background: var(--paper); border: 1px solid var(--hair); padding: 2px 5px; overflow-wrap: anywhere; }
+  code.cmd { display: block; width: fit-content; max-width: 100%; margin: 4px 0 8px; padding: 6px 9px; line-height: 1.5; }
   .num { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; }
   .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
 
@@ -250,7 +251,7 @@
         <h1>Build your own team of AI agents, step by step.</h1>
         <p class="lede">Pick a task you really care about. Your AI assistant designs a small team of agents for it, you shape the team by chatting, and you watch the agents work together in a live office. This page walks you through every message you type, from an empty folder to a finished result.</p>
         <dl class="facts">
-          <div><dt>You need</dt><dd>An AI coding assistant you are signed in to</dd></div>
+          <div><dt>You need</dt><dd>An AI coding assistant. This guide uses the Antigravity CLI</dd></div>
           <div><dt>Time</dt><dd>About <span class="num">60</span>–<span class="num">90</span> min the first time</dd></div>
           <div><dt>Coding</dt><dd>None. You only chat.</dd></div>
         </dl>
@@ -307,11 +308,11 @@
         <section class="part" id="before" aria-labelledby="before-h">
           <header><p class="p-n">Before you start</p><h2 id="before-h">Three things to have ready</h2></header>
           <ol>
-            <li><b>An AI coding assistant, signed in.</b> Claude (the desktop app or Claude Code), Codex (the app or the CLI), Antigravity (the IDE or the CLI), or a similar assistant that can read and write files in a folder. Most need a paid plan. Your normal chat website is not enough: it cannot keep files.</li>
+            <li><b>An AI coding assistant, signed in.</b> This guide uses the <b>Antigravity CLI</b> (<code>agy</code>): it runs in a terminal and you sign in with a personal Google account (Free, Pro or Ultra). Claude (the desktop app or Claude Code), Codex (the app or the CLI), the Antigravity IDE or a similar assistant that can read and write files in a folder work the same way; pick your tool in A2. Your normal chat website is not enough: it cannot keep files.</li>
             <li><b>A task you genuinely want help with.</b> Comparing prices before a purchase, planning a trip, checking whether a thesis idea is feasible, finding a flat, planning meals, preparing job applications. Anything works, as long as you can say what a good answer looks like.</li>
             <li><b>A browser for the live panel.</b> Any modern browser. There is nothing to click or connect in it; it only shows what your team is doing.</li>
           </ol>
-          <p class="quiet small">A full run uses a real share of your plan's usage, because every agent reads and writes on its own. Keep your first team small: a Lead plus <span class="num">2</span>–<span class="num">4</span> agents. If your usage runs out, or you have none, you can still do every step in <a href="#practice">practice mode</a>: it replays a real example run, and you type <code>next</code> and the answers yourself.</p>
+          <p class="quiet small">A full run uses a real share of your plan's usage, because every agent reads and writes on its own; a free plan's quota can run out after a few runs (in the Antigravity CLI, type <code>/usage</code> to see what is left). Keep your first team small: a Lead plus <span class="num">2</span>–<span class="num">4</span> agents. If your usage runs out, or you have none, you can still do every step in <a href="#practice">practice mode</a>: it replays a real example run, and you type <code>next</code> and the answers yourself.</p>
         </section>
 
         <!-- A -->
@@ -329,16 +330,27 @@
           <p>Make a new, empty folder somewhere easy to find, for example <code>my-mas</code> on your Desktop. Empty matters: your assistant will not touch files that are already there.</p>
 
           <h3>A2 · Open the folder in your AI tool</h3>
-          <p>Pick your tool. Your choice is remembered next time you open this page.</p>
+          <p>This guide uses the Antigravity CLI. Using another tool? Pick it here; your choice is remembered next time you open this page.</p>
           <div class="tabs" role="tablist" aria-label="Your AI tool">
-            <button class="tab" role="tab" aria-selected="true" aria-controls="t-claude-app" id="b-claude-app">Claude app</button>
+            <button class="tab" role="tab" aria-selected="true" aria-controls="t-agy-cli" id="b-agy-cli">Antigravity CLI</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="t-agy" id="b-agy" tabindex="-1">Antigravity IDE</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="t-claude-app" id="b-claude-app" tabindex="-1">Claude app</button>
             <button class="tab" role="tab" aria-selected="false" aria-controls="t-claude-code" id="b-claude-code" tabindex="-1">Claude Code</button>
             <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-app" id="b-codex-app" tabindex="-1">Codex app</button>
             <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-cli" id="b-codex-cli" tabindex="-1">Codex CLI</button>
-            <button class="tab" role="tab" aria-selected="false" aria-controls="t-agy" id="b-agy" tabindex="-1">Antigravity</button>
             <button class="tab" role="tab" aria-selected="false" aria-controls="t-other" id="b-other" tabindex="-1">Other</button>
           </div>
-          <div class="panel" role="tabpanel" id="t-claude-app" aria-labelledby="b-claude-app"><ol>
+          <div class="panel" role="tabpanel" id="t-agy-cli" aria-labelledby="b-agy-cli"><ol>
+            <li><b>Install it</b> (once). Open a terminal and paste the line for your computer, then press Enter.
+              <br>macOS: <code class="cmd">curl -fsSL https://antigravity.google/cli/install.sh | bash</code>
+              Windows (PowerShell): <code class="cmd">irm https://antigravity.google/cli/install.ps1 | iex</code>
+              Close the terminal and open a new one, then check it worked: <code>agy --version</code> prints a version number.</li>
+            <li><b>Open a terminal in your empty folder.</b> macOS: open Terminal, type <code>cd</code> and a space, drag your folder into the window, press Enter. Windows: open the folder in File Explorer, click the address bar, type <code>powershell</code>, press Enter.</li>
+            <li><b>Start it</b> by typing <code>agy --mode accept-edits</code> and pressing Enter. <code>accept-edits</code> lets it edit files in this folder without asking every time.</li>
+            <li><b>The first time</b> it asks you to pick a colour scheme and a display mode (any is fine), whether you <b>trust this folder</b> (choose yes) and to <b>sign in</b> with your Google account.</li>
+            <li>During setup, approve when it asks to run the download command and the command that opens the panel.</li></ol>
+            <p class="quiet small">Setup tests whether Antigravity can start separate agents here; if it can't, your assistant plays each role in turn, and the panel says so. Type <code>/usage</code> at any time to see how much quota you have left. Official install guide: <a href="https://antigravity.google/docs/getting-started?tab=cli">antigravity.google</a>.</p></div>
+          <div class="panel" role="tabpanel" id="t-claude-app" aria-labelledby="b-claude-app" hidden><ol>
             <li>Install the <a href="https://claude.com/download">Claude desktop app</a> and sign in.</li>
             <li>Open the <b>Code</b> tab, choose <b>Open folder…</b> and pick your empty folder.</li>
             <li>If the app asks whether you trust this folder, choose <b>trust</b>. Without it, the folder's own settings don't apply and every file edit asks for permission.</li>
@@ -360,9 +372,9 @@
             <li>If the download is blocked, approve network access when asked, or use the ZIP route at the end of A3.</li></ol>
             <p class="quiet small">Codex runs your agents as real parallel subagents.</p></div>
           <div class="panel" role="tabpanel" id="t-agy" aria-labelledby="b-agy" hidden><ol>
-            <li>Install <a href="https://antigravity.google/">Antigravity</a> and sign in.</li>
-            <li>IDE: <b>Open Folder</b> and pick your empty folder. CLI: open a terminal in the folder and type <code>agy</code>.</li>
-            <li>Allow it to edit files in this folder when asked (or start the CLI in a mode that accepts file edits).</li></ol>
+            <li>Install the <a href="https://antigravity.google/">Antigravity</a> IDE and sign in with your Google account.</li>
+            <li>Choose <b>Open Folder</b> and pick your empty folder. If it asks whether you trust the folder, choose yes.</li>
+            <li>Paste the setup sentence into the agent chat. Allow it to edit files in this folder when asked.</li></ol>
             <p class="quiet small">Setup tests whether Antigravity can start subagents here. If it can't, your assistant plays each role in turn: slower, and the panel says so, but the steps and the office are the same.</p></div>
           <div class="panel" role="tabpanel" id="t-other" aria-labelledby="b-other" hidden><ol>
             <li>Open your empty folder in your AI coding assistant (Cursor, Copilot, Gemini CLI, opencode…).</li>
@@ -629,14 +641,15 @@
         <!-- help -->
         <section class="part" id="help" aria-labelledby="help-h">
           <header><p class="p-n">Troubleshooting</p><h2 id="help-h">If something goes wrong</h2></header>
+          <details><summary><code>agy</code> is not found after installing.</summary><div><p>Close the terminal and open a new one, so it picks up the new command. Still not found? Run the install line again and read its last lines: it says where it put <code>agy</code>. The official guide is at <a href="https://antigravity.google/docs/getting-started?tab=cli">antigravity.google</a>.</p></div></details>
           <details><summary>The setup sentence fails: it can't download.</summary><div><p>Use the ZIP: download it from the link in A3, unzip it, move everything inside <code>awesome-mas-main</code> into your folder, then open the folder in your tool and type <code>next</code>.</p></div></details>
-          <details><summary>Every file edit asks me for permission.</summary><div><p>Your tool doesn't trust the folder yet. In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.</p></div></details>
+          <details><summary>Every file edit asks me for permission.</summary><div><p>In the Antigravity CLI, close the terminal window, open a terminal in your folder again and start it with <code>agy --mode accept-edits</code>. In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.</p></div></details>
           <details><summary>The panel doesn't update.</summary><div><p>Reload the browser page. Make sure you opened the <code>office/index.html</code> inside your project folder, not a copy somewhere else.</p></div></details>
           <details><summary>My assistant doesn't follow the steps.</summary><div><p>Type <code>Read AGENTS.md and follow it.</code> and then <code>next</code>.</p></div></details>
           <details><summary>It says role-play instead of real agents.</summary><div><p>Your tool can't start separate agents here, so your assistant plays each role in turn. The steps and the office are the same; it just takes longer, and the panel says so honestly.</p></div></details>
           <details><summary>An agent says a web page wouldn't open.</summary><div><p>Some sites block automated readers. Your agents are told to say so and use another source instead of guessing. If an important source is missing, open it yourself and check.</p></div></details>
           <details><summary>The run takes too long.</summary><div><p>Say <em>“finish with what you have”</em>. Next time, use a smaller team (type <code>unlock</code>, merge or remove roles).</p></div></details>
-          <details><summary>I ran out of usage.</summary><div><p>Your files are safe; continue when your usage resets. Meanwhile, double-click <code>practice/index.html</code> in your folder: <b>practice mode</b> replays a real example run, step by step, with no tokens. You type <code>next</code> and the answers (they are filled in for you), and the panel next to the chat moves through every step, from the task board to the finished result. Your words can't change that run; it shows you the whole journey (see <a href="#practice">Practice mode</a>). Next time, start with a smaller team.</p></div></details>
+          <details><summary>I ran out of usage.</summary><div><p>Your files are safe; continue when your usage resets (in the Antigravity CLI, <code>/usage</code> shows your quota). Meanwhile, double-click <code>practice/index.html</code> in your folder: <b>practice mode</b> replays a real example run, step by step, with no tokens. You type <code>next</code> and the answers (they are filled in for you), and the panel next to the chat moves through every step, from the task board to the finished result. Your words can't change that run; it shows you the whole journey (see <a href="#practice">Practice mode</a>). Next time, start with a smaller team.</p></div></details>
         </section>
 
         <!-- why -->
