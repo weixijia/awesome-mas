@@ -43,7 +43,7 @@
 
   /* opening */
   .opening { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 48px; align-items: end; padding: 56px 0 40px; }
-  h1 { font-weight: 600; font-size: clamp(36px, 4.4vw, 58px); line-height: 1.03; letter-spacing: -.035em; margin: 0 0 18px; text-wrap: balance; }
+  h1 { font-weight: 600; font-size: clamp(34px, 4.6vw, 60px); line-height: 1.02; letter-spacing: -.035em; margin: 0 0 18px; text-wrap: balance; }
   .lede { font-size: 19px; color: var(--ink-2); margin: 0 0 24px; max-width: 46ch; }
   .shot { margin: 0; border: 1px solid var(--ink); background: var(--white); }
   .shot img { display: block; width: 100%; height: auto; }
@@ -92,7 +92,7 @@
   .p-n { font: 500 15px var(--mono); color: var(--verm-ink); margin: 0 0 4px; }
   .part h2 { font-size: clamp(28px, 3vw, 38px); font-weight: 600; letter-spacing: -.028em; line-height: 1.1; margin: 0 0 14px; text-wrap: balance; }
   .part h3 { font-size: 21px; font-weight: 600; letter-spacing: -.012em; line-height: 1.25; margin: 36px 0 10px; }
-  .part h4 { font-size: 17px; font-weight: 600; margin: 24px 0 8px; }
+  .part h3.minor { font-size: 17px; font-weight: 600; letter-spacing: 0; margin: 26px 0 8px; }
   .part p, .part li { max-width: var(--measure); }
   .part p { margin: 0 0 14px; }
   .part ul, .part ol { margin: 0 0 14px; padding-left: 22px; }
@@ -427,7 +427,7 @@
             <li><span class="q-n">Q5</span><div><p class="q-t">Do you have your own material for it?</p><p class="q-h">Notes, a reading list, a brief. If yes, it tells you which <code>raw/</code> folder to put the files in; your agents read them but never change them.</p><p class="q-ex"><b>Example</b>No.</p></div></li>
           </ol>
           <p class="small quiet">If an answer is unclear, your assistant may ask one short follow-up. That is still step 1.</p>
-          <h4>You'll see</h4>
+          <h3 class="minor">You'll see</h3>
           <p>Your assistant turns your answers into <b>requirements</b>: short, checkable lines that everything later is measured against.</p>
           <div class="chat" role="group" aria-label="The end of step 1">
             <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Your requirements:</p><ul class="reqs">
@@ -441,7 +441,7 @@
             <img src="img/step1-describe.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel after step 1: the Lead alone in a small room, the requirements R1 to R4 pinned on the wall board, and the task with its four requirements listed in the sidebar.">
             <figcaption>In the panel: your requirements are pinned on the board and listed on the right. The Lead is the only one in the office so far.</figcaption>
           </figure>
-          <h4>Check before moving on</h4>
+          <h3 class="minor">Check before moving on</h3>
           <ul class="check">
             <li><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M5 9.2l2.6 2.6L13 6.4" fill="none" stroke="#1B1F23" stroke-width="1.6"/></svg><span>Each requirement is something you actually said. If one is wrong, just say so: “R2 should be ‘new or open-box’”.</span></li>
             <li><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M5 9.2l2.6 2.6L13 6.4" fill="none" stroke="#1B1F23" stroke-width="1.6"/></svg><span>Each one can be checked. “Cheap” is hard to check; “under £280 including delivery” is easy.</span></li>
@@ -459,7 +459,7 @@
             <div><dt>Ingredient</dt><dd>Division of labour</dd></div>
           </dl>
           <p>Type <code>next</code>. Your assistant derives a team from <em>your</em> requirements: a <b>Lead</b> who writes the final answer, plus a few <b>roles</b>. A new role only exists for a reason: a different source or expertise, work that can run at the same time, an independent check, or combining results.</p>
-          <h4>You'll see</h4>
+          <h3 class="minor">You'll see</h3>
           <p>A small table in the chat. This is the team from the price-comparison example:</p>
           <table>
             <thead><tr><th scope="col">Role</th><th scope="col">Serves</th><th scope="col">Why it exists</th><th scope="col">Group</th></tr></thead>
@@ -477,7 +477,7 @@
             <img src="img/step2-design.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel in step 2: the office drawn as a dashed blueprint, with rooms for group A (in parallel) and group B (after A), and the draft team listed in the sidebar with each role's requirements.">
             <figcaption>In the panel: a dashed blueprint. Each group gets a room; the sidebar shows which role serves which requirement, and what the team will cost.</figcaption>
           </figure>
-          <h4>Read it like a designer</h4>
+          <h3 class="minor">Read it like a designer</h3>
           <ul class="check">
             <li><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M5 9.2l2.6 2.6L13 6.4" fill="none" stroke="#1B1F23" stroke-width="1.6"/></svg><span>Every requirement is served by at least one role.</span></li>
             <li><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" fill="#CFE0C9" stroke="#1B1F23" stroke-width="1.2"/><path d="M5 9.2l2.6 2.6L13 6.4" fill="none" stroke="#1B1F23" stroke-width="1.6"/></svg><span>You can say in one sentence why each role exists.</span></li>
@@ -496,7 +496,7 @@
             <div><dt>Ingredient</dt><dd>Your decision</dd></div>
           </dl>
           <p>This is the step where you decide. Ask for as many changes as you like, one message each, in plain words. Your assistant updates the team, tells you the effect on <b>speed</b>, <b>cost</b> and <b>coverage</b>, and the blueprint in the panel changes with it.</p>
-          <h4>Things you can say</h4>
+          <h3 class="minor">Things you can say</h3>
           <ul>
             <li><em>“Add a budget checker that re-checks every total.”</em></li>
             <li><em>“Merge the two finders into one.”</em> (cheaper, but no longer at the same time)</li>
@@ -505,7 +505,7 @@
             <li><em>“Why do we need two checkers?”</em> (questions are fine too)</li>
           </ul>
           <p>Push back on every extra agent: more agents means more tokens and more time. If a change leaves a requirement unserved, your assistant tells you, but the choice stays yours.</p>
-          <h4>Lock it</h4>
+          <h3 class="minor">Lock it</h3>
           <div class="chat" role="group" aria-label="Locking the team">
             <div class="chat-row you"><span class="who">You</span><div class="said">next</div></div>
             <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Happy with your team? I'll lock it.</p></div></div>
@@ -530,7 +530,7 @@
             <div><dt>Ingredients</dt><dd>Tools, workflow</dd></div>
           </dl>
           <p>Type <code>next</code>. Your assistant tells you honestly how the agents will run: <em>separate subagents, each with its own context</em> (group A at the same time), or <em>role-play</em>, where it plays each role in turn. Then the team starts, group by group. You don't need to type anything until it says the result is ready.</p>
-          <h4>What to watch in the panel</h4>
+          <h3 class="minor">What to watch in the panel</h3>
           <ul>
             <li><b>The big sentence at the top</b> says what is happening right now, e.g. two finders working at the same time.</li>
             <li><b>Each person</b> sits at a desk and types; the line next to them says what they are doing and how far along they are.</li>
@@ -542,7 +542,7 @@
             <img src="img/step4-run.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel during a run: the headline reads that the Sony deal finder and the Similar-model finder are working at the same time; both sit typing in the vermilion room of group A while the two checkers wait in the blue room of group B.">
             <figcaption>During the run: group A's two finders work at the same time while group B's checkers wait their turn.</figcaption>
           </figure>
-          <h4>When it's done</h4>
+          <h3 class="minor">When it's done</h3>
           <p>Your assistant gives you the answer in a few lines and points to <code>outputs/result.md</code>. The panel shows the same result on the right, every source with a link you can open, and an evidence grade from <span class="num">A</span> (you can buy or run it) to <span class="num">D</span> (opinion). The team gathers for a short celebration.</p>
           <ul>
             <li>Open two or three sources and check a claim yourself.</li>
