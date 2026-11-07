@@ -721,6 +721,8 @@
       return { by: id, summary: DEMO_WORK[id] || '- ' + (oneLine(m.job) || 'Did my part') + '\n- Passed my notes to ' + roleName(s, m.handsTo || 'lead') };
     });
   }
+  // The demo run's timeline (seconds); practice mode's chat reports at the same moments.
+  const DEMO_TIMELINE = { start: 7, end: 35, leadFinal: 36, done: 41 };
   function buildDemoScript(s) {
     const roles = (s && s.roles) || [];
     const groups = orderGroups(s).filter((g) => roles.some((r) => r.group === g.id));
@@ -733,7 +735,7 @@
     push(3.5, 'lead', 'working', 'Handing out the work', { progress: 70 });
     roles.forEach((r) => push(3.5, r.id, 'waiting', 'Waiting for my turn'));
     push(7, 'lead', 'waiting', 'Waiting for the team');
-    const START = 7, END = 35, span = (END - START) / Math.max(groups.length, 1);
+    const START = DEMO_TIMELINE.start, END = DEMO_TIMELINE.end, span = (END - START) / Math.max(groups.length, 1);
     const flagRole = roles.find((r) => DEMO_LINES[r.id] && DEMO_LINES[r.id].flag) || roles.find((r) => /check|review|verif/i.test(r.id + ' ' + r.name));
     groups.forEach((g, gi) => {
       const g0 = START + gi * span;
@@ -757,9 +759,9 @@
         push(hand + 3.6, r.id, 'done', 'Finished', { progress: 100 });
       });
     });
-    push(36, 'lead', 'working', lead.final[0], { progress: 40 });
+    push(DEMO_TIMELINE.leadFinal, 'lead', 'working', lead.final[0], { progress: 40 });
     push(38.8, 'lead', 'working', lead.final[1], { progress: 85 });
-    ids.forEach((id) => push(41, id, 'done', id === 'lead' ? 'Result ready' : 'Finished', { progress: 100 }));
+    ids.forEach((id) => push(DEMO_TIMELINE.done, id, 'done', id === 'lead' ? 'Result ready' : 'Finished', { progress: 100 }));
     ev.sort((a, b) => a.t - b.t);
     return { length: 74, events: ev }; // done at 41 s: the wrap party and after-work life play out before the loop
   }
@@ -793,8 +795,113 @@
       flags: [{ by: 'catch-checker', text: "eBay seller X: listing says 'Excellent - Refurbished'" }] }
   };
 
+  /* ---------- practice mode (practice/index.html) ---------- */
+  // A finished example shown as it looked at one step: the panel gets ?stage=describe|design|refine|locked.
+  const PRACTICE_STAGES = ['describe', 'design', 'refine', 'locked'];
+  function practiceStage(stage, d) {
+    if (!PRACTICE_STAGES.includes(stage)) return null;
+    const s = (d && d.structure) || null, version = (s && s.version) || 1;
+    const out = Object.assign({}, d, { result: null });
+    const state = (step, phase, next, locked) => ({ step, phase, next, version, locked: !!locked });
+    if (stage === 'describe') Object.assign(out, { task: null, structure: null, state: state(1, 'describe', 'Answer the questions in the chat.') });
+    else if (stage === 'design') Object.assign(out, { structure: null, state: state(2, 'design', "Type next and I'll design a team for this task.") });
+    else if (stage === 'refine') Object.assign(out, { structure: s && Object.assign(clone(s), { locked: false }), state: state(3, 'refine', 'Tell me anything you want to change, then type next to lock your team.') });
+    else Object.assign(out, { structure: s && Object.assign(clone(s), { locked: true }), state: state(4, 'locked', 'Type next to run your team.', true) });
+    return { data: out, statuses: {} }; // no status files yet: a locked team walks in
+  }
+
+  const PRACTICE_QUESTIONS = [
+    ['What should your assistant help you do?', 'Examples: compare prices before a purchase, plan a trip, check if a thesis idea is feasible, plan meals: anything.'],
+    ['What are your preferences and limits?', 'Budget, time, things to avoid…'],
+    ['What does a good result look like? How will you judge it?', ''],
+    ['Will you do this again? How often?', ''],
+    ['Do you have your own material for it?', 'Notes, a reading list, a brief. If yes, you would put the files in `{folder}/raw/`.']
+  ];
+  const listJoinPlain = (a) => (a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
+  const mdCell = (t) => oneLine(t).replace(/\|/g, '/');
+  // First section of a result: everything before its second heading (the "short answer").
+  function resultHeadline(md) {
+    const lines = String(md || '').split('\n'), out = [];
+    let headings = 0;
+    for (const l of lines) { if (/^#{1,6}\s/.test(l) && ++headings > 1) break; out.push(l); }
+    return out.join('\n').trim();
+  }
+  // The whole chat of a finished example, built only from its real files and the kit's standard wording.
+  // `why: true` on a turn = while waiting for it, the student may ask why a role exists (the team is designed by then).
+  // d = { env, task, structure, result }, replay = { folder, answers: [5], team: { id: markdown } } (examples/<x>/replay.js).
+  function practiceScript(d, replay) {
+    const s = d.structure || {}, task = d.task || {}, roles = s.roles || [], rp = replay || {};
+    const folder = rp.folder || 'my-mas', title = task.title || s.title || folder;
+    const answers = (rp.answers || []).concat(['', '', '', '', '']).slice(0, 5);
+    const name = (id) => roleName(s, id);
+    const serves = (p) => (p.serves || []).join(' ');
+    const groups = orderGroups(s).filter((g) => roles.some((r) => r.group === g.id));
+    const inGroup = (g) => roles.filter((r) => r.group === g.id);
+    const question = (i) => '**' + (i + 1) + '. ' + PRACTICE_QUESTIONS[i][0] + '**' +
+      (PRACTICE_QUESTIONS[i][1] ? '\n\n' + PRACTICE_QUESTIONS[i][1].replace('{folder}', folder) : '');
+    const parallel = groups.map((g, i) => {
+      const rs = inGroup(g).map((r) => r.name);
+      return (i ? 'then ' : '') + (rs.length > 1 ? listJoinPlain(rs) + ' at the same time' : rs[0]) + ' (group ' + g.id + ')';
+    }).join(', ') + ', then the Lead writes the result.';
+    const teamRows = (withWhy) => '| Role | Serves |' + (withWhy ? ' Why it exists |' : '') + ' Group |\n|---|---|' + (withWhy ? '---|' : '') + '---|\n' +
+      roles.map((r) => '| ' + mdCell(r.name) + ' | ' + serves(r) + ' |' + (withWhy ? ' ' + mdCell(r.why || r.job) + ' |' : '') + ' ' + r.group + ' |').join('\n') + '\n' +
+      '| Lead | ' + serves(s.lead || {}) + ' |' + (withWhy ? ' ' + mdCell((s.lead && s.lead.job) || 'Combines the results') + ' |' : '') + ' last |';
+    const fileRole = roles.find((r) => /check|critic|review/i.test(r.id + ' ' + r.name) && rp.team && rp.team[r.id]) || roles.find((r) => rp.team && rp.team[r.id]);
+    const sub = d.env && d.env.subagents;
+    const T = DEMO_TIMELINE, span = (T.end - T.start) / Math.max(groups.length, 1); // the same timeline as buildDemoScript
+    const r = d.result || {}, flags = (r.flags || []).slice(0, 4), nSources = (r.sources || []).length;
+    const turns = [];
+    turns.push({ expect: 'next', prefill: 'next', stage: 'describe', reply: ["Let's describe your task: five questions, one at a time.", question(0)] });
+    turns.push({ expect: 'answer', prefill: answers[0], stage: 'describe', reply: ['MAS: ' + folder,
+      "I've called this MAS *" + title + '* (folder `' + folder + '/`). Tell me if you would like another name.', question(1)] });
+    for (let i = 2; i < 5; i++) turns.push({ expect: 'answer', prefill: answers[i - 1], stage: 'describe', reply: ['MAS: ' + folder, question(i)] });
+    turns.push({ expect: 'answer', prefill: answers[4], stage: 'design', reply: ['MAS: ' + folder,
+      'Your requirements:\n\n' + (task.requirements || []).map((q) => '- **' + q.id + '** ' + q.text).join('\n'),
+      "**A chat can't do this:** close this conversation and start a new one in this folder. I'd list your MAS and pick this one up from `me/task.md`. A web chat forgets when you close it.",
+      'Type `next` to design your team.'] });
+    turns.push({ expect: 'next', prefill: 'next', stage: 'refine', reply: ['MAS: ' + folder,
+      'Here is a team for your requirements:\n\n' + teamRows(true),
+      'Who works when: ' + parallel,
+      'Cost: ' + costInfo(roles.length).text + '.',
+      "Change anything by telling me, and the panel shows the updated team. When you're happy, type `next` to lock.",
+      '*Practice mode: the team can\'t change here, but you can ask why a role exists. Tap a question below.*'],
+      chips: roles.map((x) => 'Why ' + x.name + '?') });
+    turns.push({ expect: 'next', prefill: 'next', stage: 'locked', why: true, reply: ['MAS: ' + folder,
+      'Your team is locked:\n\n' + teamRows(false),
+      'Each role now has a desk in the office panel. Type `unlock` if you want to change it.',
+      'Open one file in `team/` and read it: this file *is* the agent, its whole job description.' + (fileRole ? ' Here is `team/' + fileRole.id + '.md`:' : '')]
+      .concat(fileRole ? [{ file: 'team/' + fileRole.id + '.md', md: rp.team[fileRole.id] }] : [])
+      .concat(['Type `next` to run your team.']),
+      chips: roles.filter((x) => x !== fileRole && rp.team && rp.team[x.id]).map((x) => 'Open team/' + x.id + '.md').concat(rp.team && rp.team.lead ? ['Open team/lead.md'] : []) });
+    turns.push({ expect: 'next', prefill: 'next', stage: 'run', why: true, reply: ['MAS: ' + folder,
+      sub === 'sequential' ? "Your tool couldn't start separate agents, so the Lead played each role in turn, reading only that role's file."
+        : 'Your agents are starting as separate subagents, each with its own context. ' + (groups[0] && inGroup(groups[0]).length > 1 ? 'Group ' + groups[0].id + ' runs at the same time.' : ''),
+      '*Watch the office: the drawing replays a typical run with this real team, sped up to under a minute. The result at the end is the real one.*'],
+      timed: groups.map((g, i) => ({ at: T.start + i * span, md: 'Group ' + g.id + (i ? ', after group ' + groups[i - 1].id : '') + ': ' + listJoinPlain(inGroup(g).map((x) => x.name)) + (inGroup(g).length > 1 ? ' are working at the same time.' : ' is working.') }))
+        .concat([{ at: T.leadFinal, md: 'Every role has handed over. The Lead is writing the result.' },
+          { at: T.done + 1, md: ['MAS: ' + folder, resultHeadline(r.markdown) || 'The result is ready.',
+            flags.length ? '**What the checkers caught**\n\n' + flags.map((f) => '- ' + f.text + ' (' + name(f.by) + ')').join('\n') : '',
+            (nSources ? nSources + ' sources, each saved as a card you can open. ' : '') + 'The full result is in the panel on the right.',
+            "**A chat can't do this:** agents worked at the same time, checkers caught what the finders missed, and every claim links to a source you can check. `run again` would repeat the whole workflow in one line.",
+            "That's the whole journey: describe, design, lock, run. With tokens, you would do exactly this for your own task."].filter(Boolean), done: true }]) });
+    const why = (text) => {
+      const t = String(text || '').toLowerCase();
+      // A full role name first; else a word only one role has ("budget" → Budget checker, but "checker" alone matches none).
+      const words = (x) => x.id.split('-').filter((w) => w.length > 3);
+      const unique = (x) => words(x).filter((w) => !roles.some((y) => y !== x && words(y).includes(w)));
+      let hit = roles.filter((x) => t.includes(x.name.toLowerCase()) || t.includes(x.id));
+      if (!hit.length) hit = roles.filter((x) => unique(x).some((w) => t.includes(w)));
+      const stop = (t) => oneLine(t).replace(/[.\s]+$/, '') + '.';
+      const one = (x) => '**' + x.name + '** (serves ' + serves(x) + ', group ' + x.group + '): ' + stop(x.why || 'no reason recorded') + ' Its job: ' + stop(x.job);
+      const lead = s.lead || {};
+      if (!hit.length && /\blead\b/.test(t)) return '**Lead** (serves ' + serves(lead) + '): ' + stop(lead.job || 'combines the results') + ' Every team has one: it hands out the work and writes the final result, so it is never a separate split.';
+      return (hit.length ? hit : roles).map(one).join('\n\n');
+    };
+    return { folder, title, tool: (d.env && d.env.tool) || 'an AI tool', turns, why, teamFile: (id) => rp.team && rp.team[id] };
+  }
+
   const api = {
-    TOOLS, STATES, EVIDENCE, GROUP_COLORS, DEMO_DATA,
+    TOOLS, STATES, EVIDENCE, GROUP_COLORS, DEMO_DATA, PRACTICE_STAGES, practiceStage, practiceScript, resultHeadline,
     clone, oneLine, esc, hash, colorFor, roleName, member, orderGroups, groupCaption, zoneCaption, receivesFrom,
     coverage, costInfo, deriveProgress, formatHint, renderMarkdown, evalDataFile, pushSay, timeAgo,
     phaseLine, activityFor, clampProgress, formatElapsed, formatClock, teamProgress, statusKey,

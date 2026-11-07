@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>awesome-mas · Practice mode</title>
+<style>
+  @font-face { font-family: "Archivo"; src: url("../office/fonts/archivo-latin-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; }
+  @font-face { font-family: "Archivo"; src: url("../office/fonts/archivo-latin-ext-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20CF; }
+  @font-face { font-family: "Red Hat Mono"; src: url("../office/fonts/red-hat-mono-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "Red Hat Mono"; src: url("../office/fonts/red-hat-mono-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+  :root {
+    --sheet: #F3F4F1; --paper: #FAFBF9; --white: #FFFFFF; --ink: #1B1F23; --ink-2: #4A5259; --hair: #B9C0C6; --slab: #DCE0DB;
+    --verm: #E04E2A; --verm-ink: #B53A1C; --verm-t: #F4C2B1; --sage-t: #CFE0C9;
+    --sans: "Archivo", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    --mono: "Red Hat Mono", ui-monospace, Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
+    --chat-w: clamp(360px, 34vw, 500px);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--sheet); }
+  body { margin: 0; color: var(--ink); font: 400 16px/1.5 var(--sans); height: 100vh; display: flex; flex-direction: column; }
+  ::selection { background: var(--verm-t); color: var(--ink); }
+  a { color: var(--ink); text-decoration-color: var(--verm); text-underline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--verm); outline-offset: 2px; }
+  code { font: 400 .9em var(--mono); background: var(--paper); border: 1px solid var(--hair); padding: 1px 4px; overflow-wrap: anywhere; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* top rule */
+  .rule { flex: none; display: flex; align-items: center; gap: 12px 18px; flex-wrap: wrap; min-height: 56px; padding: 8px 20px; border-bottom: 1px solid var(--ink); background: var(--sheet); }
+  .wm { font-weight: 800; font-size: 20px; letter-spacing: -.02em; text-decoration: none; }
+  .tag { font: 500 13px var(--mono); color: var(--verm-ink); border: 1px solid var(--verm-ink); padding: 2px 7px; }
+  .pick { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink-2); }
+  .pick select { font: 500 15px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--ink); border-radius: 2px; min-height: 36px; padding: 0 8px; max-width: 64vw; }
+  .rule .sp { flex: 1; }
+  .rule .lnk { font-size: 15px; }
+  .rule .btn { font: 600 15px var(--sans); background: var(--paper); color: var(--ink); border: 1px solid var(--ink); border-radius: 2px; min-height: 36px; padding: 0 12px; cursor: pointer; }
+  .rule .btn:hover { background: var(--white); }
+
+  /* two columns: the chat you type in, the panel you watch */
+  .practice { flex: 1; min-height: 0; display: grid; grid-template-columns: var(--chat-w) minmax(0, 1fr); }
+  .chat-col { min-height: 0; display: flex; flex-direction: column; border-right: 1px solid var(--ink); background: var(--paper); }
+  .banner { flex: none; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--ink); background: var(--sage-t); font-size: 15px; line-height: 1.4; }
+  .log { position: relative; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--hair) transparent; }
+  .row { padding: 12px 16px 14px; border-bottom: 1px solid var(--hair); }
+  .who { display: block; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+  .row.you { background: var(--white); }
+  .row.you .said { font: 400 15px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .said > * { margin: 0 0 10px; }
+  .said > *:last-child { margin-bottom: 0; }
+  .said p, .said li { overflow-wrap: anywhere; }
+  .said ul, .said ol { padding-left: 20px; }
+  .said li { margin: 3px 0; }
+  .said h1, .said h2, .said h3 { font-size: 16px; font-weight: 600; margin: 4px 0 6px; }
+  .said em { color: var(--ink-2); }
+  .said .mas { font: 500 13px var(--mono); color: var(--ink-2); }
+  .md-table { overflow-x: auto; border: 1px solid var(--ink); background: var(--white); }
+  .md-table table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  .md-table th, .md-table td { text-align: left; vertical-align: top; padding: 6px 9px; border-bottom: 1px solid var(--hair); }
+  .md-table th { font-size: 13px; font-weight: 600; letter-spacing: .04em; background: var(--paper); border-bottom: 1px solid var(--ink); }
+  .md-table tr:last-child td { border-bottom: 0; }
+  .file { border: 1px solid var(--ink); background: var(--white); }
+  .file-name { display: block; padding: 6px 10px; border-bottom: 1px solid var(--ink); font: 500 13px var(--mono); background: var(--slab); }
+  .file-body { padding: 10px 12px; font-size: 15px; }
+  .file-body > * { margin: 0 0 8px; }
+  .file-body > *:last-child { margin-bottom: 0; }
+  .file-body h1 { font-size: 17px; }
+  .file-body h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-top: 12px; }
+  .typing { color: var(--ink-2); font: 500 15px var(--mono); }
+
+  /* what you can type */
+  .composer { flex: none; border-top: 1px solid var(--ink); background: var(--white); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 0; }
+  .chips:empty { display: none; }
+  .chip { font: 500 14px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--ink); border-radius: 2px; min-height: 36px; padding: 0 10px; cursor: pointer; text-align: left; }
+  .chip:hover { background: var(--white); border-color: var(--verm-ink); }
+  form { display: flex; gap: 8px; padding: 10px 12px 4px; align-items: stretch; }
+  textarea { flex: 1; min-width: 0; resize: none; font: 400 15px/1.45 var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--ink); border-radius: 2px; padding: 8px 10px; min-height: 44px; max-height: 140px; }
+  textarea:disabled { color: var(--ink-2); background: var(--sheet); }
+  .send { flex: none; font: 600 15px var(--sans); background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 2px; padding: 0 16px; min-height: 44px; cursor: pointer; }
+  .send:hover { background: #2E343A; }
+  .send:disabled { background: var(--ink-2); border-color: var(--ink-2); cursor: default; }
+  .hint { margin: 0; padding: 2px 12px 10px; font-size: 13px; color: var(--ink-2); }
+
+  .panel-col { min-height: 0; min-width: 0; display: flex; }
+  .panel-col iframe { flex: 1; width: 100%; height: 100%; border: 0; background: var(--sheet); }
+
+  @media (max-width: 960px) {
+    body { height: auto; }
+    .practice { grid-template-columns: 1fr; }
+    .chat-col { border-right: 0; border-bottom: 1px solid var(--ink); height: 78vh; }
+    .panel-col { height: 88vh; }
+  }
+  @media (max-width: 640px) {
+    .rule { padding: 8px 16px; }
+    .rule .lnk { display: none; }
+    .row { padding: 10px 14px 12px; }
+  }
+</style>
+</head>
+<body>
+<header class="rule">
+  <a class="wm" href="../examples/index.html">awesome-mas</a>
+  <span class="tag">Practice mode</span>
+  <label class="pick" for="example">Example <select id="example"></select></label>
+  <span class="sp"></span>
+  <a class="lnk" href="../examples/index.html">All examples</a>
+  <button class="btn" id="restart" type="button">Start over</button>
+</header>
+<main class="practice">
+  <section class="chat-col" aria-label="Practice chat">
+    <p class="banner" id="banner">No tokens needed. This replays a real run: you type what a student types, the answers come from that run.</p>
+    <div class="log" id="log" role="log" aria-live="polite"></div>
+    <div class="composer">
+      <div class="chips" id="chips"></div>
+      <form id="form">
+        <label class="sr" for="msg">Your message</label>
+        <textarea id="msg" rows="2"></textarea>
+        <button class="send" id="send" type="submit">Send</button>
+      </form>
+      <p class="hint" id="hint">Filled in from the real run. Press Enter to send, or write your own.</p>
+    </div>
+  </section>
+  <section class="panel-col" aria-label="Live panel">
+    <iframe id="panel" title="The awesome-mas live panel for this example"></iframe>
+  </section>
+</main>
+<script src="../office/model.js"></script>
+<script src="practice.js"></script>
+</body>
+</html>

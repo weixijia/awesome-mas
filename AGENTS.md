@@ -13,9 +13,9 @@ Each MAS lives in its own folder next to this file (e.g. `headphone-deals/`), ho
 - `home/env.md` + `home/env.js` — what this tool can do (written once by `setup`).
 - `home/projects.js` — the list of MAS folders and which one is **current** (format: `harness/formats.md`). The panel reads it to decide what to show.
 
-**Every path in `harness/` (e.g. `me/task.md`, `mas/status/lead.js`) is inside the current MAS folder** — write `headphone-deals/me/task.md`, never a top-level `me/`. Only `home/` is shared. Never write inside another MAS folder, `examples/`, `office/` or `harness/`.
+**Every path in `harness/` (e.g. `me/task.md`, `mas/status/lead.js`) is inside the current MAS folder** — write `headphone-deals/me/task.md`, never a top-level `me/`. Only `home/` is shared. Never write inside another MAS folder, `examples/`, `practice/`, `office/` or `harness/`.
 
-**Start of every conversation:** before anything else, do `choose` (`harness/operations.md`) — list the MAS folders and ask "Start a new MAS, or continue one of these?" Do this even if `home/projects.js` names a current MAS. Skip it only when `home/env.md` is missing (then do `setup` first).
+**Start of every conversation:** before anything else, do `choose` (`harness/operations.md`) — list the MAS folders and ask "Start a new MAS, or continue one of these?" (if there are none yet, go straight to describing a new one). Do this even if `home/projects.js` names a current MAS. Skip it only when `home/env.md` is missing (then do `setup` first).
 
 **In every reply after a MAS is chosen** (including short progress updates during a run), start with one short line naming it, e.g. `MAS: headphone-deals`.
 
@@ -25,7 +25,7 @@ Each MAS lives in its own folder next to this file (e.g. `headphone-deals/`), ho
 2. **Files are the memory.** Decide what to do from the files, not from the conversation. Every operation ends by writing its files, the matching `.js` data file, the MAS's `mas/state.js`, and its entry in `home/projects.js` (formats: `harness/formats.md`).
 3. **Evidence or say so.** Facts from the web link a source card in `sources/`. Never invent URLs, prices, quotes, people or numbers. If you don't know, say so.
 4. **Plain language.** Short sentences, no jargon (or explain it), one question at a time. Don't mention `harness/` files or internal procedures to the student (the words they type, like `next` or `unlock`, are fine) — just do the step and say what it means for them. Reply in the student's language; write files in English, keeping the student's own words as they wrote them.
-5. **Stay in your lane.** Read `raw/` but never change the student's files there. Never edit `office/`, `harness/`, `AGENTS.md`, `SETUP.md`. `examples/` holds finished examples for reference only — never treat them as this student's files.
+5. **Stay in your lane.** Read `raw/` but never change the student's files there. Never edit `office/`, `harness/`, `practice/`, `AGENTS.md`, `SETUP.md`. `examples/` holds finished examples for reference only — never treat them as this student's files.
 6. **Keep approvals rare.** If your tool has dedicated file tools (read / write / edit / search / list), use them instead of shell commands — in such tools, shell commands trigger approval prompts that confuse students. Write each file whole with your write or edit tool, one file per call: no shell loops, heredocs, `sed`, or Python/Node scripts to write, convert or check files, and no command just to get the time. If your tool works through the shell (e.g. Codex), use simple read-only commands to read (`cat`, `ls`) and your normal way to write files. Never write outside this folder (not even `/tmp`). The only shell command you need is the one that opens the panel.
 7. **Don't guess personal details** (gender, age, …). Unknown → `TBD`.
 8. **Keep the panel in sync.** When you change a Markdown file that has a `.js` twin, rewrite the twin in the same turn.
@@ -40,6 +40,7 @@ Each MAS lives in its own folder next to this file (e.g. `headphone-deals/`), ho
 | a change in plain words ("add a budget checker") | `refine` (if the team is not locked; if locked, offer `unlock`) |
 | `run again` | `run` |
 | `unlock` | `unlock` |
+| "I'm running out of usage / tokens", or your tool reports a usage limit | say they can keep going without tokens in **practice mode**: open `practice/index.html` (it replays a real example step by step); their own MAS stays saved in its folder for later |
 | anything else | answer helpfully, then say what `next` will do |
 
 ## What `next` does
@@ -52,7 +53,7 @@ Each MAS lives in its own folder next to this file (e.g. `headphone-deals/`), ho
 | no MAS has been chosen in this conversation | `choose` |
 | `me/task.md` is missing | `describe` |
 | `mas/structure.js` is missing | `design` |
-| the structure is not locked | ask "Happy with your team? I'll lock it." → if yes, `lock` |
+| the structure is not locked | `lock` — typing `next` here is the student's decision, so don't ask "are you sure?" |
 | the structure is locked and `outputs/result.md` is missing | `run` |
 | `outputs/result.md` exists | explain the options: change a condition in `me/task.md` and type `run again`, type `unlock` to change the team, or type `new` to start another MAS |
 

@@ -1,173 +1,413 @@
+<div align="center">
+
 # awesome-mas
 
-**Build your own multi-agent assistant — for any task — with the AI tool you already use.**
+### Build your own team of AI agents, step by step.
 
-Describe a task in your own words. Your AI designs a small team of agents for it, you shape the team by chatting, lock it, and watch your agents work together in an animated office. No coding, nothing extra to install.
+Pick a task you really care about. Your AI assistant designs a small team of agents for it,<br>
+you shape the team by chatting, and you watch the agents work together in a live office.
 
-Works with **Claude** (app or Claude Code), **Codex** (app or CLI), **Antigravity** (IDE or CLI) and most other AI coding assistants.
+[![Claude](https://img.shields.io/badge/Claude-app%20%C2%B7%20Code-E04E2A.svg)](#-part-a--set-up-your-folder-once)
+[![Codex](https://img.shields.io/badge/Codex-app%20%C2%B7%20CLI-2B57B5.svg)](#-part-a--set-up-your-folder-once)
+[![Antigravity](https://img.shields.io/badge/Antigravity-IDE%20%C2%B7%20CLI-D89A12.svg)](#-part-a--set-up-your-folder-once)
+[![No coding](https://img.shields.io/badge/coding-none-5E8C57.svg)](#-before-you-start)
+[![Nothing to install](https://img.shields.io/badge/install-nothing%20extra-1F8A84.svg)](#-part-a--set-up-your-folder-once)
+[![License: MIT](https://img.shields.io/badge/license-MIT-8E4C8A.svg)](LICENSE)
 
-📖 **Step-by-step tutorial** (every message you type, with pictures of each step): **https://www.xijiawei.com/awesome-mas/**
+[**📖 Step-by-step tutorial**](https://www.xijiawei.com/awesome-mas/) · [**Set up**](#-part-a--set-up-your-folder-once) · [**The 4 steps**](#-the-whole-journey) · [**Practice mode (no tokens)**](#-practice-mode-every-step-without-tokens) · [**Troubleshooting**](#-if-something-goes-wrong) · [**For developers: MAS Office**](https://github.com/weixijia/mas-office)
 
-🛠️ **Developer?** awesome-mas is the classroom edition. [**MAS Office**](https://github.com/weixijia/mas-office) is the full version for developers: the same panel driven by a written protocol, Python and JS SDKs, a live server, and integrations for OpenAI Agents SDK, LangGraph, Claude Agent SDK and Claude Code.
+<img src="docs/img/step4-result.webp" alt="The awesome-mas panel after a finished run: an axonometric office where five agents gathered at the party table, and on the right the result: a shortlist of three headphone offers with total prices and links" width="900">
+
+<sub>Where you will end: your team in the office, and the answer to your task on the right. A real run from the price-comparison example.</sub>
+
+</div>
 
 ---
 
-## The whole journey: set up once, then 4 steps
+A chat window answers one question at a time and forgets when you close it. **awesome-mas turns the AI tool you already use into the Lead of your own small team of agents**: it writes your task down, proposes who should do what, lets you decide, and then runs the team while an animated office shows every agent at work. Everything happens in plain files in one folder. The [tutorial](https://www.xijiawei.com/awesome-mas/) walks you through every message you type, with a picture of each step; this README has the same steps.
+
+| | |
+|---|---|
+| 🧑‍💻 **You need** | An AI coding assistant you are signed in to: Claude (app or Claude Code), Codex (app or CLI), Antigravity (IDE or CLI), or similar |
+| ⏱️ **Time** | About 60–90 min the first time |
+| ✍️ **Coding** | None. You only chat |
+| 🎓 **No tokens?** | [Practice mode](#-practice-mode-every-step-without-tokens) does every step with a real example, for free |
+
+## 🧭 The whole journey
+
+Set up once, then 4 steps. **You type `next` 4 times in all: once for each step.**
 
 | | You type | You get | Time |
 |---|---|---|---|
-| **Set up** (once per folder) | the setup sentence below | your folder ready, the live panel open | 5–10 min |
-| **Name your MAS** | `next`, then a few words | a folder for this MAS | 1 min |
-| **Step 1 · Describe** | `next`, then **5 answers**, one per question | your requirements R1, R2… | 10–15 min |
-| **Step 2 · Design** | `next` | a draft team for your requirements | 2 min + reading |
-| **Step 3 · Refine & lock** | changes in your own words, then `next` → *yes* | one job file per agent | 10–20 min |
-| **Step 4 · Run** | `next`, then wait | a result with sources you can open | 3–8 min |
+| **[Part A · Set up](#-part-a--set-up-your-folder-once)** (once per folder) | one sentence | your folder ready, the live panel open | 5–10 min |
+| **[Step 1 · Describe](#step-1--describe-your-task)** | `next`, then 5 answers | your requirements R1, R2… and a folder named after your task | 10–15 min |
+| **[Step 2 · Design](#step-2--let-it-design-a-team)** | `next` | a draft team for your requirements | 2 min, then read |
+| **[Step 3 · Refine & lock](#step-3--refine-the-team-then-lock-it)** | changes in your own words, then `next` | one job file per agent | 10–20 min |
+| **[Step 4 · Run](#step-4--run-it-and-watch)** | `next`, then wait | a result with sources you can open | 3–8 min |
+| **[After](#-after-the-run)** | `run again`, `unlock`, `new` | another run, a changed team, another MAS | — |
 
-**Five questions is not five steps:** the five questions are all inside step 1. You type `next` once to name your MAS, then once to start each of the 4 steps.
+> **Five questions is not five steps.** The five questions are all inside step 1. Your assistant asks them one at a time, and step 1 is done when it shows you your requirements.
 
-## Start in one minute
+## ✅ Before you start
 
-1. **Make a new, empty folder** (e.g. `my-mas` on your Desktop).
-2. **Open it in your AI tool** (see your tool below).
-3. **Paste this sentence** — it is the same for every tool:
+1. **An AI coding assistant, signed in.** Claude (the desktop app or Claude Code), Codex (the app or the CLI), Antigravity (the IDE or the CLI), or a similar assistant that can read and write files in a folder. Most need a paid plan. Your normal chat website is not enough: it cannot keep files.
+2. **A task you genuinely want help with.** Comparing prices before a purchase, planning a trip, checking whether a thesis idea is feasible, finding a flat, planning meals, preparing job applications. Anything works, as long as you can say what a good answer looks like.
+3. **A browser for the live panel.** Any modern browser. There is nothing to click or connect in it; it only shows what your team is doing.
 
-   ```
-   Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it.
-   ```
+A full run uses a real share of your plan's usage, because every agent reads and writes on its own. Keep your first team small: a Lead plus 2–4 agents. If your usage runs out, or you have none, you can still do every step in [practice mode](#-practice-mode-every-step-without-tokens).
 
-Your assistant downloads everything, tests what your tool can do, opens the panel, and says *“Type `next` to start your first MAS.”*
+## 🚀 Part A · Set up your folder (once)
 
-## Set up in your tool
+One folder can later hold several MAS, so you set it up only once. Everything your team writes stays in this folder, as plain files you can open.
+
+**A1 · Make an empty folder** somewhere easy to find, for example `my-mas` on your Desktop. Empty matters: your assistant will not touch files that are already there.
+
+**A2 · Open the folder in your AI tool.** Pick yours:
 
 <details open>
+<summary><b>Claude app</b> (desktop)</summary>
+
+1. Install the [Claude desktop app](https://claude.com/download) and sign in.
+2. Open the **Code** tab, choose **Open folder…** and pick your empty folder.
+3. If the app asks whether you trust this folder, choose **trust**. Without it, the folder's own settings don't apply and every file edit asks for permission.
+4. During setup, approve when it asks to download files or to edit files in this folder.
+
+Tip: once setup has run, click `office/index.html` in the chat to open the panel in the app's browser pane, right next to your conversation.
+</details>
+
+<details>
 <summary><b>Claude Code</b> (terminal)</summary>
 
-1. Install [Claude Code](https://code.claude.com/docs/en/setup) and sign in.
+1. Install Claude Code ([instructions](https://code.claude.com/docs/en/setup)) and sign in.
 2. Open a terminal in your empty folder and run:
    ```
    claude
    ```
-3. When asked, choose **trust this folder** — otherwise every file edit asks for permission.
-4. Paste the setup sentence.
+3. When it asks whether you trust this folder, choose **Yes, I trust this folder**. Without it, the folder's own settings don't apply and every file edit asks for permission.
+4. During setup, approve the one download command when asked.
 
-Agents run as **real parallel subagents** (the panel shows *Real agents*).
-</details>
-
-<details>
-<summary><b>Claude app</b> (desktop)</summary>
-
-1. Install the [Claude desktop app](https://claude.com/download) and sign in.
-2. Open the **Code** tab → **Open folder…** → choose your empty folder.
-3. Paste the setup sentence. Approve when it asks to download or edit files in this folder.
-4. Tip: click `office/index.html` in the chat to open the panel next to your conversation.
-</details>
-
-<details>
-<summary><b>Codex CLI</b> (terminal)</summary>
-
-1. Install [Codex](https://developers.openai.com/codex) and sign in.
-2. Open a terminal in your empty folder and run:
-   ```
-   codex --search
-   ```
-   (`--search` gives live web results; without it Codex uses cached search.)
-3. Paste the setup sentence. If the download is blocked, approve network access when asked, or use the ZIP below.
-
-Agents run as **real parallel subagents**.
+Claude Code runs your agents as real parallel subagents: two finders really work at the same time.
 </details>
 
 <details>
 <summary><b>Codex app</b> (desktop)</summary>
 
-1. Install the [Codex app](https://developers.openai.com/codex) and sign in.
+1. Install the Codex app ([instructions](https://developers.openai.com/codex)) and sign in.
 2. Open your empty folder as a project.
-3. Paste the setup sentence. If Codex says it can't download (its sandbox may block internet for commands), use the ZIP below, then type `next`.
+3. If Codex says it can't download (its sandbox may block the internet for commands), use the ZIP route under A3, then type `next`.
+</details>
+
+<details>
+<summary><b>Codex CLI</b> (terminal)</summary>
+
+1. Install Codex CLI ([instructions](https://developers.openai.com/codex)) and sign in.
+2. Open a terminal in your empty folder and run:
+   ```
+   codex --search
+   ```
+   The `--search` part gives live web results; without it Codex uses cached results.
+3. If the download is blocked, approve network access when asked, or use the ZIP route under A3.
+
+Codex runs your agents as real parallel subagents.
 </details>
 
 <details>
 <summary><b>Antigravity</b> (IDE or CLI)</summary>
 
 1. Install [Antigravity](https://antigravity.google/) and sign in.
-2. **IDE:** *Open Folder* → your empty folder. **CLI:** open a terminal in the folder and run:
+2. IDE: **Open Folder** and pick your empty folder. CLI: open a terminal in the folder and run:
    ```
    agy
    ```
-3. Paste the setup sentence. Allow it to edit files in this folder when asked.
+3. Allow it to edit files in this folder when asked (or start the CLI in a mode that accepts file edits).
 
-Setup tests whether Antigravity can start subagents here. If it can't, your assistant plays each role in turn (*Role-play* in the panel) — the steps and the office are the same, only slower.
+Setup tests whether Antigravity can start subagents here. If it can't, your assistant plays each role in turn: slower, and the panel says so, but the steps and the office are the same.
 </details>
 
 <details>
-<summary><b>Any other AI coding assistant</b> (Cursor, Copilot, Gemini CLI, opencode, …)</summary>
+<summary><b>Other</b> (Cursor, Copilot, Gemini CLI, opencode…)</summary>
 
-1. Open your empty folder in the assistant.
-2. Paste the setup sentence.
-3. If it doesn't follow the steps on its own, start each conversation with:
+1. Open your empty folder in your AI coding assistant.
+2. Allow it to edit files in this folder and to search the web.
+3. If it doesn't follow the steps on its own later, start each conversation with:
    ```
    Read AGENTS.md and follow it.
    ```
 </details>
 
-**Can't download from inside your tool?** Download [the ZIP](https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip), unzip it, move everything from `awesome-mas-main` into your folder, open the folder in your tool and type `next`.
+**A3 · Paste the setup sentence.** It is the same sentence for every tool:
 
-## What to type
+```
+Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it.
+```
+
+Can't download from inside your tool? Get the [ZIP](https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip), unzip it, move everything inside `awesome-mas-main` into your folder, open the folder in your tool and type `next`.
+
+**A4 · Let your assistant set things up.** You only approve. It explains each step in one sentence while it downloads awesome-mas into your folder (you approve once), writes a small file to check it can save files, runs one tiny web search, starts one tiny test agent to check whether it can run agents at the same time (and tells you honestly: *real agents* or *role-play*), and opens the live panel, `office/index.html`. It ends with:
+
+> Welcome to awesome-mas. … This folder can hold several MAS, one folder each. Keep `office/index.html` open: it follows whichever MAS we work on.
+>
+> **Type `next` to start your first MAS.**
+
+**A5 · Put the chat and the panel side by side.** From now on you **talk** in your assistant and **watch** the panel. Put the chat on the left half of your screen and the panel on the right. The panel updates by itself; if it ever looks stuck, reload the page.
+
+## Step 1 · Describe your task
+
+> **You type** `next`, then 5 answers · **Time** about 10–15 min · **You get** requirements R1, R2… · **Ingredient** memory
+
+Type `next`. Your assistant interviews you with **five questions, one at a time**, and waits for each answer. Answer in your own words, in any language. The examples are from the real price-comparison example in your folder.
+
+| | Question | Hint | Example answer |
+|---|---|---|---|
+| **Q1** | What should your assistant help you do? | Say the task in one or two sentences. | Compare prices before I buy noise-cancelling headphones (Sony WH-1000XM6 or similar). |
+| **Q2** | What are your preferences and limits? | Budget, time, things to avoid. Numbers help: they become checkable requirements. | Under £280 total including delivery, must be brand new (not refurbished), delivered within 3 days, UK shops only. |
+| **Q3** | What does a good result look like? How will you judge it? | The shape of the answer you want to receive. | A short list of the 2–3 best offers with total price and links I can check. |
+| **Q4** | Will you do this again? How often? | This tells your assistant whether a reusable team is worth it. | Yes, I'll use it again for a monitor next month. |
+| **Q5** | Do you have your own material for it? | Notes, a reading list, a brief. If yes, it tells you which `raw/` folder to put the files in; your agents read them but never change them. | No. |
+
+If an answer is unclear, your assistant may ask one short follow-up. That is still step 1.
+
+After your first answer, your assistant **names your MAS** after the task and makes a folder for it. You don't need to do anything; if you'd like another name, just say so.
+
+> MAS: headphone-deals
+>
+> I've called this MAS *Headphone deal finder* (folder `headphone-deals/`). Tell me if you'd like another name.
+>
+> 2\. What are your preferences and limits?
+
+Every reply from now on begins with a line like `MAS: headphone-deals`, so you always know which MAS you are in. One project folder can hold several MAS: each new conversation starts by listing them and asking whether to start a new one or continue one.
+
+**You'll see** your answers turned into **requirements**: short, checkable lines that everything later is measured against.
+
+> Your requirements:
+>
+> **R1** Total price (including delivery) is under £280 · **R2** Brand new only (no refurbished) · **R3** Delivered within 3 days, from UK shops only · **R4** A short list of the 2–3 best offers, each with total price and a link I can check
+>
+> Type `next` to design your team.
+
+<img src="docs/img/step1-describe.webp" alt="The panel after step 1: the Lead alone in a small room, the requirements R1 to R4 pinned on the wall board, and the task with its four requirements listed in the sidebar" width="720">
+
+**Check before moving on:**
+- [ ] Each requirement is something you actually said. If one is wrong, just say so: *“R2 should be ‘new or open-box’”*.
+- [ ] Each one can be checked. “Cheap” is hard to check; “under £280 including delivery” is easy.
+
+> 💡 **A chat can't do this · Memory.** Close the conversation and start a new one in the same folder. Your assistant lists your MAS and picks this one up from `me/task.md`. A web chat forgets when you close it; your task now lives in a file.
+
+## Step 2 · Let it design a team
+
+> **You type** `next` · **Time** about 2 min, then read · **You get** a draft team · **Ingredient** division of labour
+
+Type `next`. Your assistant derives a team from *your* requirements: a **Lead** who writes the final answer, plus a few **roles**. A new role only exists for a reason: a different source or expertise, work that can run at the same time, an independent check, or combining results.
+
+**You'll see** a small table in the chat. This is the team from the price-comparison example:
+
+| Role | Serves | Why it exists | Group |
+|---|---|---|---|
+| Sony deal finder | R1 R3 | Searches UK shops for the exact model | A |
+| Similar-model finder | R1 R3 | A different source: similar headphones, at the same time | A |
+| Catch checker | R2 R3 | An independent check for refurbished stock and slow delivery | B |
+| Budget checker | R1 | An independent check of every total, delivery included | B |
+
+> These run at the same time: the two finders (group A), then the two checkers (group B).
+>
+> Cost: 5 agents ≈ 5× the tokens of one assistant.
+>
+> Change anything by telling me, and the panel shows the updated team. When you're happy, type `next` to lock.
+
+<img src="docs/img/step2-design.webp" alt="The panel in step 2: the office drawn as a dashed blueprint, with rooms for group A (in parallel) and group B (after A), and the draft team listed in the sidebar with each role's requirements" width="720">
+
+**Read it like a designer:**
+- [ ] Every requirement is served by at least one role.
+- [ ] You can say in one sentence why each role exists.
+- [ ] You know which roles run at the same time, and who checks whom.
+
+> 💡 **A chat can't do this · Division of labour.** Your task became a team you can point at: each role traces back to your own words, and the checkers are separate from the finders they check.
+
+## Step 3 · Refine the team, then lock it
+
+> **You type** changes in words, then `next` · **Time** about 10–20 min · **You get** one job file per agent · **Ingredient** your decision
+
+This is the step where you decide. Ask for as many changes as you like, one message each, in plain words. Your assistant updates the team, tells you the effect on **speed**, **cost** and **coverage**, and the blueprint in the panel changes with it. Things you can say:
+
+- *“Add a budget checker that re-checks every total.”*
+- *“Merge the two finders into one.”* (cheaper, but no longer at the same time)
+- *“The catch checker should also check the seller is in the UK.”*
+- *“Remove the similar-model finder; I only want the Sony.”*
+- *“Why do we need two checkers?”* (questions are fine too)
+
+Push back on every extra agent: more agents means more tokens and more time. If a change leaves a requirement unserved, your assistant tells you, but the choice stays yours.
+
+**Lock it** by typing `next`. It locks straight away, no “are you sure?”:
+
+> Your team is locked: each role now has a desk in the office panel. Type `unlock` if you want to change it.
+>
+> Open one file in `team/` and read it: this file *is* the agent, its whole job description.
+>
+> Type `next` to run your team.
+
+<img src="docs/img/step3-lock.webp" alt="The panel after locking: the rooms are coloured in, each role has a desk, and the agents stand in the office waiting to start. The sidebar lists the locked team, version 1" width="720">
+
+Do open one of the files in `team/` (for example `team/catch-checker.md`). It is short: the job, the tools, the rules and the output it must produce. Nothing else makes that agent.
+
+> 💡 **A chat can't do this · Your decision.** You designed the structure, and you can see its price: the team, who checks whom, and how many agents you are paying for.
+
+## Step 4 · Run it and watch
+
+> **You type** `next`, then wait · **Time** about 3–8 min · **You get** a result with sources · **Ingredients** tools, workflow
+
+Type `next`. Your assistant tells you honestly how the agents will run: *separate subagents, each with its own context* (group A at the same time), or *role-play*, where it plays each role in turn. Then the team starts, group by group. You don't need to type anything until it says the result is ready.
+
+**What to watch in the panel:**
+- **The big sentence at the top** says what is happening right now, e.g. two finders working at the same time.
+- **Each person** sits at a desk and types; the line next to them says what they are doing and how far along they are.
+- **Hand-offs:** when a finder is done, it carries a sheet of paper along the dashed line to the checker.
+- **Flags:** an agent that finds a problem stands up and raises a hand, with a yellow warning, e.g. “Refurbished: breaks R2”.
+- **Click a person** to follow only their thread; everything else dims. Click again to go back.
+
+<img src="docs/img/step4-run.webp" alt="The panel during a run: the headline reads that the Sony deal finder and the Similar-model finder are working at the same time; both sit typing in the vermilion room of group A while the two checkers wait in the blue room of group B" width="720">
+
+**When it's done**, your assistant gives you the answer in a few lines and points to `outputs/result.md`. The panel shows the same result on the right, every source with a link you can open, and an evidence grade from A (you can buy or run it) to D (opinion). The team gathers for a short celebration.
+
+- [ ] Open two or three sources and check a claim yourself.
+- [ ] Look at what the checkers caught: that is what a single chat would have missed.
+- [ ] Click a person to read their own work summary.
+
+> 💡 **A chat can't do this · Tools, workflow.** Agents worked at the same time, a checker caught what a finder missed, and every claim links to a source you can open. Next time, one line repeats the whole process.
+
+## 🔁 After the run
+
+| You want to | Do this |
+|---|---|
+| Run with a new condition | Change it in `me/task.md` (e.g. the budget), then type `run again`. The old result is kept as `result-run1.md`. |
+| Change the team | Type `unlock`, ask for changes, then `next` to lock it again. |
+| Start another MAS | Type `new` and answer question 1; your assistant names the new MAS from your answer. Both MAS stay in the same folder. |
+| Go back to another MAS | Say e.g. *“switch to lisbon trip”*. The panel follows. |
+| Continue another day | Open the folder in your tool and say anything. Your assistant lists your MAS and asks which one. |
+
+## 🎓 Practice mode: every step, without tokens
+
+> **You need** a browser and the awesome-mas files · **Time** about 10 min · **Tokens** none · **You get** the whole journey, once
+
+Your usage ran out halfway, your task was bigger than your plan, or you don't have a paid AI tool yet? Practice mode replays one of three **real example runs**, and you do every step yourself: you type exactly what you would type in your assistant, and the real panel beside the chat moves through each step.
+
+**Open it**
+1. **Already set up?** In your folder, double-click `practice/index.html`. Your own MAS stays saved; carry on with it when your usage resets.
+2. **No folder yet?** Download the [ZIP](https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip), unzip it, and double-click `practice/index.html` inside `awesome-mas-main`.
+3. At the top, pick an example: *Headphone deal finder* (Claude Code), *Weekend in Lisbon* (Codex) or *Thesis feasibility check* (Antigravity).
+
+**What you do** — the same four steps. The box under the chat is already filled in with what the real student typed, so you can just press Enter, or write your own.
+
+| You type | You see |
+|---|---|
+| `next`, then 5 answers | Step 1: the questions one at a time, the MAS named after your first answer, then the requirements on the board. |
+| `next` | Step 2: the team table and the dashed blueprint. Tap *Why …?* to hear why a role exists. |
+| `next` | Step 3: the team is locked and walks into the office. Read one real `team/` file: that file is the agent. |
+| `next` | Step 4: the office runs, group by group, and the chat reports along. Then the real result and what the checkers caught. |
+
+<img src="docs/img/practice.webp" alt="Practice mode: on the left a chat where the student asked why the team needs a budget checker and the assistant answers from the real role's reason; on the right the real panel shows the draft team as a dashed blueprint" width="720">
+
+**What it can't do**
+- Your words can't change the outcome: answers, team and result come from the real run. When you write your own words, the chat tells you which real answer it keeps.
+- The team can't be changed. Asking for a change gets an honest “that needs a real AI”.
+- The office animation is a typical run of that real team, shortened to under a minute. The result at the end is the real one.
+
+## ⌨️ Words you can type
 
 | Type | What happens |
 |---|---|
-| `next` | Do the next step (describe → design → lock → run) |
-| a change in your own words, e.g. *“add a budget checker”* | Change the team before it is locked |
-| `run again` | Re-run the whole team (e.g. after changing a condition in `me/task.md`) |
-| `unlock` | Change a locked team |
-| `new` | Start another MAS in the same folder |
-| *“switch to lisbon trip”* | Continue another MAS |
+| `next` | Do the next step: describe, design, lock, run. |
+| a change in your own words | Change the team before it is locked, e.g. *“add a budget checker”*. |
+| `run again` | Run the whole team again. |
+| `unlock` | Change a locked team. |
+| `new` | Start another MAS in the same folder. |
+| *switch to …* | Continue another MAS. |
+| `Read AGENTS.md and follow it.` | Get your assistant back on track if it forgets the steps. |
 
-Every new conversation starts by asking whether to start a new MAS or continue one you have.
+## 🛟 If something goes wrong
 
-## The 4 steps — type `next` to start each one
+<details>
+<summary><b>The setup sentence fails: it can't download.</b></summary>
 
-| Step | You | You'll see |
+Use the ZIP: download it from the link under A3, unzip it, move everything inside `awesome-mas-main` into your folder, then open the folder in your tool and type `next`.
+</details>
+
+<details>
+<summary><b>Every file edit asks me for permission.</b></summary>
+
+Your tool doesn't trust the folder yet. In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.
+</details>
+
+<details>
+<summary><b>The panel doesn't update.</b></summary>
+
+Reload the browser page. Make sure you opened the `office/index.html` inside your project folder, not a copy somewhere else.
+</details>
+
+<details>
+<summary><b>My assistant doesn't follow the steps.</b></summary>
+
+Type `Read AGENTS.md and follow it.` and then `next`.
+</details>
+
+<details>
+<summary><b>It says role-play instead of real agents.</b></summary>
+
+Your tool can't start separate agents here, so your assistant plays each role in turn. The steps and the office are the same; it just takes longer, and the panel says so honestly.
+</details>
+
+<details>
+<summary><b>An agent says a web page wouldn't open.</b></summary>
+
+Some sites block automated readers. Your agents are told to say so and use another source instead of guessing. If an important source is missing, open it yourself and check.
+</details>
+
+<details>
+<summary><b>The run takes too long.</b></summary>
+
+Say *“finish with what you have”*. Next time, use a smaller team (type `unlock`, merge or remove roles).
+</details>
+
+<details>
+<summary><b>I ran out of usage.</b></summary>
+
+Your files are safe; continue when your usage resets. Meanwhile, double-click `practice/index.html` in your folder: [practice mode](#-practice-mode-every-step-without-tokens) replays a real example run, step by step, with no tokens. You type `next` and the answers (they are filled in for you), and the panel next to the chat moves through every step, from the task board to the finished result. Your words can't change that run; it shows you the whole journey. Next time, start with a smaller team.
+</details>
+
+## 📁 What's in your folder
+
+```
+my-mas/
+  office/index.html   the live panel (open it in a browser)
+  home/               what your tool can do, and the list of your MAS
+  headphone-deals/    one folder per MAS:
+    me/               your task, in your words
+    mas/              the team's structure and live status
+    team/             one job description per agent
+    sources/          every web source your agents used
+    outputs/          the result (result.md), and each agent's own work
+    raw/              your own files for the agents to read (optional)
+  examples/           three finished examples: double-click examples/index.html
+  practice/           practise every step without tokens: double-click practice/index.html
+  AGENTS.md, harness/ the instructions your assistant follows
+```
+
+## 🧠 Why a team of agents instead of one chat?
+
+Each step shows you one ingredient a single chat window doesn't have.
+
+| Ingredient | Where you saw it | What it means |
 |---|---|---|
-| **1 · Describe** | Answer 5 short questions, one at a time (all part of step 1): what to help with, your preferences and limits, what a good result looks like, whether you'll repeat it, and any files of your own | Your requirements R1, R2… |
-| **2 · Design** | — | A draft team for *your* requirements appears in the office, with who reports to whom |
-| **3 · Refine & lock** | Change roles in words (*“add a budget checker”*); then type `next` and answer *yes* to lock | Your team moves into the office |
-| **4 · Run** | — | Agents working side by side, handing work to each other, checking each other — then a result with sources you can open |
+| **Memory** | Step 1 | Your task lives in files, so closing the chat loses nothing. |
+| **Division of labour** | Steps 2 and 4 | Specialists work at the same time, and checkers catch what finders miss. |
+| **Tools** | Step 4 | Agents search the web and save every source, so you can check each claim. |
+| **Workflow** | After the run | `run again` repeats the whole process in one line. |
 
-Afterwards: change a condition and type `run again`, type `unlock` to redesign your team, or type `new` to start another MAS. One folder can hold several MAS, each in its own folder; every new conversation starts by asking which one to work on.
+More agents also means more tokens. The panel shows the trade-off, and the choice is yours.
 
-## Talk here, watch there
+## 🛠️ For developers: MAS Office
 
-- **Talk** to your assistant — in a terminal or an app. That's where everything happens: answer questions, ask for changes (*“add a budget checker”*), type `next`.
-- **Watch** the panel (`office/index.html`, any browser). It's a live view: your task board, your team, each agent at its desk with what it's doing and how far it is, and the result in the side panel when the work is done. Nothing to click. Put the chat and the panel side by side.
+awesome-mas is the classroom edition: a few plain files and one static page, driven by whatever AI assistant you already have. [**MAS Office**](https://github.com/weixijia/mas-office) is the full version for developers: the same office panel driven by an open protocol, Python and JS SDKs, a live server, and integrations for the OpenAI Agents SDK, LangGraph, the Claude Agent SDK and Claude Code.
 
-## What's inside
+## 📄 License
 
-```
-AGENTS.md        instructions your assistant follows (CLAUDE.md / GEMINI.md point here)
-SETUP.md         what your assistant does on the setup sentence
-harness/         operations, team-design rules, file formats
-office/          the live panel (follows whichever MAS you are working on)
-home/            what your tool can do, and the list of your MAS (created at setup)
-headphone-deals/ one folder per MAS (named when you create it), holding:
-  me/            your task, in your words
-  mas/           your team's structure and live status
-  team/          one job description per agent (created when you lock)
-  sources/       every web source your agents used
-  outputs/       the result
-  raw/           your own files for the agents to read (optional)
-examples/        finished examples — double-click examples/index.html
-```
-
-## Why a team of agents instead of one chat?
-
-| Ingredient | What you'll notice |
-|---|---|
-| **Memory** | Close and reopen — it still knows your task, because it lives in files. |
-| **Tools** | Agents search the web and save every source, so you can check each claim. |
-| **Division of labour** | Specialists work at the same time, and checkers catch what finders miss. |
-| **Workflow** | `run again` repeats the whole process in one line. |
-
-More agents also means more tokens — the panel shows the trade-off, and the choice is yours.
-
-## License
-
-MIT
+[MIT](LICENSE) © Xijia Wei. Fonts: Archivo and Red Hat Mono (SIL Open Font License).

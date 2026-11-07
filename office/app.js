@@ -10,7 +10,9 @@
   let ROOT = params.get('root') || '../';
   if (!ROOT.endsWith('/')) ROOT += '/';
   // ?root= (examples) and ?demo=1 show one fixed project; otherwise home/projects.js says which MAS to follow.
-  const FIXED = !!params.get('root') || params.get('demo') === '1';
+  // ?stage= (practice mode) shows a finished example as it looked at one step; stage=run is its replay, played once.
+  const STAGE = M.PRACTICE_STAGES.concat('run').includes(params.get('stage')) ? params.get('stage') : null;
+  const FIXED = !!params.get('root') || params.get('demo') === '1' || !!STAGE;
 
   const FILES = { env: 'mas/env.js', state: 'mas/state.js', task: 'me/task.js', structure: 'mas/structure.js', result: 'outputs/result.js' };
   const GLOBALS = { env: 'MAS_ENV', state: 'MAS_STATE', task: 'MAS_TASK', structure: 'MAS_STRUCTURE', result: 'MAS_RESULT' };
@@ -27,7 +29,7 @@
   };
   const narrow = () => window.innerWidth <= 1100;
   const S = {
-    demo: params.get('demo') === '1', data: {}, statuses: {}, history: {}, feed: [], timing: {}, run: { start: 0, end: 0 },
+    demo: params.get('demo') === '1' || STAGE === 'run', data: {}, statuses: {}, history: {}, feed: [], timing: {}, run: { start: 0, end: 0 },
     sigs: {}, lastChange: 0, loadedOnce: false, warnings: {}, selected: null, phase: undefined,
     sidebar: params.get('sidebar') ? params.get('sidebar') === 'open' : !narrow(), userSidebar: !!params.get('sidebar'), autoRun: undefined,
     home: null, current: undefined, index: false
@@ -77,6 +79,8 @@
         const r = await readData(FILES[k], GLOBALS[k]);
         if (r.st === 'broken') { warnings[FILES[k]] = true; next[k] = S.data[k]; } else next[k] = M.clone(r.value);
       }));
+      const staged = STAGE && M.practiceStage(STAGE, next);
+      if (staged) { S.warnings = warnings; apply(staged.data, staged.statuses); return; }
       let statuses = S.statuses;
       if (!S.demo) {
         statuses = {};
@@ -262,7 +266,7 @@
     const w = Object.keys(S.warnings || {});
     const fresh = $('#fresh');
     setHTML(fresh, (w.length ? '<span class="warn" title="' + esc(w.join(', ')) + ' could not be read. Showing the last good version.">' + ICON.warn + 'file being written</span>' : '') +
-      (S.demo ? 'demo replay' : Object.values(S.data).some(Boolean) ? 'updated ' + num(M.timeAgo(Date.now() - S.lastChange)) : 'waiting for files'));
+      (STAGE ? 'practice replay' : S.demo ? 'demo replay' : Object.values(S.data).some(Boolean) ? 'updated ' + num(M.timeAgo(Date.now() - S.lastChange)) : 'waiting for files'));
   }
 
   /* ---------- the drawing ---------- */
@@ -445,7 +449,8 @@
     if (!s) return;
     const sg = JSON.stringify(s);
     if (sg !== demoSig) { demoSig = sg; demoScript = M.buildDemoScript(s); }
-    const t = (performance.now() - demoStart) / 1000, loop = Math.floor(t / demoScript.length);
+    const raw = (performance.now() - demoStart) / 1000;
+    const t = STAGE ? Math.min(raw, demoScript.length - 0.01) : raw, loop = Math.floor(t / demoScript.length); // practice: play once, then hold
     if (loop !== demoLoop) { demoLoop = loop; S.timing = {}; S.feed = []; }
     const st = M.demoStatusesAt(demoScript, t), ss = statusSig(st);
     if (ss === S.sigs.statuses) return;
@@ -456,7 +461,9 @@
   }
 
   /* ---------- start ---------- */
-  $('#replay').hidden = !S.demo;
+  // A replay's result appears ~40 s after the page opens: show it like a live result, not like one already there on load.
+  if (S.demo) S.autoRun = null;
+  $('#replay').hidden = !S.demo || !!STAGE; // practice: the chat drives the replay
   $('#sb-toggle').innerHTML = ICON.panel + '<span>Title block</span>';
   setSidebar(S.sidebar);
   renderTop();

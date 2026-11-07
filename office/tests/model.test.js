@@ -430,5 +430,86 @@ test('status updates and ready results cannot resize the office viewport', () =>
   assert.doesNotMatch(app, /classList\.toggle\('wide-side'/, 'a ready result does not resize the drawing');
 });
 
+/* ---------- practice mode ---------- */
+const readEx = (ex, rel) => M.evalDataFile(fs.readFileSync(path.join(EXAMPLES, ex, rel), 'utf8'));
+const exampleData = (ex) => ({
+  env: readEx(ex, 'mas/env.js').MAS_ENV, task: readEx(ex, 'me/task.js').MAS_TASK, structure: readEx(ex, 'mas/structure.js').MAS_STRUCTURE,
+  result: readEx(ex, 'outputs/result.js').MAS_RESULT, state: readEx(ex, 'mas/state.js').MAS_STATE
+});
+const PRACTICE_EXAMPLES = ['price-compare', 'trip-planning', 'thesis-feasibility'];
+
+test('practice stages show a finished example as it looked at each step', () => {
+  const d = exampleData('price-compare');
+  assert.strictEqual(M.practiceStage('run', d), null, 'run is the replay, not a masked view');
+  assert.strictEqual(M.practiceStage('nonsense', d), null);
+  const s1 = M.practiceStage('describe', d).data;
+  assert.ok(!s1.task && !s1.structure && !s1.result && s1.state.step === 1 && s1.env, 'describe: nothing but the tool');
+  const s2 = M.practiceStage('design', d).data;
+  assert.ok(s2.task && !s2.structure && !s2.result && s2.state.step === 2, 'design: the task only');
+  const s3 = M.practiceStage('refine', d).data;
+  assert.ok(s3.structure && s3.structure.locked === false && !s3.result && s3.state.step === 3, 'refine: a draft team');
+  assert.strictEqual(d.structure.locked, true, 'the example itself is not changed');
+  const s4 = M.practiceStage('locked', d);
+  assert.ok(s4.data.structure.locked && s4.data.state.phase === 'locked' && !s4.data.result, 'locked: team locked, no result');
+  assert.deepStrictEqual(s4.statuses, {}, 'no status files yet, so the team walks in');
+  [s1, s2, s3, s4.data].forEach((x) => assert.strictEqual(M.deriveProgress(x).step, x.state.step, 'header step matches'));
+});
+
+test('practice replay data is a verbatim copy of each example (rerun build-replay after changing an example)', () => {
+  PRACTICE_EXAMPLES.forEach((ex) => {
+    const rp = readEx(ex, 'replay.js').MAS_REPLAY;
+    assert.strictEqual(rp.folder, ex);
+    const answers = fs.readFileSync(path.join(EXAMPLES, ex, 'me', 'answers.md'), 'utf8');
+    assert.strictEqual(rp.answers.length, 5, ex);
+    rp.answers.forEach((a, i) => assert.ok(a && answers.includes(a), ex + ' answer ' + (i + 1)));
+    const files = fs.readdirSync(path.join(EXAMPLES, ex, 'team')).filter((f) => f.endsWith('.md')).sort();
+    assert.deepStrictEqual(Object.keys(rp.team).sort(), files.map((f) => f.replace(/\.md$/, '')), ex + ' team files');
+    files.forEach((f) => assert.strictEqual(rp.team[f.replace(/\.md$/, '')], fs.readFileSync(path.join(EXAMPLES, ex, 'team', f), 'utf8').trim(), ex + ' ' + f));
+  });
+});
+
+test('practice script: the real flow — next, five answers, next, next (locks), next (runs)', () => {
+  PRACTICE_EXAMPLES.forEach((ex) => {
+    const d = exampleData(ex), rp = readEx(ex, 'replay.js').MAS_REPLAY, sc = M.practiceScript(d, rp);
+    const t = sc.turns;
+    assert.deepStrictEqual(t.map((x) => x.expect), ['next', 'answer', 'answer', 'answer', 'answer', 'answer', 'next', 'next', 'next'], ex);
+    assert.deepStrictEqual(t.filter((x) => x.expect === 'next').length, 4, ex + ': next exactly 4 times');
+    assert.deepStrictEqual(t.slice(1, 6).map((x) => x.prefill), rp.answers, ex + ': prefills are the real answers');
+    assert.deepStrictEqual(t.map((x) => x.stage), ['describe', 'describe', 'describe', 'describe', 'describe', 'design', 'refine', 'locked', 'run'], ex);
+    const text = (turn) => turn.reply.map((b) => (typeof b === 'string' ? b : b.md)).join('\n');
+    assert.match(text(t[0]), /\*\*1\. What should your assistant help you do\?\*\*/, ex + ': question 1 straight away, no name question');
+    assert.match(text(t[1]), new RegExp("I've called this MAS \\*" + d.task.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\*'), ex + ': named after the first answer');
+    d.task.requirements.forEach((r) => assert.ok(text(t[5]).includes('**' + r.id + '** ' + r.text), ex + ' ' + r.id));
+    d.structure.roles.forEach((r) => assert.ok(text(t[6]).includes(r.name), ex + ': design table has ' + r.name));
+    assert.match(text(t[6]), /type `next` to lock/, ex);
+    assert.match(text(t[7]), /Your team is locked/, ex + ': locks without asking again');
+    assert.ok(t[7].reply.some((b) => typeof b === 'object' && b.file.startsWith('team/') && b.md.length > 50), ex + ': shows a real team file');
+    const timed = t[8].timed;
+    assert.ok(timed.length >= 3 && timed.every((e, i) => !i || e.at > timed[i - 1].at), ex + ': run messages in time order');
+    const last = timed[timed.length - 1];
+    assert.ok(last.done && last.md.includes(M.resultHeadline(d.result.markdown)), ex + ': ends with the real short answer');
+    assert.ok(!t[6].why && t[7].why && t[8].why, ex + ': "why" only once the team exists');
+  });
+});
+
+test('practice script answers "why" from the real role reasons', () => {
+  const d = exampleData('price-compare'), sc = M.practiceScript(d, readEx('price-compare', 'replay.js').MAS_REPLAY);
+  const budget = d.structure.roles.find((r) => r.id === 'budget-checker');
+  const one = sc.why('Why Budget checker?');
+  assert.ok(one.includes(budget.why) && !one.includes('Sony deal finder'), one);
+  const loose = sc.why('Why do we need a budget checker?');
+  assert.ok(loose.includes('**Budget checker**') && !loose.includes('**Catch checker**'), 'a word shared by two roles does not pull in both');
+  const all = sc.why('why so many?');
+  d.structure.roles.forEach((r) => assert.ok(all.includes(r.name), 'no match → every role explained'));
+  assert.strictEqual(M.resultHeadline('## A\none\n## B\ntwo'), '## A\none');
+});
+
+test('practice page is protected and listed for the assistant', () => {
+  const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '.claude', 'settings.json'), 'utf8'));
+  assert.ok(settings.permissions.deny.includes('Edit(/practice/**)'), 'assistant may not edit practice/');
+  const agents = fs.readFileSync(path.join(__dirname, '..', '..', 'AGENTS.md'), 'utf8');
+  assert.match(agents, /`practice\/`/, 'AGENTS.md keeps the assistant out of practice/');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

@@ -33,15 +33,13 @@ Goal: make this folder ready and tell the student what their tool can do. Runs o
 
 Goal: agree with the student which MAS this conversation works on.
 
-1. List this folder and read `home/projects.js`. A MAS folder is a folder that contains `me/` or `mas/` — ignore `home/`, `office/`, `harness/`, `examples/` and hidden folders. If a MAS folder is missing from `projects`, add it (title from its `me/task.js`, or the folder name); drop entries whose folder no longer exists.
+1. List this folder and read `home/projects.js`. A MAS folder is a folder that contains `me/` or `mas/` — ignore `home/`, `office/`, `harness/`, `examples/`, `practice/` and hidden folders. If a MAS folder is missing from `projects`, add it (title from its `me/task.js`, or the folder name); drop entries whose folder no longer exists.
 2. Set `"current": null` in `home/projects.js` — the panel now shows the list of MAS while the student chooses.
-3. Ask, one question:
-   - **No MAS yet** (or the student typed `new`): "What should we call your new MAS? A few words are enough — e.g. *headphone deals*."
-   - **Otherwise** (skip the question if the student already named one): "Start a new MAS, or continue one of these?" and list each as `folder — title — step` (e.g. `headphone-deals — Headphone deal finder — 4 Run, done`).
-4. **New:** make a folder name from the student's words: lower-case letters, digits and hyphens, at most 40 characters, not an existing folder and not `home`, `office`, `harness` or `examples` (e.g. "Headphone deals!" → `headphone-deals`). Create `<folder>/raw/README.md` (one line: "Put your own files for this MAS here. Your assistant reads them but never changes them."). Write `<folder>/mas/state.js` (`step: 1`, `phase: "describe"`, `next: "Type next to describe your task."`). Add `{"folder": …, "title": <the student's words>, "step": 1, "phase": "describe"}` to `projects`.
-   **Continue:** the folder the student picked.
-5. Set `"current"` to that folder in `home/projects.js`.
-6. Reply: `MAS: <folder>`, then one line on where it stands (read its `mas/state.js` → `next`) — or for a new MAS, "Type `next` to describe your task."
+3. Decide new or continue:
+   - **No MAS yet**, or the student typed `new`: it's a new MAS — don't ask for a name.
+   - **Otherwise** (skip the question if the student already named one): ask "Start a new MAS, or continue one of these?" and list each as `folder — title — step` (e.g. `headphone-deals — Headphone deal finder — 4 Run, done`). If they answer "new", it's a new MAS.
+4. **New:** start `describe` straight away and ask its first question in this same reply. The MAS gets its folder and name from the student's first answer (describe → step 1). The new MAS counts as chosen: if the student types `next` instead of answering, just ask question 1 again — don't run `choose` again.
+   **Continue:** set `"current"` to the folder the student picked in `home/projects.js`, then reply `MAS: <folder>` and one line on where it stands (read its `mas/state.js` → `next`). If its `me/task.md` is missing, step 1 is unfinished: carry on with `describe` in this same reply, asking the first question not yet answered in `me/answers.md`.
 
 ---
 
@@ -53,9 +51,13 @@ Goal: agree with the student which MAS this conversation works on.
    3. What does a good result look like? How will you judge it?
    4. Will you do this again? How often?
    5. Do you have your own material for it? *(If yes, put the files in `<folder>/raw/` — tell them the real folder name.)*
-   If an answer is unclear, ask one short follow-up. Don't suggest a different task or add features.
-2. Write `me/answers.md` as you go, then `me/task.md` and `me/task.js`:
-   - title (short, in the student's words), one-line summary — also update `title` in `home/projects.js`;
+   If an answer is unclear, ask one short follow-up. Don't suggest a different task or add features. If `me/answers.md` already holds some answers (the student continued this MAS), don't ask those again.
+   **New MAS — name it right after the first answer**, before asking question 2:
+   - Folder name: 2–4 English words from the task, lower-case letters, digits and hyphens, at most 40 characters, not an existing folder and not `home`, `office`, `harness`, `examples` or `practice` (e.g. "Compare prices before I buy noise-cancelling headphones" → `headphone-deals`). Title: a few words in the student's language.
+   - Create `<folder>/raw/README.md` (one line: "Put your own files for this MAS here. Your assistant reads them but never changes them."). Write `<folder>/mas/state.js` (`step: 1`, `phase: "describe"`, `next: "Answer the questions in the chat."`). Add `{"folder": …, "title": …, "step": 1, "phase": "describe"}` to `projects` in `home/projects.js` and set `"current"` to this folder.
+   - Start that reply with `MAS: <folder>` and one line: "I've called this MAS *<title>* (folder `<folder>/`) — tell me if you'd like another name." Then ask question 2. If the student wants another name, change only the `title` (in `home/projects.js` now, and in `me/task.*` later); the folder keeps its name.
+2. Write `me/answers.md` as you go (from the first answer on, once the folder exists), then `me/task.md` and `me/task.js`:
+   - title: the name agreed after question 1 (or the one the student asked for since) — don't make up a new one; one-line summary;
    - **requirements R1…Rn**: 3–7 short, checkable lines drawn only from what the student said;
    - repeat.
 3. `mas/state.js`: `step: 2`, `phase: "design"`, `next: "Type next and I'll design a team for this task."`
@@ -86,12 +88,12 @@ Input: the student's change in plain words.
 
 ## lock  (step 3 → 4)
 
-1. Show the final team (table) and ask "Lock this team?" — continue on yes. Ask only once: if the student just said yes to "Happy with your team? I'll lock it.", that counts — don't ask again.
+1. The student typed `next` after you told them it locks the team — that is their decision. Lock straight away; don't ask "Lock this team?" or "Are you sure?". (They can `unlock` at any time.)
 2. Write `team/lead.md` and one `team/<role-id>.md` per role (format in `harness/formats.md`). Write them so a fresh agent can do the job from the file alone.
 3. Set `"locked": true` in both structure files.
 4. Write `mas/status/lead.js` and `mas/status/<role-id>.js` for every role with `state: "idle"`, `say: "Ready"` — one write per file with your file tool, not a shell loop.
 5. `mas/state.js`: `step: 4`, `phase: "locked"`, `locked: true`, `next: "Type next to run your team."`
-6. Reply: "Your team is locked — each role now has a desk in the office panel." Ask the student to open one file in `team/` and read it: "This file *is* the agent — its whole job description."
+6. Reply: the final team as a small table (role · serves · group), then "Your team is locked — each role now has a desk in the office panel. Type `unlock` if you want to change it." Ask the student to open one file in `team/` and read it: "This file *is* the agent — its whole job description."
 
 ---
 

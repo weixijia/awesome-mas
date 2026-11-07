@@ -58,7 +58,7 @@
   .route-head { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; padding: 16px 20px; border-bottom: 1px solid var(--ink); }
   .route-head h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.015em; }
   .route-head p { margin: 0; color: var(--ink-2); font-size: 16px; }
-  .route ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1.15fr .8fr repeat(4, 1fr) .9fr; }
+  .route ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1.15fr repeat(4, 1fr) .9fr; }
   .route li { border-right: 1px solid var(--hair); min-width: 0; }
   .route li:last-child { border-right: 0; }
   .route li.once { background: var(--sheet); }
@@ -189,10 +189,10 @@
   .mobile-toc { display: none; }
 
   @media (max-width: 1100px) {
-    .route ol { grid-template-columns: repeat(4, 1fr); }
+    .route ol { grid-template-columns: repeat(3, 1fr); }
     .route li { border-bottom: 1px solid var(--hair); }
-    .route li:nth-child(4) { border-right: 0; }
-    .route li:nth-child(n+5) { border-bottom: 0; }
+    .route li:nth-child(3n) { border-right: 0; }
+    .route li:nth-child(n+4) { border-bottom: 0; }
   }
   @media (max-width: 960px) {
     .opening { grid-template-columns: 1fr; gap: 28px; padding-top: 36px; }
@@ -216,7 +216,7 @@
     .route ol { grid-template-columns: 1fr 1fr; }
     .route li { border-right: 1px solid var(--hair) !important; border-bottom: 1px solid var(--hair) !important; }
     .route li:nth-child(2n) { border-right: 0 !important; }
-    .route li:last-child { border-bottom: 0 !important; grid-column: 1 / -1; }
+    .route li:nth-last-child(-n+2) { border-bottom: 0 !important; }
     .chat-row { grid-template-columns: 1fr; }
     .who { border-right: 0; border-bottom: 1px solid var(--hair); padding: 8px 14px; }
     .qs > li { grid-template-columns: 40px minmax(0, 1fr); }
@@ -239,7 +239,7 @@
   <div class="wrap">
     <a class="wm" href="#top">awesome-mas</a>
     <span class="wm-sub">Tutorial</span>
-    <nav aria-label="Project"><a href="https://github.com/weixijia/awesome-mas">GitHub</a><a href="https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip">Download ZIP</a></nav>
+    <nav aria-label="Project"><a href="#practice">Practice mode</a><a href="https://github.com/weixijia/awesome-mas">GitHub</a><a href="https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip">Download ZIP</a></nav>
   </div>
 </header>
 
@@ -254,6 +254,7 @@
           <div><dt>Time</dt><dd>About <span class="num">60</span>–<span class="num">90</span> min the first time</dd></div>
           <div><dt>Coding</dt><dd>None. You only chat.</dd></div>
         </dl>
+        <p class="quiet small">No AI tool, or no usage left? <a href="#practice">Practice mode</a> lets you do every step with a real example, without tokens.</p>
       </div>
       <figure class="shot">
         <img src="img/step4-result.webp" width="1440" height="900" alt="The awesome-mas panel after a finished run: an axonometric office where five agents gathered at the party table, and on the right the result: a shortlist of three headphone offers with total prices and links.">
@@ -264,14 +265,13 @@
     <section class="route" aria-labelledby="route-h">
       <div class="route-head">
         <h2 id="route-h">The whole journey: set up once, then <span class="num">4</span> steps</h2>
-        <p>You type <code>next</code> once to name your MAS, then once to start each of the <span class="num">4</span> steps.</p>
+        <p>You type <code>next</code> <span class="num">4</span> times in all: once for each step.</p>
       </div>
       <ol>
         <li class="once"><a href="#setup"><span class="r-n">Part A · once</span><span class="r-t">Set up</span><span class="r-d">Empty folder, open it in your tool, paste one sentence.</span></a></li>
-        <li class="once"><a href="#name"><span class="r-n">Then</span><span class="r-t">Name your MAS</span><span class="r-d">A few words, e.g. <em>headphone deals</em>.</span></a></li>
         <li><a href="#step-1"><span class="r-n">Step 1</span><span class="r-t">Describe</span><span class="r-d"><code>next</code> → answer <span class="num">5</span> questions, one at a time.</span></a></li>
         <li><a href="#step-2"><span class="r-n">Step 2</span><span class="r-t">Design</span><span class="r-d"><code>next</code> → read the team it proposes.</span></a></li>
-        <li><a href="#step-3"><span class="r-n">Step 3</span><span class="r-t">Refine &amp; lock</span><span class="r-d">Ask for changes, then <code>next</code> → <em>yes</em>.</span></a></li>
+        <li><a href="#step-3"><span class="r-n">Step 3</span><span class="r-t">Refine &amp; lock</span><span class="r-d">Ask for changes, then <code>next</code> to lock.</span></a></li>
         <li><a href="#step-4"><span class="r-n">Step 4</span><span class="r-t">Run</span><span class="r-d"><code>next</code> → watch the team work, read the result.</span></a></li>
         <li class="after"><a href="#after"><span class="r-n">After</span><span class="r-t">Again or new</span><span class="r-d"><code>run again</code>, <code>unlock</code>, <code>new</code>.</span></a></li>
       </ol>
@@ -284,12 +284,12 @@
         <ol>
           <li><a href="#before"><span class="num">0</span><span>Before you start</span></a></li>
           <li><a href="#setup"><span class="num">A</span><span>Set up (once)</span></a></li>
-          <li><a href="#name"><span class="num">B</span><span>Name your MAS</span></a></li>
           <li><a href="#step-1"><span class="num">1</span><span>Describe</span></a></li>
           <li><a href="#step-2"><span class="num">2</span><span>Design</span></a></li>
           <li><a href="#step-3"><span class="num">3</span><span>Refine &amp; lock</span></a></li>
           <li><a href="#step-4"><span class="num">4</span><span>Run</span></a></li>
           <li><a href="#after"><span class="num">→</span><span>After the run</span></a></li>
+          <li><a href="#practice"><span class="num">P</span><span>Practice mode (no tokens)</span></a></li>
           <li><a href="#words"><span class="num">≡</span><span>Words you can type</span></a></li>
           <li><a href="#help"><span class="num">?</span><span>If something goes wrong</span></a></li>
           <li><a href="#why"><span class="num">∴</span><span>Why a team of agents</span></a></li>
@@ -298,9 +298,9 @@
 
       <article>
         <details class="mobile-toc"><summary>Contents</summary><ol>
-          <li><a href="#before">Before you start</a></li><li><a href="#setup">A · Set up (once)</a></li><li><a href="#name">B · Name your MAS</a></li>
+          <li><a href="#before">Before you start</a></li><li><a href="#setup">A · Set up (once)</a></li>
           <li><a href="#step-1">Step 1 · Describe</a></li><li><a href="#step-2">Step 2 · Design</a></li><li><a href="#step-3">Step 3 · Refine &amp; lock</a></li>
-          <li><a href="#step-4">Step 4 · Run</a></li><li><a href="#after">After the run</a></li><li><a href="#words">Words you can type</a></li>
+          <li><a href="#step-4">Step 4 · Run</a></li><li><a href="#after">After the run</a></li><li><a href="#practice">Practice mode (no tokens)</a></li><li><a href="#words">Words you can type</a></li>
           <li><a href="#help">If something goes wrong</a></li><li><a href="#why">Why a team of agents</a></li></ol></details>
 
         <!-- 0 -->
@@ -311,7 +311,7 @@
             <li><b>A task you genuinely want help with.</b> Comparing prices before a purchase, planning a trip, checking whether a thesis idea is feasible, finding a flat, planning meals, preparing job applications. Anything works, as long as you can say what a good answer looks like.</li>
             <li><b>A browser for the live panel.</b> Any modern browser. There is nothing to click or connect in it; it only shows what your team is doing.</li>
           </ol>
-          <p class="quiet small">A full run uses a real share of your plan's usage, because every agent reads and writes on its own. Keep your first team small: a Lead plus <span class="num">2</span>–<span class="num">4</span> agents.</p>
+          <p class="quiet small">A full run uses a real share of your plan's usage, because every agent reads and writes on its own. Keep your first team small: a Lead plus <span class="num">2</span>–<span class="num">4</span> agents. If your usage runs out, or you have none, you can still do every step in <a href="#practice">practice mode</a>: it replays a real example run, and you type <code>next</code> and the answers yourself.</p>
         </section>
 
         <!-- A -->
@@ -395,19 +395,6 @@
           <p>From now on you <b>talk</b> in your assistant and <b>watch</b> the panel. Put the chat on the left half of your screen and the panel on the right. The panel updates by itself; if it ever looks stuck, reload the page.</p>
         </section>
 
-        <!-- B -->
-        <section class="part" id="name" aria-labelledby="name-h">
-          <header><p class="p-n">Part B · once per MAS</p><h2 id="name-h">Name your MAS</h2></header>
-          <p>Type <code>next</code>. Before step 1, your assistant asks what to call this MAS. A few words are enough; it becomes a folder with that name inside your project folder.</p>
-          <div class="chat" role="group" aria-label="Naming a MAS">
-            <div class="chat-row you"><span class="who">You</span><div class="said">next</div></div>
-            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>What should we call your new MAS? A few words are enough, e.g. <em>headphone deals</em>.</p></div></div>
-            <div class="chat-row you"><span class="who">You</span><div class="said">headphone deals</div></div>
-            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>MAS: headphone-deals</p><p>Type <code>next</code> to describe your task.</p></div></div>
-          </div>
-          <p class="quiet small">Every new conversation in this folder starts the same way: your assistant lists your MAS and asks whether to start a new one or continue one. Each reply then begins with a line like <code>MAS: headphone-deals</code>, so you always know which one you are in.</p>
-        </section>
-
         <!-- 1 -->
         <section class="part" id="step-1" aria-labelledby="s1-h">
           <header><p class="p-n">Step 1 of 4</p><h2 id="s1-h">Describe your task</h2></header>
@@ -426,6 +413,11 @@
             <li><span class="q-n">Q5</span><div><p class="q-t">Do you have your own material for it?</p><p class="q-h">Notes, a reading list, a brief. If yes, it tells you which <code>raw/</code> folder to put the files in; your agents read them but never change them.</p><p class="q-ex"><b>Example</b>No.</p></div></li>
           </ol>
           <p class="small quiet">If an answer is unclear, your assistant may ask one short follow-up. That is still step 1.</p>
+          <p>After your first answer, your assistant <b>names your MAS</b> after the task and makes a folder for it. You don't need to do anything; if you'd like another name, just say so.</p>
+          <div class="chat" role="group" aria-label="Naming happens after the first answer">
+            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>MAS: headphone-deals</p><p>I've called this MAS <em>Headphone deal finder</em> (folder <code>headphone-deals/</code>). Tell me if you'd like another name.</p><p>2. What are your preferences and limits?</p></div></div>
+          </div>
+          <p class="quiet small">Every reply from now on begins with a line like <code>MAS: headphone-deals</code>, so you always know which MAS you are in. One project folder can hold several MAS: each new conversation starts by listing them and asking whether to start a new one or continue one.</p>
           <h3 class="minor">You'll see</h3>
           <p>Your assistant turns your answers into <b>requirements</b>: short, checkable lines that everything later is measured against.</p>
           <div class="chat" role="group" aria-label="The end of step 1">
@@ -489,7 +481,7 @@
         <section class="part" id="step-3" aria-labelledby="s3-h">
           <header><p class="p-n">Step 3 of 4</p><h2 id="s3-h">Refine the team, then lock it</h2></header>
           <dl class="glance">
-            <div><dt>You type</dt><dd>Changes in words, then <code>next</code> and <em>yes</em></dd></div>
+            <div><dt>You type</dt><dd>Changes in words, then <code>next</code></dd></div>
             <div><dt>Time</dt><dd>About <span class="num">10</span>–<span class="num">20</span> min</dd></div>
             <div><dt>You get</dt><dd>One job file per agent</dd></div>
             <div><dt>Ingredient</dt><dd>Your decision</dd></div>
@@ -507,9 +499,7 @@
           <h3 class="minor">Lock it</h3>
           <div class="chat" role="group" aria-label="Locking the team">
             <div class="chat-row you"><span class="who">You</span><div class="said">next</div></div>
-            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Happy with your team? I'll lock it.</p></div></div>
-            <div class="chat-row you"><span class="who">You</span><div class="said">yes</div></div>
-            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Your team is locked: each role now has a desk in the office panel. Open one file in <code>team/</code> and read it: this file <em>is</em> the agent, its whole job description.</p><p>Type <code>next</code> to run your team.</p></div></div>
+            <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Your team is locked: each role now has a desk in the office panel. Type <code>unlock</code> if you want to change it.</p><p>Open one file in <code>team/</code> and read it: this file <em>is</em> the agent, its whole job description.</p><p>Type <code>next</code> to run your team.</p></div></div>
           </div>
           <figure class="shot see">
             <img src="img/step3-lock.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel after locking: the rooms are coloured in, each role has a desk, and the agents stand in the office waiting to start. The sidebar lists the locked team, version 1.">
@@ -559,7 +549,7 @@
             <tbody>
               <tr><td>Run with a new condition</td><td>Change it in <code>me/task.md</code> (e.g. the budget), then type <code>run again</code>. The old result is kept as <code>result-run1.md</code>.</td></tr>
               <tr><td>Change the team</td><td>Type <code>unlock</code>, ask for changes, then <code>next</code> to lock it again.</td></tr>
-              <tr><td>Start another MAS</td><td>Type <code>new</code> and give it a name. Both MAS stay in the same folder.</td></tr>
+              <tr><td>Start another MAS</td><td>Type <code>new</code> and answer question 1; your assistant names the new MAS from your answer. Both MAS stay in the same folder.</td></tr>
               <tr><td>Go back to another MAS</td><td>Say e.g. <em>“switch to lisbon trip”</em>. The panel follows.</td></tr>
               <tr><td>Continue another day</td><td>Open the folder in your tool and say anything. Your assistant lists your MAS and asks which one.</td></tr>
             </tbody>
@@ -576,7 +566,47 @@
     outputs/          the result (result.md), and each agent's own work
     raw/              your own files for the agents to read (optional)
   examples/           three finished examples: double-click examples/index.html
+  practice/           practise every step without tokens: double-click practice/index.html
   AGENTS.md, harness/ the instructions your assistant follows</pre>
+        </section>
+
+        <!-- practice -->
+        <section class="part" id="practice" aria-labelledby="practice-h">
+          <header><p class="p-n">No tokens?</p><h2 id="practice-h">Practice mode: every step, without tokens</h2></header>
+          <dl class="glance">
+            <div><dt>You need</dt><dd>A browser and the awesome-mas files</dd></div>
+            <div><dt>Time</dt><dd>About <span class="num">10</span> min</dd></div>
+            <div><dt>Tokens</dt><dd>None</dd></div>
+            <div><dt>You get</dt><dd>The whole journey, once</dd></div>
+          </dl>
+          <p>Your usage ran out halfway, your task was bigger than your plan, or you don't have a paid AI tool yet? Practice mode replays one of three <b>real example runs</b>, and you do every step yourself: you type exactly what you would type in your assistant, and the real panel beside the chat moves through each step.</p>
+          <h3 class="minor">Open it</h3>
+          <ol>
+            <li><b>Already set up?</b> In your folder, double-click <code>practice/index.html</code>. Your own MAS stays saved; carry on with it when your usage resets.</li>
+            <li><b>No folder yet?</b> Download the <a href="https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip">ZIP</a>, unzip it, and double-click <code>practice/index.html</code> inside <code>awesome-mas-main</code>.</li>
+            <li>At the top, pick an example: <em>Headphone deal finder</em> (Claude Code), <em>Weekend in Lisbon</em> (Codex) or <em>Thesis feasibility check</em> (Antigravity).</li>
+          </ol>
+          <h3 class="minor">What you do</h3>
+          <p>The same four steps as above. The box under the chat is already filled in with what the real student typed, so you can just press Enter, or write your own.</p>
+          <table class="t-key">
+            <thead><tr><th scope="col">You type</th><th scope="col">You see</th></tr></thead>
+            <tbody>
+              <tr><td><code>next</code>, then <span class="num">5</span> answers</td><td>Step 1: the questions one at a time, the MAS named after your first answer, then the requirements on the board.</td></tr>
+              <tr><td><code>next</code></td><td>Step 2: the team table and the dashed blueprint. Tap <em>Why …?</em> to hear why a role exists.</td></tr>
+              <tr><td><code>next</code></td><td>Step 3: the team is locked and walks into the office. Read one real <code>team/</code> file: that file is the agent.</td></tr>
+              <tr><td><code>next</code></td><td>Step 4: the office runs, group by group, and the chat reports along. Then the real result and what the checkers caught.</td></tr>
+            </tbody>
+          </table>
+          <figure class="shot see">
+            <img src="img/practice.webp" width="1440" height="900" loading="lazy" decoding="async" alt="Practice mode: on the left a chat where the student asked why the team needs a budget checker and the assistant answers from the real role's reason; on the right the real panel shows the draft team as a dashed blueprint.">
+            <figcaption>Practice mode in step 3: the chat on the left, the real panel on the right.</figcaption>
+          </figure>
+          <h3 class="minor">What it can't do</h3>
+          <ul>
+            <li>Your words can't change the outcome: answers, team and result come from the real run. When you write your own words, the chat tells you which real answer it keeps.</li>
+            <li>The team can't be changed. Asking for a change gets an honest “that needs a real AI”.</li>
+            <li>The office animation is a typical run of that real team, shortened to under a minute. The result at the end is the real one.</li>
+          </ul>
         </section>
 
         <!-- words -->
@@ -606,7 +636,7 @@
           <details><summary>It says role-play instead of real agents.</summary><div><p>Your tool can't start separate agents here, so your assistant plays each role in turn. The steps and the office are the same; it just takes longer, and the panel says so honestly.</p></div></details>
           <details><summary>An agent says a web page wouldn't open.</summary><div><p>Some sites block automated readers. Your agents are told to say so and use another source instead of guessing. If an important source is missing, open it yourself and check.</p></div></details>
           <details><summary>The run takes too long.</summary><div><p>Say <em>“finish with what you have”</em>. Next time, use a smaller team (type <code>unlock</code>, merge or remove roles).</p></div></details>
-          <details><summary>I ran out of usage.</summary><div><p>Your files are safe; continue when your usage resets. Meanwhile, double-click <code>examples/index.html</code> to watch finished example teams and read their results.</p></div></details>
+          <details><summary>I ran out of usage.</summary><div><p>Your files are safe; continue when your usage resets. Meanwhile, double-click <code>practice/index.html</code> in your folder: <b>practice mode</b> replays a real example run, step by step, with no tokens. You type <code>next</code> and the answers (they are filled in for you), and the panel next to the chat moves through every step, from the task board to the finished result. Your words can't change that run; it shows you the whole journey (see <a href="#practice">Practice mode</a>). Next time, start with a smaller team.</p></div></details>
         </section>
 
         <!-- why -->

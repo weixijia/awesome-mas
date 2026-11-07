@@ -316,7 +316,7 @@ These are 13px, 600 weight, wdth 88, with a 0 5px pad, a 1px border and an 18px 
 - **Docs tabs:** ink-ruled, with the selected tab in ink fill.
 
 ### Tutorial components (docs/index.html)
-- **Route strip:** the whole journey in one ruled row: Set up and Name your MAS (on the sheet ground, marked *once*), Step 1 to Step 4 (step numbers in verm-ink mono), After. A sage-tick note under it states that the five questions belong to step 1. Each cell links to its part.
+- **Route strip:** the whole journey in one ruled row of six cells: Set up (on the sheet ground, marked *once*), Step 1 to Step 4 (step numbers in verm-ink mono), After. The head says `next` is typed 4 times, once per step; a sage-tick note under it states that the five questions belong to step 1. Each cell links to its part. Columns: 6 on desktop, 3 + 3 at ≤1100px, 2 per row at ≤640px.
 - **Glance strip:** four ruled cells under each step heading: You type, Time, You get, Ingredient.
 - **Type block:** a ruled row with a TYPE cell label, the text in 16px mono on white, and a full-height ink Copy button.
 - **Chat exchange:** ruled rows of YOU / ASSISTANT cell labels; the student's lines in mono on white, the assistant's on paper. Only wording the kit actually uses.
@@ -324,6 +324,14 @@ These are 13px, 600 weight, wdth 88, with a 0 5px pad, a 1px border and an 18px 
 - **Check list and moment:** sage-tick squares for what to check; a "A chat can't do this" moment as an ink label cell beside a white note.
 - **Panel screenshots:** real renders of the price-compare example at each step, framed in 1px ink with a ruled caption.
 - **Contents rail:** sticky, ruled list with a mono marker column; the part in view is set in ink 600 with a verm-ink marker.
+
+### Practice mode (practice/index.html)
+- **Two columns, one sheet:** the chat on the left (`clamp(360px, 34vw, 500px)`, paper, ink rule on the right) and the real panel on the right in a frame (`office/index.html?root=…&stage=describe|design|refine|locked|run`). At ≤960px they stack: chat first, panel below.
+- **Top rule:** wordmark, a verm-ink outlined `Practice mode` tag in mono, the example picker, All examples, Start over.
+- **Banner:** one sage-tint line under the rule that says no tokens are needed and that this replays a real run with the named tool. Practice must never look like a live run.
+- **Chat rows:** the tutorial's chat exchange, stacked for a narrow column: a YOU / ASSISTANT cell label above the text; the student's lines in mono on white, the assistant's on paper; `MAS: <folder>` lines in 13px mono ink-2. Tables use the panel's `.md-table`; a team file is a 1px ink box with a slab file-name bar.
+- **Composer:** a mono textarea prefilled with the real run's words (Enter sends), an ink Send button, suggestion buttons (`Why <role>?`, `Open team/<id>.md`) as paper chips with 1px ink, and one ink-2 hint line under it.
+- **Honest copy:** every reply is built from the example's files and the kit's standard wording; when the student writes their own words, one italic line says the real run's answer is kept. The panel's freshness label reads `practice replay`.
 
 ## Motion
 
