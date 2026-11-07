@@ -109,7 +109,7 @@ The panel animates the office from the status files, so **status updates are par
    > Read and write files with your file tools, one file per call — no shell commands, heredocs or scripts (they trigger approval prompts for the student), and never write outside `<folder>/`.
    > The task is in `me/task.md`. Your inputs: <list the files from roles that hand to you, or "none">.
    > While you work, keep `mas/status/<role-id>.js` updated (format in `harness/formats.md`) — the student is watching these live: `working` when you start, a new short `say` for each major action (e.g. "Searching Currys…"), and finally `handoff` with `"to": "<handsTo>"`. **Whenever you find a problem** (something that breaks a requirement, a doubtful source, a mistake in your input), set `flagged` with a short `flag` (e.g. "Refurbished — breaks R2"), then go back to `working`. Include a rough `progress` (0–100) in every update — the panel shows it as a progress bar under your name.
-   > Save each web source you use as a card in `sources/` (format in `harness/formats.md`); never invent sources, prices or quotes.
+   > Save each web source you use as a card in `sources/` (format in `harness/formats.md`); never invent sources, prices or quotes. If a page won't open (403, "Access Denied", a cookie or consent wall), say so in your notes and use another source — never guess what the page said.
    > Write your result to `outputs/work/<role-id>.md` and finish with a 3-line summary.
 
    Wait for the whole group to finish. In sequential mode, do the same yourself for each role in turn.
