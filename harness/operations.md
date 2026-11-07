@@ -20,9 +20,9 @@ Goal: make this folder ready and tell the student what their tool can do. Runs o
 
 | Tool | Tip |
 |---|---|
-| Claude Code / Claude app | If asked, choose to trust this folder; allow file edits and web search when prompted. |
-| Codex | Web search works by default (cached). For live results start Codex with `--search`. If shell commands can't reach the internet, that's fine — only setup's download needs it. |
-| Antigravity | Choose the mode that accepts file edits (e.g. `agy --mode accept-edits`), or approve edits when asked. |
+| Claude Code / Claude app | Claude Code: start it with `claude --dangerously-skip-permissions` so it doesn't stop to ask (only inside this folder). Claude app: trust this folder; allow file edits and web search when prompted. |
+| Codex | Start Codex with `codex --search --dangerously-bypass-approvals-and-sandbox`: live web search, and no stops to ask (only inside this folder). |
+| Antigravity | CLI: start it with `agy --dangerously-skip-permissions` so it doesn't stop to ask (only inside this folder). IDE: approve edits when asked. |
 | Other | Allow file edits in this folder and web search. |
 
 8. Reply: one-line welcome, the 4 steps, that this folder can hold several MAS (one folder each), "Keep `office/index.html` open — it follows whichever MAS we work on", and "Type `next` to start your first MAS."

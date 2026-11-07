@@ -28,7 +28,7 @@
   a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--verm); text-decoration-thickness: 1px; text-underline-offset: 3px; }
   a:hover { color: var(--verm-ink); }
   :focus-visible { outline: 2px solid var(--verm); outline-offset: 2px; }
-  code, kbd { font: 400 .9em/1 var(--mono); background: var(--paper); border: 1px solid var(--hair); padding: 2px 5px; overflow-wrap: anywhere; }
+  code, kbd { font: 400 .9em/1.4 var(--mono); background: var(--paper); border: 1px solid var(--hair); padding: 2px 5px; overflow-wrap: anywhere; }
   code.cmd { display: block; width: fit-content; max-width: 100%; margin: 4px 0 8px; padding: 6px 9px; line-height: 1.5; }
   .num { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; }
   .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
@@ -308,7 +308,7 @@
         <section class="part" id="before" aria-labelledby="before-h">
           <header><p class="p-n">Before you start</p><h2 id="before-h">Three things to have ready</h2></header>
           <ol>
-            <li><b>An AI coding assistant, signed in.</b> This guide uses the <b>Antigravity CLI</b> (<code>agy</code>): it runs in a terminal and you sign in with a personal Google account (Free, Pro or Ultra). Claude (the desktop app or Claude Code), Codex (the app or the CLI), the Antigravity IDE or a similar assistant that can read and write files in a folder work the same way; pick your tool in A2. Your normal chat website is not enough: it cannot keep files.</li>
+            <li><b>An AI coding assistant, signed in.</b> This guide uses the <b>Antigravity CLI</b> (<code>agy</code>): it runs in a terminal and you sign in with a personal Google account (Free, Pro or Ultra). Claude (the desktop app or Claude Code), Codex (the app or the CLI), the Antigravity IDE or a similar assistant that can read and write files in a folder work the same way; pick your tool in A1. Your normal chat website is not enough: it cannot keep files.</li>
             <li><b>A task you genuinely want help with.</b> Comparing prices before a purchase, planning a trip, checking whether a thesis idea is feasible, finding a flat, planning meals, preparing job applications. Anything works, as long as you can say what a good answer looks like.</li>
             <li><b>A browser for the live panel.</b> Any modern browser. There is nothing to click or connect in it; it only shows what your team is doing.</li>
           </ol>
@@ -319,70 +319,68 @@
         <section class="part" id="setup" aria-labelledby="setup-h">
           <header><p class="p-n">Part A · do this once</p><h2 id="setup-h">Set up your folder</h2></header>
           <dl class="glance">
-            <div><dt>You type</dt><dd>One sentence</dd></div>
+            <div><dt>You paste</dt><dd>One line (or one sentence)</dd></div>
             <div><dt>Time</dt><dd>About <span class="num">5</span>–<span class="num">10</span> min</dd></div>
-            <div><dt>You approve</dt><dd>A download and file edits</dd></div>
+            <div><dt>You approve</dt><dd>Nothing, with a CLI line</dd></div>
             <div><dt>Ends with</dt><dd>“Type <code>next</code>…”</dd></div>
           </dl>
           <p>One folder can later hold several MAS, so you set it up only once. Everything your team writes stays in this folder, as plain files you can open.</p>
 
-          <h3>A1 · Make an empty folder</h3>
-          <p>Make a new, empty folder somewhere easy to find, for example <code>my-mas</code> on your Desktop. Empty matters: your assistant will not touch files that are already there.</p>
-
-          <h3>A2 · Open the folder in your AI tool</h3>
-          <p>This guide uses the Antigravity CLI. Using another tool? Pick it here; your choice is remembered next time you open this page.</p>
+          <h3>A1 · Start your AI tool with one line</h3>
+          <p>This guide uses the Antigravity CLI. With a terminal tool (Antigravity CLI, Claude Code, Codex CLI) <b>one pasted line does everything</b>: it installs what is missing, makes the folder, starts your assistant in it and hands it the setup sentence. Using an app? Pick its tab. Your choice is remembered next time you open this page.</p>
           <div class="tabs" role="tablist" aria-label="Your AI tool">
             <button class="tab" role="tab" aria-selected="true" aria-controls="t-agy-cli" id="b-agy-cli">Antigravity CLI</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="t-claude-code" id="b-claude-code" tabindex="-1">Claude Code</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-cli" id="b-codex-cli" tabindex="-1">Codex CLI</button>
             <button class="tab" role="tab" aria-selected="false" aria-controls="t-agy" id="b-agy" tabindex="-1">Antigravity IDE</button>
             <button class="tab" role="tab" aria-selected="false" aria-controls="t-claude-app" id="b-claude-app" tabindex="-1">Claude app</button>
-            <button class="tab" role="tab" aria-selected="false" aria-controls="t-claude-code" id="b-claude-code" tabindex="-1">Claude Code</button>
             <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-app" id="b-codex-app" tabindex="-1">Codex app</button>
-            <button class="tab" role="tab" aria-selected="false" aria-controls="t-codex-cli" id="b-codex-cli" tabindex="-1">Codex CLI</button>
             <button class="tab" role="tab" aria-selected="false" aria-controls="t-other" id="b-other" tabindex="-1">Other</button>
           </div>
           <div class="panel" role="tabpanel" id="t-agy-cli" aria-labelledby="b-agy-cli"><ol>
-            <li><b>Install it</b> (once). Open a terminal and paste the line for your computer, then press Enter.
-              <br>macOS: <code class="cmd">curl -fsSL https://antigravity.google/cli/install.sh | bash</code>
-              Windows (PowerShell): <code class="cmd">irm https://antigravity.google/cli/install.ps1 | iex</code>
-              Close the terminal and open a new one, then check it worked: <code>agy --version</code> prints a version number.</li>
-            <li><b>Open a terminal in your empty folder.</b> macOS: open Terminal, type <code>cd</code> and a space, drag your folder into the window, press Enter. Windows: open the folder in File Explorer, click the address bar, type <code>powershell</code>, press Enter.</li>
-            <li><b>Start it</b> by typing <code>agy --mode accept-edits</code> and pressing Enter. <code>accept-edits</code> lets it edit files in this folder without asking every time.</li>
-            <li><b>The first time</b> it asks you to pick a colour scheme and a display mode (any is fine), whether you <b>trust this folder</b> (choose yes) and to <b>sign in</b> with your Google account.</li>
-            <li>During setup, approve when it asks to run the download command and the command that opens the panel.</li></ol>
-            <p class="quiet small">Setup tests whether Antigravity can start separate agents here; if it can't, your assistant plays each role in turn, and the panel says so. Type <code>/usage</code> at any time to see how much quota you have left. Official install guide: <a href="https://antigravity.google/docs/getting-started?tab=cli">antigravity.google</a>.</p></div>
-          <div class="panel" role="tabpanel" id="t-claude-app" aria-labelledby="b-claude-app" hidden><ol>
-            <li>Install the <a href="https://claude.com/download">Claude desktop app</a> and sign in.</li>
-            <li>Open the <b>Code</b> tab, choose <b>Open folder…</b> and pick your empty folder.</li>
-            <li>If the app asks whether you trust this folder, choose <b>trust</b>. Without it, the folder's own settings don't apply and every file edit asks for permission.</li>
-            <li>During setup, approve when it asks to download files or to edit files in this folder.</li></ol>
-            <p class="quiet small">Tip: once setup has run, click <code>office/index.html</code> in the chat to open the panel in the app's browser pane, right next to your conversation.</p></div>
+            <li><b>Open a terminal.</b> macOS: press Cmd+Space, type <code>Terminal</code>, press Enter. Windows: open the Start menu, type <code>PowerShell</code>, press Enter.</li>
+            <li><b>Copy the line for your computer, paste it into the terminal and press Enter.</b> It installs the Antigravity CLI (if you don't have it yet), makes a folder <code>my-mas</code> on your Desktop, starts Antigravity there and gives it the setup sentence:
+              <div class="type"><span class="type-k">macOS</span><span class="type-v" id="cmd-agy-mac">curl -fsSL https://antigravity.google/cli/install.sh | bash &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; mkdir -p ~/Desktop/my-mas &amp;&amp; cd ~/Desktop/my-mas &amp;&amp; agy --dangerously-skip-permissions -i "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."</span><button class="copy" type="button" data-copy="cmd-agy-mac"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8.5" height="8.5"/><path d="M3 10.5V2.5h8"/></svg>Copy</button></div>
+              <div class="type"><span class="type-k">Windows</span><span class="type-v" id="cmd-agy-win">irm https://antigravity.google/cli/install.ps1 | iex; $env:Path += ";$env:LOCALAPPDATA\agy\bin"; $d = Join-Path ([Environment]::GetFolderPath('Desktop')) 'my-mas'; New-Item -ItemType Directory -Force $d | Out-Null; Set-Location $d; agy --dangerously-skip-permissions -i "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."</span><button class="copy" type="button" data-copy="cmd-agy-win"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8.5" height="8.5"/><path d="M3 10.5V2.5h8"/></svg>Copy</button></div></li>
+            <li><b>The first time</b> Antigravity asks you to pick a colour scheme and a display mode (any is fine) and to <b>sign in</b> with your Google account.</li>
+            <li>Wait. When it says <em>“Type <code>next</code> to start your first MAS”</em>, setup is done: go on to <a href="#step-1">Step 1</a>.</li></ol>
+            <p class="quiet small"><code>--dangerously-skip-permissions</code> lets your assistant run commands and edit files without stopping to ask you, so setup and runs go straight through. It can then run any command, so start it only inside your awesome-mas folder (the line does that). Come back another day: open a terminal, type <code>cd ~/Desktop/my-mas</code> (Windows: <code>cd "$([Environment]::GetFolderPath('Desktop'))\my-mas"</code>) and then <code>agy --dangerously-skip-permissions</code>. In Antigravity, <code>/usage</code> shows your quota and <code>/exit</code> quits. Official install guide: <a href="https://antigravity.google/docs/getting-started?tab=cli">antigravity.google</a>.</p></div>
           <div class="panel" role="tabpanel" id="t-claude-code" aria-labelledby="b-claude-code" hidden><ol>
-            <li>Install Claude Code (<a href="https://code.claude.com/docs/en/setup">instructions</a>) and sign in.</li>
-            <li>Open a terminal in your empty folder and type <code>claude</code>, then press Enter.</li>
-            <li>When it asks whether you trust this folder, choose <b>Yes, I trust this folder</b>. Without it, the folder's own settings don't apply and every file edit asks for permission.</li>
-            <li>During setup, approve the one download command when asked.</li></ol>
-            <p class="quiet small">Claude Code runs your agents as real parallel subagents: two finders really work at the same time.</p></div>
-          <div class="panel" role="tabpanel" id="t-codex-app" aria-labelledby="b-codex-app" hidden><ol>
-            <li>Install the Codex app (<a href="https://developers.openai.com/codex">instructions</a>) and sign in.</li>
-            <li>Open your empty folder as a project.</li>
-            <li>If Codex says it can't download (its sandbox may block the internet for commands), use the ZIP route at the end of A3, then type <code>next</code>.</li></ol></div>
+            <li><b>Open a terminal.</b> macOS: press Cmd+Space, type <code>Terminal</code>, press Enter. Windows: open the Start menu, type <code>PowerShell</code>, press Enter.</li>
+            <li><b>Copy the line for your computer, paste it into the terminal and press Enter.</b> Install Claude Code first (<a href="https://code.claude.com/docs/en/setup">instructions</a>) and sign in once. The line makes a folder <code>my-mas</code> on your Desktop, starts Claude Code there and gives it the setup sentence:
+              <div class="type"><span class="type-k">macOS</span><span class="type-v" id="cmd-cc-mac">mkdir -p ~/Desktop/my-mas &amp;&amp; cd ~/Desktop/my-mas &amp;&amp; claude --dangerously-skip-permissions "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."</span><button class="copy" type="button" data-copy="cmd-cc-mac"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8.5" height="8.5"/><path d="M3 10.5V2.5h8"/></svg>Copy</button></div>
+              <div class="type"><span class="type-k">Windows</span><span class="type-v" id="cmd-cc-win">$d = Join-Path ([Environment]::GetFolderPath('Desktop')) 'my-mas'; New-Item -ItemType Directory -Force $d | Out-Null; Set-Location $d; claude --dangerously-skip-permissions "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."</span><button class="copy" type="button" data-copy="cmd-cc-win"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8.5" height="8.5"/><path d="M3 10.5V2.5h8"/></svg>Copy</button></div></li>
+            <li>If it asks whether you trust this folder, choose <b>Yes</b>. If it asks you to confirm <em>Bypass Permissions</em> mode, choose <b>Yes, I accept</b>.</li>
+            <li>Wait. When it says <em>“Type <code>next</code> to start your first MAS”</em>, setup is done: go on to <a href="#step-1">Step 1</a>.</li></ol>
+            <p class="quiet small"><code>--dangerously-skip-permissions</code> lets Claude Code run commands and edit files without stopping to ask you; start it only inside your awesome-mas folder. Come back another day: <code>cd ~/Desktop/my-mas</code>, then <code>claude --dangerously-skip-permissions</code>. Claude Code runs your agents as real parallel subagents.</p></div>
           <div class="panel" role="tabpanel" id="t-codex-cli" aria-labelledby="b-codex-cli" hidden><ol>
-            <li>Install Codex CLI (<a href="https://developers.openai.com/codex">instructions</a>) and sign in.</li>
-            <li>Open a terminal in your empty folder and type <code>codex --search</code>. The <code>--search</code> part gives live web results; without it Codex uses cached results.</li>
-            <li>If the download is blocked, approve network access when asked, or use the ZIP route at the end of A3.</li></ol>
-            <p class="quiet small">Codex runs your agents as real parallel subagents.</p></div>
+            <li><b>Open a terminal.</b> macOS: press Cmd+Space, type <code>Terminal</code>, press Enter. Windows: open the Start menu, type <code>PowerShell</code>, press Enter.</li>
+            <li><b>Copy the line for your computer, paste it into the terminal and press Enter.</b> Install Codex CLI first (<a href="https://developers.openai.com/codex">instructions</a>) and sign in once. The line makes a folder <code>my-mas</code> on your Desktop, starts Codex there with live web search and gives it the setup sentence:
+              <div class="type"><span class="type-k">macOS</span><span class="type-v" id="cmd-cx-mac">mkdir -p ~/Desktop/my-mas &amp;&amp; cd ~/Desktop/my-mas &amp;&amp; codex --search --dangerously-bypass-approvals-and-sandbox "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."</span><button class="copy" type="button" data-copy="cmd-cx-mac"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8.5" height="8.5"/><path d="M3 10.5V2.5h8"/></svg>Copy</button></div>
+              <div class="type"><span class="type-k">Windows</span><span class="type-v" id="cmd-cx-win">$d = Join-Path ([Environment]::GetFolderPath('Desktop')) 'my-mas'; New-Item -ItemType Directory -Force $d | Out-Null; Set-Location $d; codex --search --dangerously-bypass-approvals-and-sandbox "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."</span><button class="copy" type="button" data-copy="cmd-cx-win"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8.5" height="8.5"/><path d="M3 10.5V2.5h8"/></svg>Copy</button></div></li>
+            <li>If it asks whether you trust this folder, choose <b>Yes</b>.</li>
+            <li>Wait. When it says <em>“Type <code>next</code> to start your first MAS”</em>, setup is done: go on to <a href="#step-1">Step 1</a>.</li></ol>
+            <p class="quiet small"><code>--dangerously-bypass-approvals-and-sandbox</code> lets Codex run commands, edit files and use the internet without stopping to ask you; start it only inside your awesome-mas folder. Come back another day: <code>cd ~/Desktop/my-mas</code>, then <code>codex --search --dangerously-bypass-approvals-and-sandbox</code>. Codex runs your agents as real parallel subagents.</p></div>
           <div class="panel" role="tabpanel" id="t-agy" aria-labelledby="b-agy" hidden><ol>
-            <li>Install the <a href="https://antigravity.google/">Antigravity</a> IDE and sign in with your Google account.</li>
-            <li>Choose <b>Open Folder</b> and pick your empty folder. If it asks whether you trust the folder, choose yes.</li>
-            <li>Paste the setup sentence into the agent chat. Allow it to edit files in this folder when asked.</li></ol>
-            <p class="quiet small">Setup tests whether Antigravity can start subagents here. If it can't, your assistant plays each role in turn: slower, and the panel says so, but the steps and the office are the same.</p></div>
+            <li>Install the <a href="https://antigravity.google/">Antigravity</a> IDE and sign in with your Google account. Make a new, empty folder on your Desktop, e.g. <code>my-mas</code> (empty matters: your assistant will not touch files that are already there).</li>
+            <li>Choose <b>Open Folder</b> and pick that folder. If it asks whether you trust the folder, choose yes.</li>
+            <li>Paste the <a href="#sentence">setup sentence</a> into the agent chat and press Enter. Allow it to edit files in this folder when asked.</li></ol></div>
+          <div class="panel" role="tabpanel" id="t-claude-app" aria-labelledby="b-claude-app" hidden><ol>
+            <li>Install the <a href="https://claude.com/download">Claude desktop app</a> and sign in. Make a new, empty folder on your Desktop, e.g. <code>my-mas</code> (empty matters: your assistant will not touch files that are already there).</li>
+            <li>Open the <b>Code</b> tab, choose <b>Open folder…</b> and pick that folder. If the app asks whether you trust it, choose <b>trust</b>.</li>
+            <li>Paste the <a href="#sentence">setup sentence</a> and press Enter. Approve when it asks to download files or to edit files in this folder.</li></ol>
+            <p class="quiet small">Tip: once setup has run, click <code>office/index.html</code> in the chat to open the panel in the app's browser pane, right next to your conversation.</p></div>
+          <div class="panel" role="tabpanel" id="t-codex-app" aria-labelledby="b-codex-app" hidden><ol>
+            <li>Install the Codex app (<a href="https://developers.openai.com/codex">instructions</a>) and sign in. Make a new, empty folder on your Desktop, e.g. <code>my-mas</code> (empty matters: your assistant will not touch files that are already there).</li>
+            <li>Open that folder as a project.</li>
+            <li>Paste the <a href="#sentence">setup sentence</a> and press Enter. If Codex says it can't download (its sandbox may block the internet for commands), use the ZIP route under A2, then type <code>next</code>.</li></ol></div>
           <div class="panel" role="tabpanel" id="t-other" aria-labelledby="b-other" hidden><ol>
-            <li>Open your empty folder in your AI coding assistant (Cursor, Copilot, Gemini CLI, opencode…).</li>
-            <li>Allow it to edit files in this folder and to search the web.</li>
+            <li>Make a new, empty folder on your Desktop, e.g. <code>my-mas</code> (empty matters: your assistant will not touch files that are already there). Open it in your AI coding assistant (Cursor, Copilot, Gemini CLI, opencode…).</li>
+            <li>Allow it to edit files in this folder and to search the web, then paste the <a href="#sentence">setup sentence</a>.</li>
             <li>If it doesn't follow the steps on its own later, start each conversation with <code>Read AGENTS.md and follow it.</code></li></ol></div>
 
-          <h3>A3 · Paste the setup sentence</h3>
-          <p>It is the same sentence for every tool. Paste it into your assistant and press Enter.</p>
+          <h3 id="sentence">A2 · The setup sentence (apps and other tools)</h3>
+          <p>The terminal lines above already include it. In an app, paste it into your assistant and press Enter. It is the same sentence for every tool.</p>
           <div class="type">
             <span class="type-k">Type</span>
             <span class="type-v" id="setup-sentence">Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it.</span>
@@ -390,10 +388,10 @@
           </div>
           <p class="quiet small">Can't download from inside your tool? Get the <a href="https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip">ZIP</a>, unzip it, move everything inside <code>awesome-mas-main</code> into your folder, open the folder in your tool and type <code>next</code>.</p>
 
-          <h3>A4 · Let your assistant set things up</h3>
-          <p>You don't need to do anything here except approve. Your assistant explains each step in one sentence while it:</p>
+          <h3>A3 · Let your assistant set things up</h3>
+          <p>You don't need to do anything here (in an app, approve when asked). Your assistant explains each step in one sentence while it:</p>
           <ol>
-            <li>downloads awesome-mas into your folder (you approve once);</li>
+            <li>downloads awesome-mas into your folder;</li>
             <li>writes a small file to check it can save files;</li>
             <li>runs one tiny web search to check it can search;</li>
             <li>starts one tiny test agent to check whether it can run agents at the same time, and tells you honestly: <em>real agents</em> or <em>role-play</em>;</li>
@@ -403,7 +401,7 @@
             <div class="chat-row"><span class="who">Assistant</span><div class="said"><p>Welcome to awesome-mas. … This folder can hold several MAS, one folder each. Keep <code>office/index.html</code> open: it follows whichever MAS we work on.</p><p><b>Type <code>next</code> to start your first MAS.</b></p></div></div>
           </div>
 
-          <h3>A5 · Put the chat and the panel side by side</h3>
+          <h3>A4 · Put the chat and the panel side by side</h3>
           <p>From now on you <b>talk</b> in your assistant and <b>watch</b> the panel. Put the chat on the left half of your screen and the panel on the right. The panel updates by itself; if it ever looks stuck, reload the page.</p>
         </section>
 
@@ -641,9 +639,9 @@
         <!-- help -->
         <section class="part" id="help" aria-labelledby="help-h">
           <header><p class="p-n">Troubleshooting</p><h2 id="help-h">If something goes wrong</h2></header>
-          <details><summary><code>agy</code> is not found after installing.</summary><div><p>Close the terminal and open a new one, so it picks up the new command. Still not found? Run the install line again and read its last lines: it says where it put <code>agy</code>. The official guide is at <a href="https://antigravity.google/docs/getting-started?tab=cli">antigravity.google</a>.</p></div></details>
-          <details><summary>The setup sentence fails: it can't download.</summary><div><p>Use the ZIP: download it from the link in A3, unzip it, move everything inside <code>awesome-mas-main</code> into your folder, then open the folder in your tool and type <code>next</code>.</p></div></details>
-          <details><summary>Every file edit asks me for permission.</summary><div><p>In the Antigravity CLI, close the terminal window, open a terminal in your folder again and start it with <code>agy --mode accept-edits</code>. In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.</p></div></details>
+          <details><summary><code>agy</code> is not found.</summary><div><p>Close the terminal, open a new one and paste the A1 line again: it skips the install if Antigravity is already there. Still not found? Read the install's last lines: it says where it put <code>agy</code>. The official guide is at <a href="https://antigravity.google/docs/getting-started?tab=cli">antigravity.google</a>.</p></div></details>
+          <details><summary>The setup sentence fails: it can't download.</summary><div><p>Use the ZIP: download it from the link under A2, unzip it, move everything inside <code>awesome-mas-main</code> into your folder, then open the folder in your tool and type <code>next</code>.</p></div></details>
+          <details><summary>Every file edit asks me for permission.</summary><div><p>You started your tool without the no-questions option. In the Antigravity CLI, type <code>/exit</code>, then start it again in your folder with <code>agy --dangerously-skip-permissions</code> (Claude Code: <code>claude --dangerously-skip-permissions</code>; Codex: <code>codex --search --dangerously-bypass-approvals-and-sandbox</code>). In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.</p></div></details>
           <details><summary>The panel doesn't update.</summary><div><p>Reload the browser page. Make sure you opened the <code>office/index.html</code> inside your project folder, not a copy somewhere else.</p></div></details>
           <details><summary>My assistant doesn't follow the steps.</summary><div><p>Type <code>Read AGENTS.md and follow it.</code> and then <code>next</code>.</p></div></details>
           <details><summary>It says role-play instead of real agents.</summary><div><p>Your tool can't start separate agents here, so your assistant plays each role in turn. The steps and the office are the same; it just takes longer, and the panel says so honestly.</p></div></details>

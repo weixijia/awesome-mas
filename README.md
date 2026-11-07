@@ -50,7 +50,7 @@ Set up once, then 4 steps. **You type `next` 4 times in all: once for each step.
 
 ## ✅ Before you start
 
-1. **An AI coding assistant, signed in.** This guide uses the **Antigravity CLI** (`agy`): it runs in a terminal and you sign in with a personal Google account (Free, Pro or Ultra). Claude (the desktop app or Claude Code), Codex (the app or the CLI), the Antigravity IDE or a similar assistant that can read and write files in a folder work the same way; pick your tool in A2. Your normal chat website is not enough: it cannot keep files.
+1. **An AI coding assistant, signed in.** This guide uses the **Antigravity CLI** (`agy`): it runs in a terminal and you sign in with a personal Google account (Free, Pro or Ultra). Claude (the desktop app or Claude Code), Codex (the app or the CLI), the Antigravity IDE or a similar assistant that can read and write files in a folder work the same way; pick your tool in A1. Your normal chat website is not enough: it cannot keep files.
 2. **A task you genuinely want help with.** Comparing prices before a purchase, planning a trip, checking whether a thesis idea is feasible, finding a flat, planning meals, preparing job applications. Anything works, as long as you can say what a good answer looks like.
 3. **A browser for the live panel.** Any modern browser. There is nothing to click or connect in it; it only shows what your team is doing.
 
@@ -58,104 +58,111 @@ A full run uses a real share of your plan's usage, because every agent reads and
 
 ## 🚀 Part A · Set up your folder (once)
 
+> **You paste** one line (or one sentence) · **Time** about 5–10 min · **You approve** nothing, with a CLI line · **Ends with** “Type `next`…”
+
 One folder can later hold several MAS, so you set it up only once. Everything your team writes stays in this folder, as plain files you can open.
 
-**A1 · Make an empty folder** somewhere easy to find, for example `my-mas` on your Desktop. Empty matters: your assistant will not touch files that are already there.
+### A1 · Start your AI tool with one line
 
-**A2 · Open the folder in your AI tool.** This guide uses the Antigravity CLI; using another tool? Open its section instead.
+This guide uses the Antigravity CLI. With a terminal tool (Antigravity CLI, Claude Code, Codex CLI) **one pasted line does everything**: it installs what is missing, makes the folder, starts your assistant in it and hands it the setup sentence. Using an app? Open its section.
 
 <details open>
 <summary><b>Antigravity CLI</b> (terminal) — used in this guide</summary>
 
-1. **Install it** (once). Open a terminal and paste the line for your computer, then press Enter:
+1. **Open a terminal.** macOS: press Cmd+Space, type `Terminal`, press Enter. Windows: open the Start menu, type `PowerShell`, press Enter.
+2. **Copy the line for your computer, paste it into the terminal and press Enter.** It installs the Antigravity CLI (if you don't have it yet), makes a folder `my-mas` on your Desktop, starts Antigravity there and gives it the setup sentence:
    - macOS:
-     ```
-     curl -fsSL https://antigravity.google/cli/install.sh | bash
+     ```bash
+     curl -fsSL https://antigravity.google/cli/install.sh | bash && export PATH="$HOME/.local/bin:$PATH" && mkdir -p ~/Desktop/my-mas && cd ~/Desktop/my-mas && agy --dangerously-skip-permissions -i "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."
      ```
    - Windows (PowerShell):
+     ```powershell
+     irm https://antigravity.google/cli/install.ps1 | iex; $env:Path += ";$env:LOCALAPPDATA\agy\bin"; $d = Join-Path ([Environment]::GetFolderPath('Desktop')) 'my-mas'; New-Item -ItemType Directory -Force $d | Out-Null; Set-Location $d; agy --dangerously-skip-permissions -i "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."
      ```
-     irm https://antigravity.google/cli/install.ps1 | iex
-     ```
-   Close the terminal and open a new one, then check it worked: `agy --version` prints a version number.
-2. **Open a terminal in your empty folder.** macOS: open Terminal, type `cd` and a space, drag your folder into the window, press Enter. Windows: open the folder in File Explorer, click the address bar, type `powershell`, press Enter.
-3. **Start it:**
-   ```
-   agy --mode accept-edits
-   ```
-   `accept-edits` lets it edit files in this folder without asking every time.
-4. **The first time** it asks you to pick a colour scheme and a display mode (any is fine), whether you **trust this folder** (choose yes) and to **sign in** with your Google account.
-5. During setup, approve when it asks to run the download command and the command that opens the panel.
+3. **The first time** Antigravity asks you to pick a colour scheme and a display mode (any is fine) and to **sign in** with your Google account.
+4. Wait. When it says *“Type `next` to start your first MAS”*, setup is done: go on to [Step 1](#step-1--describe-your-task).
 
-Setup tests whether Antigravity can start separate agents here; if it can't, your assistant plays each role in turn, and the panel says so. Type `/usage` at any time to see how much quota you have left. Official install guide: [antigravity.google](https://antigravity.google/docs/getting-started?tab=cli).
-</details>
-
-<details>
-<summary><b>Antigravity IDE</b> (desktop)</summary>
-
-1. Install the [Antigravity](https://antigravity.google/) IDE and sign in with your Google account.
-2. Choose **Open Folder** and pick your empty folder. If it asks whether you trust the folder, choose yes.
-3. Paste the setup sentence into the agent chat. Allow it to edit files in this folder when asked.
-</details>
-
-<details>
-<summary><b>Claude app</b> (desktop)</summary>
-
-1. Install the [Claude desktop app](https://claude.com/download) and sign in.
-2. Open the **Code** tab, choose **Open folder…** and pick your empty folder.
-3. If the app asks whether you trust this folder, choose **trust**. Without it, the folder's own settings don't apply and every file edit asks for permission.
-4. During setup, approve when it asks to download files or to edit files in this folder.
-
-Tip: once setup has run, click `office/index.html` in the chat to open the panel in the app's browser pane, right next to your conversation.
+`--dangerously-skip-permissions` lets your assistant run commands and edit files without stopping to ask you, so setup and runs go straight through. It can then run any command, so start it only inside your awesome-mas folder (the line does that). Come back another day: open a terminal, type `cd ~/Desktop/my-mas` (Windows: `cd "$([Environment]::GetFolderPath('Desktop'))\my-mas"`) and then `agy --dangerously-skip-permissions`. In Antigravity, `/usage` shows your quota and `/exit` quits. Official install guide: [antigravity.google](https://antigravity.google/docs/getting-started?tab=cli).
 </details>
 
 <details>
 <summary><b>Claude Code</b> (terminal)</summary>
 
-1. Install Claude Code ([instructions](https://code.claude.com/docs/en/setup)) and sign in.
-2. Open a terminal in your empty folder and run:
-   ```
-   claude
-   ```
-3. When it asks whether you trust this folder, choose **Yes, I trust this folder**. Without it, the folder's own settings don't apply and every file edit asks for permission.
-4. During setup, approve the one download command when asked.
+1. **Open a terminal** (as above).
+2. **Copy the line for your computer, paste it and press Enter.** Install Claude Code first ([instructions](https://code.claude.com/docs/en/setup)) and sign in once. The line makes a folder `my-mas` on your Desktop, starts Claude Code there and gives it the setup sentence:
+   - macOS:
+     ```bash
+     mkdir -p ~/Desktop/my-mas && cd ~/Desktop/my-mas && claude --dangerously-skip-permissions "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."
+     ```
+   - Windows (PowerShell):
+     ```powershell
+     $d = Join-Path ([Environment]::GetFolderPath('Desktop')) 'my-mas'; New-Item -ItemType Directory -Force $d | Out-Null; Set-Location $d; claude --dangerously-skip-permissions "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."
+     ```
+3. If it asks whether you trust this folder, choose **Yes**. If it asks you to confirm *Bypass Permissions* mode, choose **Yes, I accept**.
+4. Wait. When it says *“Type `next` to start your first MAS”*, setup is done: go on to [Step 1](#step-1--describe-your-task).
 
-Claude Code runs your agents as real parallel subagents: two finders really work at the same time.
-</details>
-
-<details>
-<summary><b>Codex app</b> (desktop)</summary>
-
-1. Install the Codex app ([instructions](https://developers.openai.com/codex)) and sign in.
-2. Open your empty folder as a project.
-3. If Codex says it can't download (its sandbox may block the internet for commands), use the ZIP route under A3, then type `next`.
+`--dangerously-skip-permissions` lets Claude Code run commands and edit files without stopping to ask you; start it only inside your awesome-mas folder. Come back another day: `cd ~/Desktop/my-mas`, then `claude --dangerously-skip-permissions`. Claude Code runs your agents as real parallel subagents.
 </details>
 
 <details>
 <summary><b>Codex CLI</b> (terminal)</summary>
 
-1. Install Codex CLI ([instructions](https://developers.openai.com/codex)) and sign in.
-2. Open a terminal in your empty folder and run:
-   ```
-   codex --search
-   ```
-   The `--search` part gives live web results; without it Codex uses cached results.
-3. If the download is blocked, approve network access when asked, or use the ZIP route under A3.
+1. **Open a terminal** (as above).
+2. **Copy the line for your computer, paste it and press Enter.** Install Codex CLI first ([instructions](https://developers.openai.com/codex)) and sign in once. The line makes a folder `my-mas` on your Desktop, starts Codex there with live web search and gives it the setup sentence:
+   - macOS:
+     ```bash
+     mkdir -p ~/Desktop/my-mas && cd ~/Desktop/my-mas && codex --search --dangerously-bypass-approvals-and-sandbox "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."
+     ```
+   - Windows (PowerShell):
+     ```powershell
+     $d = Join-Path ([Environment]::GetFolderPath('Desktop')) 'my-mas'; New-Item -ItemType Directory -Force $d | Out-Null; Set-Location $d; codex --search --dangerously-bypass-approvals-and-sandbox "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."
+     ```
+3. If it asks whether you trust this folder, choose **Yes**.
+4. Wait. When it says *“Type `next` to start your first MAS”*, setup is done: go on to [Step 1](#step-1--describe-your-task).
 
-Codex runs your agents as real parallel subagents.
+`--dangerously-bypass-approvals-and-sandbox` lets Codex run commands, edit files and use the internet without stopping to ask you; start it only inside your awesome-mas folder. Come back another day: `cd ~/Desktop/my-mas`, then `codex --search --dangerously-bypass-approvals-and-sandbox`. Codex runs your agents as real parallel subagents.
+</details>
+
+<details>
+<summary><b>Antigravity IDE</b> (desktop)</summary>
+
+1. Install the [Antigravity](https://antigravity.google/) IDE and sign in with your Google account. Make a new, empty folder on your Desktop, e.g. `my-mas` (empty matters: your assistant will not touch files that are already there).
+2. Choose **Open Folder** and pick that folder. If it asks whether you trust the folder, choose yes.
+3. Paste the [setup sentence](#a2--the-setup-sentence-apps-and-other-tools) into the agent chat and press Enter. Allow it to edit files in this folder when asked.
+</details>
+
+<details>
+<summary><b>Claude app</b> (desktop)</summary>
+
+1. Install the [Claude desktop app](https://claude.com/download) and sign in. Make a new, empty folder on your Desktop, e.g. `my-mas` (empty matters: your assistant will not touch files that are already there).
+2. Open the **Code** tab, choose **Open folder…** and pick that folder. If the app asks whether you trust it, choose **trust**.
+3. Paste the [setup sentence](#a2--the-setup-sentence-apps-and-other-tools) and press Enter. Approve when it asks to download files or to edit files in this folder.
+
+Tip: once setup has run, click `office/index.html` in the chat to open the panel in the app's browser pane, right next to your conversation.
+</details>
+
+<details>
+<summary><b>Codex app</b> (desktop)</summary>
+
+1. Install the Codex app ([instructions](https://developers.openai.com/codex)) and sign in. Make a new, empty folder on your Desktop, e.g. `my-mas` (empty matters: your assistant will not touch files that are already there).
+2. Open that folder as a project.
+3. Paste the [setup sentence](#a2--the-setup-sentence-apps-and-other-tools) and press Enter. If Codex says it can't download (its sandbox may block the internet for commands), use the ZIP route under A2, then type `next`.
 </details>
 
 <details>
 <summary><b>Other</b> (Cursor, Copilot, Gemini CLI, opencode…)</summary>
 
-1. Open your empty folder in your AI coding assistant.
-2. Allow it to edit files in this folder and to search the web.
+1. Make a new, empty folder on your Desktop, e.g. `my-mas` (empty matters: your assistant will not touch files that are already there). Open it in your AI coding assistant.
+2. Allow it to edit files in this folder and to search the web, then paste the [setup sentence](#a2--the-setup-sentence-apps-and-other-tools).
 3. If it doesn't follow the steps on its own later, start each conversation with:
    ```
    Read AGENTS.md and follow it.
    ```
 </details>
 
-**A3 · Paste the setup sentence.** It is the same sentence for every tool:
+### A2 · The setup sentence (apps and other tools)
+
+The terminal lines above already include it. In an app, paste it into your assistant and press Enter. It is the same sentence for every tool:
 
 ```
 Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it.
@@ -163,13 +170,17 @@ Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome
 
 Can't download from inside your tool? Get the [ZIP](https://github.com/weixijia/awesome-mas/archive/refs/heads/main.zip), unzip it, move everything inside `awesome-mas-main` into your folder, open the folder in your tool and type `next`.
 
-**A4 · Let your assistant set things up.** You only approve. It explains each step in one sentence while it downloads awesome-mas into your folder (you approve once), writes a small file to check it can save files, runs one tiny web search, starts one tiny test agent to check whether it can run agents at the same time (and tells you honestly: *real agents* or *role-play*), and opens the live panel, `office/index.html`. It ends with:
+### A3 · Let your assistant set things up
+
+You don't need to do anything here (in an app, approve when asked). It explains each step in one sentence while it downloads awesome-mas into your folder, writes a small file to check it can save files, runs one tiny web search, starts one tiny test agent to check whether it can run agents at the same time (and tells you honestly: *real agents* or *role-play*), and opens the live panel, `office/index.html`. It ends with:
 
 > Welcome to awesome-mas. … This folder can hold several MAS, one folder each. Keep `office/index.html` open: it follows whichever MAS we work on.
 >
 > **Type `next` to start your first MAS.**
 
-**A5 · Put the chat and the panel side by side.** From now on you **talk** in your assistant and **watch** the panel. Put the chat on the left half of your screen and the panel on the right. The panel updates by itself; if it ever looks stuck, reload the page.
+### A4 · Put the chat and the panel side by side
+
+From now on you **talk** in your assistant and **watch** the panel. Put the chat on the left half of your screen and the panel on the right. The panel updates by itself; if it ever looks stuck, reload the page.
 
 ## Step 1 · Describe your task
 
@@ -346,21 +357,21 @@ Your usage ran out halfway, your task was bigger than your plan, or you don't ha
 ## 🛟 If something goes wrong
 
 <details>
-<summary><b><code>agy</code> is not found after installing.</b></summary>
+<summary><b><code>agy</code> is not found.</b></summary>
 
-Close the terminal and open a new one, so it picks up the new command. Still not found? Run the install line again and read its last lines: it says where it put `agy`. The official guide is at [antigravity.google](https://antigravity.google/docs/getting-started?tab=cli).
+Close the terminal, open a new one and paste the A1 line again: it skips the install if Antigravity is already there. Still not found? Read the install's last lines: it says where it put `agy`. The official guide is at [antigravity.google](https://antigravity.google/docs/getting-started?tab=cli).
 </details>
 
 <details>
 <summary><b>The setup sentence fails: it can't download.</b></summary>
 
-Use the ZIP: download it from the link under A3, unzip it, move everything inside `awesome-mas-main` into your folder, then open the folder in your tool and type `next`.
+Use the ZIP: download it from the link under A2, unzip it, move everything inside `awesome-mas-main` into your folder, then open the folder in your tool and type `next`.
 </details>
 
 <details>
 <summary><b>Every file edit asks me for permission.</b></summary>
 
-In the Antigravity CLI, close the terminal window, open a terminal in your folder again and start it with `agy --mode accept-edits`. In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.
+You started your tool without the no-questions option. In the Antigravity CLI, type `/exit`, then start it again in your folder with `agy --dangerously-skip-permissions` (Claude Code: `claude --dangerously-skip-permissions`; Codex: `codex --search --dangerously-bypass-approvals-and-sandbox`). In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.
 </details>
 
 <details>
