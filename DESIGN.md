@@ -75,6 +75,34 @@ typography:
     fontSize: "13px"
     fontWeight: 500
     fontFeature: "tnum"
+  doc-h1:
+    fontFamily: "Archivo, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+    fontSize: "clamp(34px, 4.6vw, 60px)"
+    fontWeight: 600
+    lineHeight: 1.02
+    letterSpacing: "-0.035em"
+  doc-h2:
+    fontFamily: "Archivo, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+    fontSize: "clamp(28px, 3vw, 38px)"
+    fontWeight: 600
+    lineHeight: 1.1
+    letterSpacing: "-0.028em"
+  doc-h3:
+    fontFamily: "Archivo, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+    fontSize: "22px"
+    fontWeight: 600
+    lineHeight: 1.25
+    letterSpacing: "-0.012em"
+  doc-lede:
+    fontFamily: "Archivo, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+    fontSize: "19px"
+    fontWeight: 400
+    lineHeight: 1.6
+  doc-body:
+    fontFamily: "Archivo, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+    fontSize: "17px"
+    fontWeight: 400
+    lineHeight: 1.6
 rounded:
   none: "0px"
   control: "2px"
@@ -186,6 +214,7 @@ A cool neutral sheet, a near-black ink, and four primary group fills (vermilion,
 ### Hierarchy
 - **Status sentence** (600, clamp 28–44px, 1.05, max 30ch, balanced): one per panel, at the top of the stage. It is `aria-live="polite"`.
 - **Docs H1** (600, clamp(34px, 4.6vw, 60px), 1.02, -0.035em) and **Examples H1** (600, clamp(32px, 4.2vw, 52px)): page titles on Read surfaces.
+- **Read-surface ramp** (the tutorial, `docs/index.html`): doc-h2 (600, clamp(28px, 3vw, 38px)) for each part and step; doc-h3 (600, 22px) for sub-steps (A1 to A5) and the route heading, and a 17px 600 minor h3 inside steps; doc-lede (19px, ink-2) under the H1; doc-body (17px/1.6, 16px at ≤640px) for reading text, with a 68ch measure. Supporting text steps down to body-sm (15px); labels use the cell-label and number styles. Heading levels never skip.
 - **Title** (600, 24px): role card name. The result title is 20px.
 - **Body** (400, 16px/1.5): the base size. Sidebar content runs at 15px and the activity feed at 14px.
 - **Annotation** (name 600 15px at wdth 88; say line 14px/19px ink-2, clamped to 2 lines).
@@ -199,13 +228,13 @@ A cool neutral sheet, a near-black ink, and four primary group fills (vermilion,
 
 ## Layout
 
-- **Panel grid:** a 64px top rule (56px and sticky at ≤600px) over a two-column sheet: `minmax(0,1fr)` stage plus `--side` = clamp(340px, 32vw, 460px). When a result is ready (`body.wide-side`, >1100px only), the side widens to clamp(460px, 45vw, 680px). The column change animates over .35s.
+- **Panel grid:** a 64px top rule (56px and sticky at ≤600px) over a two-column sheet: `minmax(0,1fr)` stage plus `--side` = clamp(340px, 32vw, 460px). The side keeps its width when a result is ready, and the status band above the drawing has a fixed responsive height, so the drawing never changes size while agents work.
 - **Stage padding** is 26px 32px 12px, or 20px 16px at ≤760px. Cell padding is 18px 22px 20px. Spacing steps observed: 6, 10, 14, 18, 22, 32px.
 - **Breakpoints:**
   - ≤1100px: the title block becomes a fixed overlay sliding in from the right, and inactive step labels hide.
   - ≤760px: the mode note hides and the freshness stamp drops under the status.
   - ≤600px: one scrolling column with the sidebar stacked below.
-  - Docs: 900px and 600px. Examples: 900px.
+  - Docs (the tutorial): 1100px (the route strip wraps to two rows), 960px (the contents rail becomes a collapsible list) and 640px (one column). Examples: 900px.
 - **Read surfaces** use a max-width 1180px sheet with 16px gutters, and grids ruled by ink borders on the top and left of the grid plus the right and bottom of each cell.
 
 ### Axonometric drawing rules (office.js / model.js)
@@ -279,12 +308,22 @@ These are 13px, 600 weight, wdth 88, with a 0 5px pad, a 1px border and an 18px 
 ### Title-block sidebar
 - Ruled cells, top to bottom: role card (when selected) or Result (when ready); Task (summary and requirement chips with "who" swatches); Team (an org list by group with 10px colour swatches, state chips and a cost line under a 1px ink rule); and Activity (a 48px mono timestamp column).
 - The foot is a 2 × 2 title block with a 2px ink top rule and 1px ink internal rules: Project, Team (v1 · locked), Mode, Run (01 · in progress).
-- **Result-wide variant:** while a result is shown, the column widens (see Layout). The result renders as markdown at 15px, with tables ruled ink on top and bottom and hair on the sides, and cells at least 5em wide. Sources carry evidence-grade squares (A to D).
+- **Result:** shown at the top of the column at its normal width. The result renders as markdown at 15px, with tables ruled ink on top and bottom and hair on the sides, and cells at least 5em wide. Sources carry evidence-grade squares (A to D).
 
 ### Buttons
 - **Outline** (sb-toggle, replay): 30–32px tall, 1px ink border, 2px radius, 14px 600. Hover fills with paper. The active sidebar toggle is filled ink.
 - **Primary** (docs and examples): ink fill, paper text, 44px minimum height. Hover uses #2E343A.
 - **Docs tabs:** ink-ruled, with the selected tab in ink fill.
+
+### Tutorial components (docs/index.html)
+- **Route strip:** the whole journey in one ruled row: Set up and Name your MAS (on the sheet ground, marked *once*), Step 1 to Step 4 (step numbers in verm-ink mono), After. A sage-tick note under it states that the five questions belong to step 1. Each cell links to its part.
+- **Glance strip:** four ruled cells under each step heading: You type, Time, You get, Ingredient.
+- **Type block:** a ruled row with a TYPE cell label, the text in 16px mono on white, and a full-height ink Copy button.
+- **Chat exchange:** ruled rows of YOU / ASSISTANT cell labels; the student's lines in mono on white, the assistant's on paper. Only wording the kit actually uses.
+- **Question list:** Q1 to Q5 in verm-ink mono, the question in 17px 600, a hint in ink-2 and an EXAMPLE answer in a hair-ruled paper box.
+- **Check list and moment:** sage-tick squares for what to check; a "A chat can't do this" moment as an ink label cell beside a white note.
+- **Panel screenshots:** real renders of the price-compare example at each step, framed in 1px ink with a ruled caption.
+- **Contents rail:** sticky, ruled list with a mono marker column; the part in view is set in ink 600 with a verm-ink marker.
 
 ## Motion
 
