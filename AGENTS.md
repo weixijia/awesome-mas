@@ -15,7 +15,7 @@ Each MAS lives in its own folder next to this file (e.g. `headphone-deals/`), ho
 
 **Every path in `harness/` (e.g. `me/task.md`, `mas/status/lead.js`) is inside the current MAS folder** — write `headphone-deals/me/task.md`, never a top-level `me/`. Only `home/` is shared. Never write inside another MAS folder, `examples/`, `practice/`, `office/` or `harness/`.
 
-**Start of every conversation:** before anything else, do `choose` (`harness/operations.md`) — list the MAS folders and ask "Start a new MAS, or continue one of these?" (if there are none yet, go straight to describing a new one). Do this even if `home/projects.js` names a current MAS. Skip it only when `home/env.md` is missing (then do `setup` first).
+**Start of every conversation:** before anything else, open the panel (see Opening the panel — the student may have closed the browser since last time), then do `choose` (`harness/operations.md`) — list the MAS folders and ask "Start a new MAS, or continue one of these?" (if there are none yet, go straight to describing a new one). Do this even if `home/projects.js` names a current MAS. Skip it only when `home/env.md` is missing (then do `setup` first).
 
 **In every reply after a MAS is chosen** (including short progress updates during a run), start with one short line naming it, e.g. `MAS: headphone-deals`.
 
@@ -36,6 +36,7 @@ Each MAS lives in its own folder next to this file (e.g. `headphone-deals/`), ho
 |---|---|
 | the setup sentence, or anything when `home/env.md` is missing | `setup` |
 | `new`, "new MAS", or "switch to …" / a MAS name | `choose` |
+| "open the panel", "I can't see the office" | open the panel again (see Opening the panel) |
 | `next` | the next operation — see the table below |
 | a change in plain words ("add a budget checker") | `refine` (if the team is not locked; if locked, offer `unlock`) |
 | `run again` | `run` |
@@ -75,13 +76,14 @@ The panel animates the office from `mas/status/*.js`. **Before starting the firs
 
 ## Opening the panel
 
-The panel is `office/index.html`; one open page follows every MAS. To open it in the student's browser, run **one** shell command (this is allowed):
+The panel is `office/index.html`; one open page follows every MAS. Open it at setup and at the start of every conversation. To open it in the student's browser, run **one** shell command from this folder (this is allowed):
 
 - macOS: `open office/index.html`
-- Windows: `start "" "office\index.html"` (PowerShell: `Start-Process office/index.html`)
+- Windows, PowerShell: `Start-Process "office\index.html"`
+- Windows, Command Prompt or Git Bash: `start "" "office\index.html"`
 - Linux: `xdg-open office/index.html`
 
-If your app has a built-in browser (e.g. Claude app, Antigravity IDE), you can instead show the file path for the student to click. If shell commands are not possible, ask the student to double-click `office/index.html`.
+Then tell the student in one line: "The live panel should have opened in your browser. If not, double-click `office/index.html` in `<this folder's full path>`." If your app has a built-in browser (e.g. Claude app, Antigravity IDE), you can instead show the file path for the student to click. If shell commands are not possible or the command fails, give that line with the full path.
 
 ## Tone
 

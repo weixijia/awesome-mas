@@ -259,7 +259,7 @@
       </div>
       <figure class="shot">
         <img src="img/step4-result.webp" width="1440" height="900" alt="The awesome-mas panel after a finished run: an axonometric office where five agents gathered at the party table, and on the right the result: a shortlist of three headphone offers with total prices and links.">
-        <figcaption>Where you will end: your team in the office, and the answer to your task on the right. This is a real run from the price-comparison example.</figcaption>
+        <figcaption>Where you will end: your team in the office, and the answer to your task on the right. This is a real run from the price-comparison example, with product and shop names replaced by placeholders.</figcaption>
       </figure>
     </div>
 
@@ -403,6 +403,7 @@
 
           <h3>A4 · Put the chat and the panel side by side</h3>
           <p>From now on you <b>talk</b> in your assistant and <b>watch</b> the panel. Put the chat on the left half of your screen and the panel on the right. The panel updates by itself; if it ever looks stuck, reload the page.</p>
+          <p>Your assistant opens the panel at setup and again at the start of every new conversation. If no browser page appeared, type <code>open the panel</code>, or double-click <code>office/index.html</code> in your folder (e.g. <code>my-mas</code> on your Desktop).</p>
         </section>
 
         <!-- 1 -->
@@ -414,9 +415,9 @@
             <div><dt>You get</dt><dd>Requirements <span class="num">R1</span>, <span class="num">R2</span>…</dd></div>
             <div><dt>Ingredient</dt><dd>Memory</dd></div>
           </dl>
-          <p>Type <code>next</code>. Your assistant interviews you with <b>five questions, one at a time</b>, and waits for each answer. Answer in your own words, in any language. The example answers below are from the real price-comparison example in your folder.</p>
+          <p>Type <code>next</code>. Your assistant interviews you with <b>five questions, one at a time</b>, and waits for each answer. Answer in your own words, in any language. The example answers below are from the real price-comparison example in your folder, without product names.</p>
           <ol class="qs">
-            <li><span class="q-n">Q1</span><div><p class="q-t">What should your assistant help you do?</p><p class="q-h">Say the task in one or two sentences.</p><p class="q-ex"><b>Example</b>Compare prices before I buy noise-cancelling headphones (Sony WH-1000XM6 or similar).</p></div></li>
+            <li><span class="q-n">Q1</span><div><p class="q-t">What should your assistant help you do?</p><p class="q-h">Say the task in one or two sentences.</p><p class="q-ex"><b>Example</b>Compare prices before I buy noise-cancelling headphones (one model I already have in mind, or similar).</p></div></li>
             <li><span class="q-n">Q2</span><div><p class="q-t">What are your preferences and limits?</p><p class="q-h">Budget, time, things to avoid. Numbers help: they become checkable requirements.</p><p class="q-ex"><b>Example</b>Under £280 total including delivery, must be brand new (not refurbished), delivered within 3 days, UK shops only.</p></div></li>
             <li><span class="q-n">Q3</span><div><p class="q-t">What does a good result look like? How will you judge it?</p><p class="q-h">The shape of the answer you want to receive.</p><p class="q-ex"><b>Example</b>A short list of the 2–3 best offers with total price and links I can check.</p></div></li>
             <li><span class="q-n">Q4</span><div><p class="q-t">Will you do this again? How often?</p><p class="q-h">This tells your assistant whether a reusable team is worth it.</p><p class="q-ex"><b>Example</b>Yes, I'll use it again for a monitor next month.</p></div></li>
@@ -465,7 +466,7 @@
           <table>
             <thead><tr><th scope="col">Role</th><th scope="col">Serves</th><th scope="col">Why it exists</th><th scope="col">Group</th></tr></thead>
             <tbody>
-              <tr><td>Sony deal finder</td><td><span class="num">R1 R3</span></td><td>Searches UK shops for the exact model</td><td><span class="num">A</span></td></tr>
+              <tr><td>Chosen-model finder</td><td><span class="num">R1 R3</span></td><td>Searches UK shops for the model you picked</td><td><span class="num">A</span></td></tr>
               <tr><td>Similar-model finder</td><td><span class="num">R1 R3</span></td><td>A different source: similar headphones, at the same time</td><td><span class="num">A</span></td></tr>
               <tr><td>Catch checker</td><td><span class="num">R2 R3</span></td><td>An independent check for refurbished stock and slow delivery</td><td><span class="num">B</span></td></tr>
               <tr><td>Budget checker</td><td><span class="num">R1</span></td><td>An independent check of every total, delivery included</td><td><span class="num">B</span></td></tr>
@@ -502,7 +503,7 @@
             <li><em>“Add a budget checker that re-checks every total.”</em></li>
             <li><em>“Merge the two finders into one.”</em> (cheaper, but no longer at the same time)</li>
             <li><em>“The catch checker should also check the seller is in the UK.”</em></li>
-            <li><em>“Remove the similar-model finder; I only want the Sony.”</em></li>
+            <li><em>“Remove the similar-model finder; I only want the model I picked.”</em></li>
             <li><em>“Why do we need two checkers?”</em> (questions are fine too)</li>
           </ul>
           <p>Push back on every extra agent: more agents means more tokens and more time. If a change leaves a requirement unserved, your assistant tells you, but the choice stays yours.</p>
@@ -538,7 +539,7 @@
             <li><b>Click a person</b> to follow only their thread; everything else dims. Click again to go back.</li>
           </ul>
           <figure class="shot see">
-            <img src="img/step4-run.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel during a run: the headline reads that the Sony deal finder and the Similar-model finder are working at the same time; both sit typing in the vermilion room of group A while the two checkers wait in the blue room of group B.">
+            <img src="img/step4-run.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The panel during a run: the headline reads that the Chosen-model finder and the Similar-model finder are working at the same time; both sit typing in the vermilion room of group A while the two checkers wait in the blue room of group B.">
             <figcaption>During the run: group A's two finders work at the same time while group B's checkers wait their turn.</figcaption>
           </figure>
           <h3 class="minor">When it's done</h3>
@@ -642,6 +643,7 @@
           <details><summary><code>agy</code> is not found.</summary><div><p>Close the terminal, open a new one and paste the A1 line again: it skips the install if Antigravity is already there. Still not found? Read the install's last lines: it says where it put <code>agy</code>. The official guide is at <a href="https://antigravity.google/docs/getting-started?tab=cli">antigravity.google</a>.</p></div></details>
           <details><summary>The setup sentence fails: it can't download.</summary><div><p>Use the ZIP: download it from the link under A2, unzip it, move everything inside <code>awesome-mas-main</code> into your folder, then open the folder in your tool and type <code>next</code>.</p></div></details>
           <details><summary>Every file edit asks me for permission.</summary><div><p>You started your tool without the no-questions option. In the Antigravity CLI, type <code>/exit</code>, then start it again in your folder with <code>agy --dangerously-skip-permissions</code> (Claude Code: <code>claude --dangerously-skip-permissions</code>; Codex: <code>codex --search --dangerously-bypass-approvals-and-sandbox</code>). In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.</p></div></details>
+          <details><summary>The panel didn't open.</summary><div><p>Type <code>open the panel</code> in your assistant. Or open your folder (e.g. <code>my-mas</code> on your Desktop) and double-click <code>office/index.html</code>. Keep that page open: it follows every MAS in this folder.</p></div></details>
           <details><summary>The panel doesn't update.</summary><div><p>Reload the browser page. Make sure you opened the <code>office/index.html</code> inside your project folder, not a copy somewhere else.</p></div></details>
           <details><summary>My assistant doesn't follow the steps.</summary><div><p>Type <code>Read AGENTS.md and follow it.</code> and then <code>next</code>.</p></div></details>
           <details><summary>It says role-play instead of real agents.</summary><div><p>Your tool can't start separate agents here, so your assistant plays each role in turn. The steps and the office are the same; it just takes longer, and the panel says so honestly.</p></div></details>

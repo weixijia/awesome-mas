@@ -18,7 +18,7 @@ you shape the team by chatting, and you watch the agents work together in a live
 
 <img src="docs/img/step4-result.webp" alt="The awesome-mas panel after a finished run: an axonometric office where five agents gathered at the party table, and on the right the result: a shortlist of three headphone offers with total prices and links" width="900">
 
-<sub>Where you will end: your team in the office, and the answer to your task on the right. A real run from the price-comparison example.</sub>
+<sub>Where you will end: your team in the office, and the answer to your task on the right. A real run from the price-comparison example, with product and shop names replaced by placeholders.</sub>
 
 </div>
 
@@ -182,15 +182,17 @@ You don't need to do anything here (in an app, approve when asked). It explains 
 
 From now on you **talk** in your assistant and **watch** the panel. Put the chat on the left half of your screen and the panel on the right. The panel updates by itself; if it ever looks stuck, reload the page.
 
+Your assistant opens the panel at setup and again at the start of every new conversation. If no browser page appeared, type `open the panel`, or double-click `office/index.html` in your folder (e.g. `my-mas` on your Desktop).
+
 ## Step 1 · Describe your task
 
 > **You type** `next`, then 5 answers · **Time** about 10–15 min · **You get** requirements R1, R2… · **Ingredient** memory
 
-Type `next`. Your assistant interviews you with **five questions, one at a time**, and waits for each answer. Answer in your own words, in any language. The examples are from the real price-comparison example in your folder.
+Type `next`. Your assistant interviews you with **five questions, one at a time**, and waits for each answer. Answer in your own words, in any language. The examples are from the real price-comparison example in your folder, without product names.
 
 | | Question | Hint | Example answer |
 |---|---|---|---|
-| **Q1** | What should your assistant help you do? | Say the task in one or two sentences. | Compare prices before I buy noise-cancelling headphones (Sony WH-1000XM6 or similar). |
+| **Q1** | What should your assistant help you do? | Say the task in one or two sentences. | Compare prices before I buy noise-cancelling headphones (one model I already have in mind, or similar). |
 | **Q2** | What are your preferences and limits? | Budget, time, things to avoid. Numbers help: they become checkable requirements. | Under £280 total including delivery, must be brand new (not refurbished), delivered within 3 days, UK shops only. |
 | **Q3** | What does a good result look like? How will you judge it? | The shape of the answer you want to receive. | A short list of the 2–3 best offers with total price and links I can check. |
 | **Q4** | Will you do this again? How often? | This tells your assistant whether a reusable team is worth it. | Yes, I'll use it again for a monitor next month. |
@@ -234,7 +236,7 @@ Type `next`. Your assistant derives a team from *your* requirements: a **Lead** 
 
 | Role | Serves | Why it exists | Group |
 |---|---|---|---|
-| Sony deal finder | R1 R3 | Searches UK shops for the exact model | A |
+| Chosen-model finder | R1 R3 | Searches UK shops for the model you picked | A |
 | Similar-model finder | R1 R3 | A different source: similar headphones, at the same time | A |
 | Catch checker | R2 R3 | An independent check for refurbished stock and slow delivery | B |
 | Budget checker | R1 | An independent check of every total, delivery included | B |
@@ -263,7 +265,7 @@ This is the step where you decide. Ask for as many changes as you like, one mess
 - *“Add a budget checker that re-checks every total.”*
 - *“Merge the two finders into one.”* (cheaper, but no longer at the same time)
 - *“The catch checker should also check the seller is in the UK.”*
-- *“Remove the similar-model finder; I only want the Sony.”*
+- *“Remove the similar-model finder; I only want the model I picked.”*
 - *“Why do we need two checkers?”* (questions are fine too)
 
 Push back on every extra agent: more agents means more tokens and more time. If a change leaves a requirement unserved, your assistant tells you, but the choice stays yours.
@@ -295,7 +297,7 @@ Type `next`. Your assistant tells you honestly how the agents will run: *separat
 - **Flags:** an agent that finds a problem stands up and raises a hand, with a yellow warning, e.g. “Refurbished: breaks R2”.
 - **Click a person** to follow only their thread; everything else dims. Click again to go back.
 
-<img src="docs/img/step4-run.webp" alt="The panel during a run: the headline reads that the Sony deal finder and the Similar-model finder are working at the same time; both sit typing in the vermilion room of group A while the two checkers wait in the blue room of group B" width="720">
+<img src="docs/img/step4-run.webp" alt="The panel during a run: the headline reads that the Chosen-model finder and the Similar-model finder are working at the same time; both sit typing in the vermilion room of group A while the two checkers wait in the blue room of group B" width="720">
 
 **When it's done**, your assistant gives you the answer in a few lines and points to `outputs/result.md`. The panel shows the same result on the right, every source with a link you can open, and an evidence grade from A (you can buy or run it) to D (opinion). The team gathers for a short celebration.
 
@@ -372,6 +374,12 @@ Use the ZIP: download it from the link under A2, unzip it, move everything insid
 <summary><b>Every file edit asks me for permission.</b></summary>
 
 You started your tool without the no-questions option. In the Antigravity CLI, type `/exit`, then start it again in your folder with `agy --dangerously-skip-permissions` (Claude Code: `claude --dangerously-skip-permissions`; Codex: `codex --search --dangerously-bypass-approvals-and-sandbox`). In Claude Code or the Claude app, restart it in this folder and choose to trust it. In other tools, choose the mode that accepts file edits in this folder.
+</details>
+
+<details>
+<summary><b>The panel didn't open.</b></summary>
+
+Type `open the panel` in your assistant. Or open your folder (e.g. `my-mas` on your Desktop) and double-click `office/index.html`. Keep that page open: it follows every MAS in this folder.
 </details>
 
 <details>

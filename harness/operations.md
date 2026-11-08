@@ -15,7 +15,7 @@ Goal: make this folder ready and tell the student what their tool can do. Runs o
 3. Web search: try one tiny search (e.g. "UK weather today"). `canSearch` = whether it worked.
 4. Subagents — **test, don't guess**: actually start one tiny subagent (instruction: "Reply with the single word ok") the way AGENTS.md → Running roles as agents describes. If it returns, `"parallel"`; if your tool has no way to start one or it fails, `"sequential"`. Say the result in your reply in the same words as the file — never claim parallel agents if the file says sequential.
 5. Write `home/env.js`. If `home/projects.js` does not exist, write it with `"current": null` and an empty `projects` list. (Old layout: if this folder already has a top-level `me/task.md`, ask the student for a short name and move `me/`, `mas/`, `team/`, `sources/`, `outputs/` and `raw/` into that MAS folder before going on.)
-6. Open the panel (AGENTS.md → Opening the panel).
+6. Open the panel (AGENTS.md → Opening the panel), and say where it is in case it didn't open.
 7. Give tool tips only if needed:
 
 | Tool | Tip |
