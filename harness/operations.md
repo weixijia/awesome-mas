@@ -10,10 +10,10 @@ Each operation ends with the same things: write its files (and their `.js` twins
 
 Goal: make this folder ready and tell the student what their tool can do. Runs once per folder; every MAS shares the result.
 
-1. Note which assistant you are (Claude Code, Codex, Antigravity, …) and the operating system.
+1. Note which assistant you are (Claude Code, Codex, Antigravity, …) and the operating system, and whether you were started **in this folder** (your working directory or workspace is this folder). If not — e.g. the setup line was pasted into a chat that was already open in another folder — carry on with setup, but add to your final reply: "Next time, start your assistant inside this folder, so it loads this folder's instructions by itself" — for a terminal tool, with its start command from the table in step 7 and `cd <this folder's full path>` in front; for an app, by opening this folder.
 2. Write `home/env.md` (a few sentences) — this also proves you can write files. If writing fails, stop and explain how to allow file edits in this tool (see the table below).
 3. Web search: try one tiny search (e.g. "UK weather today"). `canSearch` = whether it worked.
-4. Subagents — **test, don't guess**: actually start one tiny subagent (instruction: "Reply with the single word ok") the way AGENTS.md → Running roles as agents describes. If it returns, `"parallel"`; if your tool has no way to start one or it fails, `"sequential"`. Say the result in your reply in the same words as the file — never claim parallel agents if the file says sequential.
+4. Subagents — **test, don't guess**: actually start one tiny subagent (instruction: "Reply with the single word ok") the way AGENTS.md → Running roles as agents describes. If it replies, `"parallel"`; if your tool has no way to start one or it fails, `"sequential"`. If your tool only confirms the start and the reply comes later as a message (e.g. Antigravity), wait for that message before writing `home/env.js`; don't end setup on the confirmation alone. Say the result in your reply in the same words as the file — never claim parallel agents if the file says sequential.
 5. Write `home/env.js`. If `home/projects.js` does not exist, write it with `"current": null` and an empty `projects` list. (Old layout: if this folder already has a top-level `me/task.md`, ask the student for a short name and move `me/`, `mas/`, `team/`, `sources/`, `outputs/` and `raw/` into that MAS folder before going on.)
 6. Open the panel (AGENTS.md → Opening the panel), and say where it is in case it didn't open.
 7. Give tool tips only if needed:
@@ -39,7 +39,7 @@ Goal: agree with the student which MAS this conversation works on.
    - **No MAS yet**, or the student typed `new`: it's a new MAS — don't ask for a name.
    - **Otherwise** (skip the question if the student already named one): ask "Start a new MAS, or continue one of these?" and list each as `folder — title — step` (e.g. `headphone-deals — Headphone deal finder — 4 Run, done`). If they answer "new", it's a new MAS.
 4. **New:** start `describe` straight away and ask its first question in this same reply. The MAS gets its folder and name from the student's first answer (describe → step 1). The new MAS counts as chosen: if the student types `next` instead of answering, just ask question 1 again — don't run `choose` again.
-   **Continue:** set `"current"` to the folder the student picked in `home/projects.js`, then reply `MAS: <folder>` and one line on where it stands (read its `mas/state.js` → `next`). If its `me/task.md` is missing, step 1 is unfinished: carry on with `describe` in this same reply, asking the first question not yet answered in `me/answers.md`.
+   **Continue:** set `"current"` to the folder the student picked in `home/projects.js`, then reply `MAS: <folder>` and one line on where it stands (read its `mas/state.js` → `next`). If its `phase` is `running`, no agents of yours are working in this new conversation: say the last run stopped halfway and that `next` finishes it, keeping the work already done. If its `me/task.md` is missing, step 1 is unfinished: carry on with `describe` in this same reply, asking the first question not yet answered in `me/answers.md`.
 
 ---
 
@@ -114,11 +114,22 @@ The panel animates the office from the status files, so **status updates are par
    > Save each web source you use as a card in `sources/` (format in `harness/formats.md`); never invent sources, prices or quotes. If a page won't open (403, "Access Denied", a cookie or consent wall), say so in your notes and use another source — never guess what the page said.
    > Write your result to `outputs/work/<role-id>.md` and finish with a 3-line summary.
 
-   Wait for the whole group to finish. In sequential mode, do the same yourself for each role in turn.
+   Wait for the whole group to finish. In sequential mode, play each role yourself in turn, without ending your turn between roles. If your subagent tool returns before the agents finish (e.g. Antigravity), follow AGENTS.md → Running roles as agents: end your turn with one line, and continue from step 4 when they report back.
 4. After each role finishes: make sure its status shows `handoff` to its `handsTo`, then set it to `done` ("Handed over"). Between groups, update `lead.js` (`working`, e.g. "Group A done — starting the checkers").
 5. Lead: status `working` ("Writing the result"). Combine `outputs/work/*.md` into `outputs/result.md` — the answer to the task, every fact linked to its source card, problems the checkers found clearly marked, and a closing line that leaves the decision to the student. **Keep it short and readable for a non-specialist**: start with a 2–3 line answer, then at most one main table and a short "what the checkers caught" list (about one screen in total). Link to `outputs/work/<role-id>.md` for detail instead of copying it. Write `outputs/result.js` directly with your file tool, not with a script (`run` = previous run + 1), including `work`: one 3–5 line summary per role of what it found or decided (the panel shows it when the student clicks that agent). If an earlier `outputs/result.md` exists, first copy it to `outputs/result-run<N>.md`.
 6. Lead status `done` ("Result ready"). `mas/state.js`: `phase: "done"`, `next: "Done! Change a condition in me/task.md and type run again — or type unlock to change your team."`
 7. Reply: the headline result in 2–4 lines, a link to `outputs/result.md`, and the **"a chat can't do this"** moments the student just saw: agents working at the same time, a checker catching what a finder missed (if it happened), every claim linked to a source they can open, and that `run again` repeats the whole workflow in one line.
+
+---
+
+## resume  (a run that stopped halfway)
+
+A run stopped before `outputs/result.md` was written: the conversation was closed, the usage limit was hit, or an agent failed. Finish it without redoing work that is already done.
+
+1. Do `run` step 1, then read every `mas/status/*.js`. A role is **done** only when its status is `handoff` or `done` **and** `outputs/work/<role-id>.md` exists. Every other role is unfinished — including one whose work file exists but whose status says `waiting`, `working` or `flagged`: that file may be left over from an earlier run (`run` resets every status at its start).
+2. Rewrite the status of each unfinished role to `waiting` ("Waiting for my turn"), each done role to `done` ("Handed over"), and `lead.js` to `working` ("Picking up where we stopped"). `mas/state.js`: `next: "Watch the office panel — your team is working."`
+3. Tell the student in one or two lines what was finished and what will run now, and be honest about the mode (AGENTS.md → Running roles as agents).
+4. Continue with `run` step 3 from the first group that has an unfinished role, starting only its unfinished roles (their inputs are the work files already written). Then finish with `run` steps 4–7 as usual. It is still the run that stopped, so it gets one run number (step 5), not two.
 
 ---
 

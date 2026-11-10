@@ -70,7 +70,7 @@ This guide uses the Antigravity CLI. With a terminal tool (Antigravity CLI, Clau
 <summary><b>Antigravity CLI</b> (terminal) — used in this guide</summary>
 
 1. **Open a terminal.** macOS: press Cmd+Space, type `Terminal`, press Enter. Windows: open the Start menu, type `PowerShell`, press Enter.
-2. **Copy the line for your computer, paste it into the terminal and press Enter.** It installs the Antigravity CLI (if you don't have it yet), makes a folder `my-mas` on your Desktop, starts Antigravity there and gives it the setup sentence:
+2. **Copy the line for your computer, paste it into the terminal (not into an Antigravity chat that is already open) and press Enter.** It installs the Antigravity CLI (if you don't have it yet), makes a folder `my-mas` on your Desktop, starts Antigravity there and gives it the setup sentence:
    - macOS:
      ```bash
      curl -fsSL https://antigravity.google/cli/install.sh | bash && export PATH="$HOME/.local/bin:$PATH" && mkdir -p ~/Desktop/my-mas && cd ~/Desktop/my-mas && agy --dangerously-skip-permissions -i "Set up awesome-mas here: read https://raw.githubusercontent.com/weixijia/awesome-mas/main/SETUP.md and follow it."
@@ -129,6 +129,7 @@ This guide uses the Antigravity CLI. With a terminal tool (Antigravity CLI, Clau
 1. Install the [Antigravity](https://antigravity.google/) IDE and sign in with your Google account. Make a new, empty folder on your Desktop, e.g. `my-mas` (empty matters: your assistant will not touch files that are already there).
 2. Choose **Open Folder** and pick that folder. If it asks whether you trust the folder, choose yes.
 3. Paste the [setup sentence](#a2--the-setup-sentence-apps-and-other-tools) into the agent chat and press Enter. Allow it to edit files in this folder when asked.
+4. Watch the panel in your normal browser (it opens there at setup). Clicking `office/index.html` inside the IDE shows its code, not the live panel.
 </details>
 
 <details>
@@ -385,13 +386,19 @@ Type `open the panel` in your assistant. Or open your folder (e.g. `my-mas` on y
 <details>
 <summary><b>The panel doesn't update.</b></summary>
 
-Reload the browser page. Make sure you opened the `office/index.html` inside your project folder, not a copy somewhere else.
+Reload the browser page. Make sure you opened the `office/index.html` inside your project folder, not a copy somewhere else, and in a browser: in a code editor such as the Antigravity IDE, a clicked `office/index.html` shows its code, not the live panel.
 </details>
 
 <details>
 <summary><b>My assistant doesn't follow the steps.</b></summary>
 
-Type `Read AGENTS.md and follow it.` and then `next`.
+Type `Read AGENTS.md and follow it.` and then `next`. Your assistant loads this folder's instructions by itself only when it is started inside the folder: in the Antigravity CLI, type `/exit`, then `cd ~/Desktop/my-mas` (Windows: `cd "$([Environment]::GetFolderPath('Desktop'))\my-mas"`) and `agy --dangerously-skip-permissions`.
+</details>
+
+<details>
+<summary><b>The run stopped halfway, or it keeps asking me to type <code>next</code> while agents work.</b></summary>
+
+While agents are working you don't need to type anything; some tools (e.g. Antigravity) post a short update each time an agent finishes. If the run really stopped (you closed the chat, or your usage ran out), start your assistant in your folder, pick your MAS, then type `next`: it keeps the work already done and runs only the agents that didn't finish.
 </details>
 
 <details>
@@ -415,7 +422,7 @@ Say *“finish with what you have”*. Next time, use a smaller team (type `unlo
 <details>
 <summary><b>I ran out of usage.</b></summary>
 
-Your files are safe; continue when your usage resets (in the Antigravity CLI, `/usage` shows your quota). Meanwhile, double-click `practice/index.html` in your folder: [practice mode](#-practice-mode-every-step-without-tokens) replays a real example run, step by step, with no tokens. You type `next` and the answers (they are filled in for you), and the panel next to the chat moves through every step, from the task board to the finished result. Your words can't change that run; it shows you the whole journey. Next time, start with a smaller team.
+Your files are safe; continue when your usage resets (in the Antigravity CLI, `/usage` shows your quota). If a run stopped halfway, pick your MAS and type `next`: it finishes the run and keeps the work already done. Meanwhile, double-click `practice/index.html` in your folder: [practice mode](#-practice-mode-every-step-without-tokens) replays a real example run, step by step, with no tokens. You type `next` and the answers (they are filled in for you), and the panel next to the chat moves through every step, from the task board to the finished result. Your words can't change that run; it shows you the whole journey. Next time, start with a smaller team.
 </details>
 
 ## 📁 What's in your folder
